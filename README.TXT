@@ -1,4 +1,5 @@
-Vokabeltrainer mit Grammatiktraining und Hilfestellungen, Copyright Jan-Philipp Kappmeier 1996-1999.
-Visual Basic 3 Version (SPRACHEN.MAK)
+Vokabeltrainer mit Grammatiktraining und Hilfestellungen, Copyright Jan-Philipp Kappmeier 1995-2000.
+Visual Basic 5 Version (Sprachen.vbp)
 Latein-Vokabeln für Lehrbücher Ianua Nova 1 und 2. 
-STDVOK1.VOK
+SVLat1.voc
+SVLat2.voc
