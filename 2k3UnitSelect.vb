@@ -44,108 +44,130 @@ Public Class UnitSelect
     'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
     'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
     <System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
-        Me.cmdOK = New System.Windows.Forms.Button()
-        Me.cmbChapter = New System.Windows.Forms.ComboBox()
-        Me.lstUnits = New System.Windows.Forms.ListBox()
-        Me.lstToTest = New System.Windows.Forms.ListBox()
-        Me.cmbGroup = New System.Windows.Forms.ComboBox()
-        Me.cmdCancel = New System.Windows.Forms.Button()
-        Me.cmdTakeAll = New System.Windows.Forms.Button()
-        Me.cmdDelete = New System.Windows.Forms.Button()
-        Me.cmdDeleteAll = New System.Windows.Forms.Button()
-        Me.cmdTake = New System.Windows.Forms.Button()
-        Me.SuspendLayout()
-        '
-        'cmdOK
-        '
-        Me.cmdOK.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdOK.Location = New System.Drawing.Point(480, 224)
-        Me.cmdOK.Name = "cmdOK"
-        Me.cmdOK.TabIndex = 8
-        Me.cmdOK.Text = "OK"
-        '
-        'cmbChapter
-        '
-        Me.cmbChapter.DropDownWidth = 121
-        Me.cmbChapter.Location = New System.Drawing.Point(8, 192)
-        Me.cmbChapter.Name = "cmbChapter"
-        Me.cmbChapter.Size = New System.Drawing.Size(208, 21)
-        Me.cmbChapter.TabIndex = 5
-        Me.cmbChapter.Text = "Alle"
-        '
-        'lstUnits
-        '
-        Me.lstUnits.Location = New System.Drawing.Point(8, 40)
-        Me.lstUnits.Name = "lstUnits"
-        Me.lstUnits.Size = New System.Drawing.Size(208, 134)
-        Me.lstUnits.TabIndex = 1
-        '
-        'lstToTest
-        '
-        Me.lstToTest.Location = New System.Drawing.Point(320, 8)
-        Me.lstToTest.Name = "lstToTest"
-        Me.lstToTest.Size = New System.Drawing.Size(240, 199)
-        Me.lstToTest.TabIndex = 2
-        '
-        'cmbGroup
-        '
-        Me.cmbGroup.DropDownWidth = 121
-        Me.cmbGroup.Location = New System.Drawing.Point(8, 8)
-        Me.cmbGroup.Name = "cmbGroup"
-        Me.cmbGroup.Size = New System.Drawing.Size(208, 21)
-        Me.cmbGroup.TabIndex = 0
-        Me.cmbGroup.Text = "#"
-        '
-        'cmdCancel
-        '
-        Me.cmdCancel.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdCancel.Location = New System.Drawing.Point(392, 224)
-        Me.cmdCancel.Name = "cmdCancel"
-        Me.cmdCancel.TabIndex = 9
-        Me.cmdCancel.Text = "Abbrechen"
-        '
-        'cmdTakeAll
-        '
-        Me.cmdTakeAll.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdTakeAll.Location = New System.Drawing.Point(232, 80)
-        Me.cmdTakeAll.Name = "cmdTakeAll"
-        Me.cmdTakeAll.TabIndex = 4
-        Me.cmdTakeAll.Text = ">>"
-        '
-        'cmdDelete
-        '
-        Me.cmdDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdDelete.Location = New System.Drawing.Point(232, 160)
-        Me.cmdDelete.Name = "cmdDelete"
-        Me.cmdDelete.TabIndex = 7
-        Me.cmdDelete.Text = "<"
-        '
-        'cmdDeleteAll
-        '
-        Me.cmdDeleteAll.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdDeleteAll.Location = New System.Drawing.Point(232, 120)
-        Me.cmdDeleteAll.Name = "cmdDeleteAll"
-        Me.cmdDeleteAll.TabIndex = 6
-        Me.cmdDeleteAll.Text = "<<"
-        '
-        'cmdTake
-        '
-        Me.cmdTake.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdTake.Location = New System.Drawing.Point(232, 40)
-        Me.cmdTake.Name = "cmdTake"
-        Me.cmdTake.TabIndex = 3
-        Me.cmdTake.Text = ">"
-        '
-        'UnitSelect
-        '
-        Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
-        Me.ClientSize = New System.Drawing.Size(568, 254)
-        Me.Controls.AddRange(New System.Windows.Forms.Control() {Me.cmdCancel, Me.cmdOK, Me.cmdDelete, Me.cmdDeleteAll, Me.cmbChapter, Me.cmdTakeAll, Me.cmdTake, Me.lstToTest, Me.lstUnits, Me.cmbGroup})
-        Me.Name = "UnitSelect"
-        Me.Text = "Lektionen zum Abfragen auswählen"
-        Me.ResumeLayout(False)
+		Me.cmdOK = New System.Windows.Forms.Button
+		Me.cmbChapter = New System.Windows.Forms.ComboBox
+		Me.lstUnits = New System.Windows.Forms.ListBox
+		Me.lstToTest = New System.Windows.Forms.ListBox
+		Me.cmbGroup = New System.Windows.Forms.ComboBox
+		Me.cmdCancel = New System.Windows.Forms.Button
+		Me.cmdTakeAll = New System.Windows.Forms.Button
+		Me.cmdDelete = New System.Windows.Forms.Button
+		Me.cmdDeleteAll = New System.Windows.Forms.Button
+		Me.cmdTake = New System.Windows.Forms.Button
+		Me.SuspendLayout()
+		'
+		'cmdOK
+		'
+		Me.cmdOK.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdOK.Location = New System.Drawing.Point(440, 176)
+		Me.cmdOK.Name = "cmdOK"
+		Me.cmdOK.Size = New System.Drawing.Size(72, 23)
+		Me.cmdOK.TabIndex = 8
+		Me.cmdOK.Text = "OK"
+		'
+		'cmbChapter
+		'
+		Me.cmbChapter.DropDownWidth = 121
+		Me.cmbChapter.Enabled = False
+		Me.cmbChapter.Location = New System.Drawing.Point(8, 176)
+		Me.cmbChapter.Name = "cmbChapter"
+		Me.cmbChapter.Size = New System.Drawing.Size(208, 21)
+		Me.cmbChapter.TabIndex = 5
+		Me.cmbChapter.Text = "Alle"
+		'
+		'lstUnits
+		'
+		Me.lstUnits.Location = New System.Drawing.Point(8, 40)
+		Me.lstUnits.Name = "lstUnits"
+		Me.lstUnits.Size = New System.Drawing.Size(208, 121)
+		Me.lstUnits.TabIndex = 1
+		'
+		'lstToTest
+		'
+		Me.lstToTest.Location = New System.Drawing.Point(304, 40)
+		Me.lstToTest.Name = "lstToTest"
+		Me.lstToTest.Size = New System.Drawing.Size(208, 121)
+		Me.lstToTest.TabIndex = 2
+		'
+		'cmbGroup
+		'
+		Me.cmbGroup.DropDownWidth = 121
+		Me.cmbGroup.Location = New System.Drawing.Point(8, 8)
+		Me.cmbGroup.Name = "cmbGroup"
+		Me.cmbGroup.Size = New System.Drawing.Size(208, 21)
+		Me.cmbGroup.TabIndex = 0
+		Me.cmbGroup.Text = "#"
+		'
+		'cmdCancel
+		'
+		Me.cmdCancel.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdCancel.Location = New System.Drawing.Point(352, 176)
+		Me.cmdCancel.Name = "cmdCancel"
+		Me.cmdCancel.Size = New System.Drawing.Size(72, 23)
+		Me.cmdCancel.TabIndex = 9
+		Me.cmdCancel.Text = "Abbrechen"
+		'
+		'cmdTakeAll
+		'
+		Me.cmdTakeAll.Enabled = False
+		Me.cmdTakeAll.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdTakeAll.Location = New System.Drawing.Point(224, 72)
+		Me.cmdTakeAll.Name = "cmdTakeAll"
+		Me.cmdTakeAll.Size = New System.Drawing.Size(72, 23)
+		Me.cmdTakeAll.TabIndex = 4
+		Me.cmdTakeAll.Text = ">>"
+		'
+		'cmdDelete
+		'
+		Me.cmdDelete.Enabled = False
+		Me.cmdDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdDelete.Location = New System.Drawing.Point(224, 136)
+		Me.cmdDelete.Name = "cmdDelete"
+		Me.cmdDelete.Size = New System.Drawing.Size(72, 23)
+		Me.cmdDelete.TabIndex = 7
+		Me.cmdDelete.Text = "<"
+		'
+		'cmdDeleteAll
+		'
+		Me.cmdDeleteAll.Enabled = False
+		Me.cmdDeleteAll.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdDeleteAll.Location = New System.Drawing.Point(224, 104)
+		Me.cmdDeleteAll.Name = "cmdDeleteAll"
+		Me.cmdDeleteAll.Size = New System.Drawing.Size(72, 23)
+		Me.cmdDeleteAll.TabIndex = 6
+		Me.cmdDeleteAll.Text = "<<"
+		'
+		'cmdTake
+		'
+		Me.cmdTake.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.cmdTake.Location = New System.Drawing.Point(224, 40)
+		Me.cmdTake.Name = "cmdTake"
+		Me.cmdTake.Size = New System.Drawing.Size(72, 23)
+		Me.cmdTake.TabIndex = 3
+		Me.cmdTake.Text = ">"
+		'
+		'UnitSelect
+		'
+		Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
+		Me.ClientSize = New System.Drawing.Size(522, 207)
+		Me.Controls.Add(Me.cmdCancel)
+		Me.Controls.Add(Me.cmdOK)
+		Me.Controls.Add(Me.cmdDelete)
+		Me.Controls.Add(Me.cmdDeleteAll)
+		Me.Controls.Add(Me.cmbChapter)
+		Me.Controls.Add(Me.cmdTakeAll)
+		Me.Controls.Add(Me.cmdTake)
+		Me.Controls.Add(Me.lstToTest)
+		Me.Controls.Add(Me.lstUnits)
+		Me.Controls.Add(Me.cmbGroup)
+		Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+		Me.MaximizeBox = False
+		Me.Name = "UnitSelect"
+		Me.ShowInTaskbar = False
+		Me.Text = "Lektionen zum Abfragen auswählen"
+		Me.ResumeLayout(False)
 
-    End Sub
+	End Sub
 
 #End Region
 

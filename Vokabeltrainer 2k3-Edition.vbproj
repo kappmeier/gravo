@@ -1,15 +1,15 @@
 <VisualStudioProject>
     <VisualBasic
         ProjectType = "Local"
-        ProductVersion = "7.0.9466"
-        SchemaVersion = "1.0"
+        ProductVersion = "7.10.3077"
+        SchemaVersion = "2.0"
         ProjectGuid = "{DE649BBA-C7ED-4C82-B66D-06FDA9217AEF}"
     >
         <Build>
             <Settings
                 ApplicationIcon = ""
                 AssemblyKeyContainerName = ""
-                AssemblyName = "Vokabeltrainer"
+                AssemblyName = "VokTrain2k3"
                 AssemblyOriginatorKeyFile = ""
                 AssemblyOriginatorKeyMode = "None"
                 DefaultClientScript = "JScript"
@@ -52,7 +52,7 @@
                     OutputPath = "bin\"
                     RegisterForComInterop = "false"
                     RemoveIntegerChecks = "true"
-                    TreatWarningsAsErrors = "false"
+                    TreatWarningsAsErrors = "true"
                     WarningLevel = "1"
                 />
             </Settings>
@@ -91,103 +91,108 @@
         <Files>
             <Include>
                 <File
-                    RelPath = "AssemblyInfo.vb"
+                    RelPath = "2k3AssemblyInfo.vb"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "Functions.vb"
+                    RelPath = "2k3DBOperation.vb"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "GroupSelect.vb"
+                    RelPath = "2k3GroupSelect.vb"
                     SubType = "Form"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "GroupSelect.resx"
-                    DependentUpon = "GroupSelect.vb"
+                    RelPath = "2k3GroupSelect.resx"
+                    DependentUpon = "2k3GroupSelect.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3Management.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3Management.resx"
+                    DependentUpon = "2k3Management.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3SaveProgress.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3SaveProgress.resx"
+                    DependentUpon = "2k3SaveProgress.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3Start.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3Start.resx"
+                    DependentUpon = "2k3Start.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3TestModeSelect.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3TestModeSelect.resx"
+                    DependentUpon = "2k3TestModeSelect.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3UnitSelect.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3UnitSelect.resx"
+                    DependentUpon = "2k3UnitSelect.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3WordInput.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3WordInput.resx"
+                    DependentUpon = "2k3WordInput.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "2k3WordTest.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3WordTestGroupCollection.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3WordTesting.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "2k3WordTesting.resx"
+                    DependentUpon = "2k3WordTesting.vb"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
                     RelPath = "licenses.licx"
                     BuildAction = "Content"
-                />
-                <File
-                    RelPath = "Management.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Management.resx"
-                    DependentUpon = "Management.vb"
-                    BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "OldCode.vb"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Routines.vb"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Start.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Start.resx"
-                    DependentUpon = "Start.vb"
-                    BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "TestModeSelect.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "TestModeSelect.resx"
-                    DependentUpon = "TestModeSelect.vb"
-                    BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "UnitSelect.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "UnitSelect.resx"
-                    DependentUpon = "UnitSelect.vb"
-                    BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "Vocabulary.vb"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "WordInput.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "WordInput.resx"
-                    DependentUpon = "WordInput.vb"
-                    BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "WordTesting.vb"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "WordTesting.resx"
-                    DependentUpon = "WordTesting.vb"
-                    BuildAction = "EmbeddedResource"
                 />
             </Include>
         </Files>
