@@ -1,47 +1,52 @@
 Public Class Management
-    Inherits System.Windows.Forms.Form
+	Inherits System.Windows.Forms.Form
 
 	' Datenbank-Zugriff
-	Dim voc As New CWordTest(Application.StartupPath() & "\voc.mdb")
-	Dim vocSave As CWordTest
+	'Dim voc As xlsOldVoc
+	'Dim vocSave As xlsOldVoc
+	Dim db As New CDBOperation
+	Dim cGroups As xlsVocInputGroupCollection	' Vorhandene Lehrgruppen
+	Dim cUnits As xlsUnitCollection		' Vorhandene Lehrgruppen
 
 	' Datenverwaltung
 	Dim bDBChosen As Boolean = False	' Gültige Datenbank ausgewählt?
 	Dim sDBPath As String = ""	  ' Datenbankpfad für die Sicherung
 	Dim bExport As Boolean = True	' Exportieren oder Importieren
+	Dim bLoaded As Boolean = False
+
 
 #Region " Windows Form Designer generated code "
 
-    Public Sub New()
-        MyBase.New()
+	Public Sub New()
+		MyBase.New()
 
-        'This call is required by the Windows Form Designer.
-        InitializeComponent()
+		'This call is required by the Windows Form Designer.
+		InitializeComponent()
 
-        'Add any initialization after the InitializeComponent() call
+		'Add any initialization after the InitializeComponent() call
 
-    End Sub
+	End Sub
 
-    'Form overrides dispose to clean up the component list.
-    Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
-        If disposing Then
-            If Not (components Is Nothing) Then
-                components.Dispose()
-            End If
-        End If
-        MyBase.Dispose(disposing)
-    End Sub
+	'Form overrides dispose to clean up the component list.
+	Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+		If disposing Then
+			If Not (components Is Nothing) Then
+				components.Dispose()
+			End If
+		End If
+		MyBase.Dispose(disposing)
+	End Sub
 
-    'Required by the Windows Form Designer
-    Private components As System.ComponentModel.IContainer
+	'Required by the Windows Form Designer
+	Private components As System.ComponentModel.IContainer
 
-    'NOTE: The following procedure is required by the Windows Form Designer
-    'It can be modified using the Windows Form Designer.  
-    'Do not modify it using the code editor.
+	'NOTE: The following procedure is required by the Windows Form Designer
+	'It can be modified using the Windows Form Designer.  
+	'Do not modify it using the code editor.
 	Friend WithEvents tab As System.Windows.Forms.TabControl
 	Friend WithEvents tabData As System.Windows.Forms.TabPage
 	Friend WithEvents SaveFile As System.Windows.Forms.SaveFileDialog
-    Friend WithEvents OpenFile As System.Windows.Forms.OpenFileDialog
+	Friend WithEvents OpenFile As System.Windows.Forms.OpenFileDialog
 	Friend WithEvents lblSelectedDB As System.Windows.Forms.Label
 	Friend WithEvents cmdDataDBVersion As System.Windows.Forms.Button
 	Friend WithEvents cmdDataSaveUnit As System.Windows.Forms.Button
@@ -403,7 +408,7 @@ Public Class Management
 		Me.MaximizeBox = False
 		Me.Name = "Management"
 		Me.ShowInTaskbar = False
-		Me.Text = "Management"
+		Me.Text = "Daten-Management"
 		Me.tab.ResumeLayout(False)
 		Me.tabData.ResumeLayout(False)
 		Me.tabGroup.ResumeLayout(False)
@@ -415,161 +420,177 @@ Public Class Management
 #End Region
 
 	Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-		Dim cTemp As Collection
+
+		db.Open(Application.StartupPath() & "\voc.mdb")
+
+		cGroups = New xlsVocInputGroupCollection(db)
+
+		'voc = New xlsOldVoc(db)
+
+		'Dim cTemp As Collection
 		Dim i As Integer		   ' Indexzähler
 
+		Dim cLanguages As New Collection
+		cLanguages.Add("General")		 ' 1
+		cLanguages.Add("English")		 ' 2
+		cLanguages.Add("French")		  ' 3
+		cLanguages.Add("Latin")		   ' 4
+		cLanguages.Add("Italian")		   ' 5
 		' Anzeigen der verfügbaren Sprachen
-		cTemp = voc.GetLanguages()
-		For i = 1 To cTemp.Count
-			Me.cmbGroupLanguage.Items.Add(cTemp.Item(i))
+		For i = 1 To cLanguages.Count
+			Me.cmbGroupLanguage.Items.Add(cLanguages.Item(i))
 		Next i
+		'bLoaded = True
 		UpdateForm()
 	End Sub
 
 	Private Sub UpdateForm()
-		voc.Close()
-		voc = New CWordTest(Application.StartupPath() & "\voc.mdb")
+
+		'If bLoaded = False Then Exit Sub
+		''		If Not voc Is Nothing Then voc.Close()
+
+        Dim voc As xlsOldVoc = New xlsOldVoc(db)
 		Dim iSelectedGroup As Integer = lstGroupList.SelectedIndex
 		Dim iSelectedGroupUnits As Integer = cmbUnitSelectGroup.SelectedIndex
 		Dim iSelectedUnit = Me.lstUnitList.SelectedIndex
 		Dim i As Integer
+
+		' Füllen der Listen mit allen verfügbaren Gruppen, DataDBSelection extra, je Export-Status
 		lstGroupList.Items.Clear()
 		cmbUnitSelectGroup.Items.Clear()
 		cmbDataDBSelection.Items.Clear()
-		' Füllen der Listen mit allen verfügbaren Gruppen, DataDBSelection extra, je Export-Status
-		For i = 0 To voc.Groups.Count - 1
-			Me.lstGroupList.Items.Add(voc.Groups(i).Description)
-			Me.cmbUnitSelectGroup.Items.Add(voc.Groups(i).Description)
-			If bExport Then Me.cmbDataDBSelection.Items.Add(voc.Groups(i).Description)
-		Next i
-		If Not bExport And bDBChosen Then
-			For i = 0 To vocSave.Groups.Count - 1
-				Me.cmbDataDBSelection.Items.Add(vocSave.Groups(i).Description)
-			Next i
-		End If
+		For i = 0 To cGroups.Count - 1
+			Me.lstGroupList.Items.Add(cGroups(i).Description)
+			Me.cmbUnitSelectGroup.Items.Add(cGroups(i).Description)
+			If bExport Then Me.cmbDataDBSelection.Items.Add(cGroups(i).Description)
+		Next
 
-		lstGroupList.SelectedIndex = iSelectedGroup
-		cmbUnitSelectGroup.SelectedIndex = iSelectedGroupUnits
-		Me.lstUnitList.SelectedIndex = iSelectedUnit
-		Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
-		If voc.DatabaseVersionIndex <> 0 Then
-			Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.DatabaseVersionIndex - 1) & " updaten."
-			Me.cmdDataDBVersion.Enabled = True
-		Else
-			Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(0) & " updaten."
-			Me.cmdDataDBVersion.Enabled = False
-		End If
+		'If Not bExport And bDBChosen Then
+		'	For i = 0 To vocSave.Groups.Count - 1
+		'		Me.cmbDataDBSelection.Items.Add(vocSave.Groups(i).Description)
+		'	Next i
+		'End If
 
-		If bDBChosen Then Me.cmdDataSaveUnit.Enabled = True Else Me.cmdDataSaveUnit.Enabled = False
+		'lstGroupList.SelectedIndex = iSelectedGroup
+		'cmbUnitSelectGroup.SelectedIndex = iSelectedGroupUnits
+		'Me.lstUnitList.SelectedIndex = iSelectedUnit
+        Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
+        If voc.DatabaseVersionIndex <> 0 Then
+            Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.DatabaseVersionIndex - 1) & " updaten."
+            Me.cmdDataDBVersion.Enabled = True
+        Else
+            Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(0) & " updaten."
+            Me.cmdDataDBVersion.Enabled = False
+        End If
 
-		Try
-			Me.lstGroupList.SelectedIndex = 0
-			Me.cmbUnitSelectGroup.SelectedIndex = 0
-			Me.cmbDataDBSelection.SelectedIndex = 0
-		Catch
-		End Try
-	End Sub
+        'If bDBChosen Then Me.cmdDataSaveUnit.Enabled = True Else Me.cmdDataSaveUnit.Enabled = False
+
+        Try
+            Me.lstGroupList.SelectedIndex = 0
+            Me.cmbUnitSelectGroup.SelectedIndex = 0
+            Me.cmbDataDBSelection.SelectedIndex = 0
+        Catch
+        End Try
+    End Sub
 
 	Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchließen.Click
 		Me.Close()
 	End Sub
 
 	Private Sub ClosingForm(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-		voc.Close()
+		'voc.Close()
 	End Sub
 
 	Private Sub DataSaveUnit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataSaveUnit.Click
-		Dim progress As New SaveProgress
-		If bExport Then
-			voc.SelectTable(voc.Groups(cmbDataDBSelection.SelectedIndex).Table)
-			progress.Overwrite = Me.chkDataOverwrite.Checked
-			progress.AddOnly = Me.chkDataAddOnly.Checked
-			progress.DBPath = sDBPath
-			progress.Show()
-			Application.DoEvents()
-			Do While progress.IsShown = False
-			Loop
-			progress.SetVoc(voc)
-			progress.Save()
-			progress.Close()
-		Else
-			vocSave.SelectTable(vocSave.Groups(cmbDataDBSelection.SelectedIndex).Table)
-			progress.Overwrite = True
-			progress.AddOnly = False
-			progress.DBPath = Application.StartupPath() & "\voc.mdb"
-			progress.Show()
-			Application.DoEvents()
-			Do While progress.IsShown = False
-			Loop
-			progress.SetVoc(vocSave)
-			progress.Save()
-			progress.Close()
-		End If
+		'Dim progress As New SaveProgress
+		'If bExport Then
+		'	voc.SelectTable(voc.Groups(cmbDataDBSelection.SelectedIndex).Table)
+		'	progress.Overwrite = Me.chkDataOverwrite.Checked
+		'	progress.AddOnly = Me.chkDataAddOnly.Checked
+		'	progress.DBPath = sDBPath
+		'	progress.Show()
+		'	Application.DoEvents()
+		'	Do While progress.IsShown = False
+		'	Loop
+		'	progress.SetVoc(voc)
+		'	progress.Save()
+		'	progress.Close()
+		'Else
+		'	vocSave.SelectTable(vocSave.Groups(cmbDataDBSelection.SelectedIndex).Table)
+		'	progress.Overwrite = True
+		'	progress.AddOnly = False
+		'	progress.DBPath = Application.StartupPath() & "\voc.mdb"
+		'	progress.Show()
+		'	Application.DoEvents()
+		'	Do While progress.IsShown = False
+		'	Loop
+		'	progress.SetVoc(vocSave)
+		'	progress.Save()
+		'	progress.Close()
+		'End If
 
-		Exit Sub
+		'Exit Sub
 	End Sub
 
-	Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataDBVersion.Click
-		voc.UpdateDatabaseVersion()
-		UpdateForm()
-	End Sub
+    Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataDBVersion.Click
+        Dim voc As xlsOldVoc = New xlsOldVoc(db)
+        voc.UpdateDatabaseVersion()
+        UpdateForm()
+    End Sub
 
 	Private Sub DataSelectSaveDB(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataSelectSaveDB.Click
-		Me.SaveFile.ShowDialog()
-		bDBChosen = True
-		Me.lblSelectedDB.Text = "Datenbank:" & vbCrLf & SaveFile.FileName
-		sDBPath = SaveFile.FileName
-		Try
-			FileOpen(1, sDBPath, OpenMode.Input)
-			FileClose(1)
-		Catch ex As IO.IOException When Err.Number = 53		 ' Datei existiert nicht, kopieren
-			' Datei auf neueste version überprüfen
-			vocSave = New CWordTest(Application.StartupPath() & "\new.mdb")
-			Do While vocSave.DatabaseVersionIndex <> 0
-				vocSave.UpdateDatabaseVersion()
-			Loop
-			vocSave = Nothing
-			FileCopy(Application.StartupPath() & "\new.mdb", SaveFile.FileName)
-		Catch es As IO.IOException When Err.Number = 75
-			' nichts
-		Catch ex As Exception
-			MsgBox(ex.Message & vbCrLf & Err.Number)
-		End Try
-		' Datenbank laden, Version aktualisieren
-		vocSave = New CWordTest(sDBPath)
-		Do While vocSave.DatabaseVersionIndex <> 0
-			vocSave.UpdateDatabaseVersion()
-		Loop
-		UpdateForm()
+		'Me.SaveFile.ShowDialog()
+		'bDBChosen = True
+		'Me.lblSelectedDB.Text = "Datenbank:" & vbCrLf & SaveFile.FileName
+		'sDBPath = SaveFile.FileName
+		'Try
+		'	FileOpen(1, sDBPath, OpenMode.Input)
+		'	FileClose(1)
+		'Catch ex As IO.IOException When Err.Number = 53		 ' Datei existiert nicht, kopieren
+		'	' Datei auf neueste version überprüfen
+		'	vocSave = New xlsOldVoc(db)
+		'	Do While vocSave.DatabaseVersionIndex <> 0
+		'		vocSave.UpdateDatabaseVersion()
+		'	Loop
+		'	vocSave = Nothing
+		'	FileCopy(Application.StartupPath() & "\new.mdb", SaveFile.FileName)
+		'Catch es As IO.IOException When Err.Number = 75
+		'	' nichts
+		'Catch ex As Exception
+		'	MsgBox(ex.Message & vbCrLf & Err.Number)
+		'End Try
+		'' Datenbank laden, Version aktualisieren
+		'vocSave = New xlsOldVoc(db)
+		'Do While vocSave.DatabaseVersionIndex <> 0
+		'	vocSave.UpdateDatabaseVersion()
+		'Loop
+		'UpdateForm()
 	End Sub
 
 	Private Sub DataExportMode(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optExport.CheckedChanged
-		bExport = True
-		Me.cmdDataSelectSaveDB.Text = "Zieldatei wählen"
-		Me.cmdDataSaveUnit.Text = "Gruppe sichern"
-		UpdateForm()
+		'bExport = True
+		'Me.cmdDataSelectSaveDB.Text = "Zieldatei wählen"
+		'Me.cmdDataSaveUnit.Text = "Gruppe sichern"
+		'UpdateForm()
 	End Sub
 
 	Private Sub DataImportMode(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optImport.CheckedChanged
-		bExport = False
-		Me.cmdDataSelectSaveDB.Text = "Quelldatei wählen"
-		Me.cmdDataSaveUnit.Text = "Gruppe importieren"
-		UpdateForm()
+		'bExport = False
+		'Me.cmdDataSelectSaveDB.Text = "Quelldatei wählen"
+		'Me.cmdDataSaveUnit.Text = "Gruppe importieren"
+		'UpdateForm()
 	End Sub
 
 	Private Sub GroupAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupAdd.Click
 		If Trim(Me.txtGroupName.Text) = "" Then Exit Sub
-		voc.CloseTable()
-		voc.Groups.Add(Me.txtGroupName.Text, Me.cmbGroupLanguage.SelectedIndex + 1)
+		cGroups.Add(Me.txtGroupName.Text, Me.cmbGroupLanguage.SelectedIndex + 1)
 		UpdateForm()
 	End Sub
 
 	Private Sub GroupEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupEdit.Click
 		If Trim(Me.txtGroupName.Text) = "" Then Exit Sub
 		' Ändern der Gruppen-Informationen in der Datenbank
-		voc.CloseTable()
-		voc.Groups.Language(Me.lstGroupList.SelectedItem, Me.cmbGroupLanguage.SelectedIndex + 1)
-		voc.Groups.Rename(Me.lstGroupList.SelectedItem, Me.txtGroupName.Text)
+		cGroups.Rename(Me.lstGroupList.SelectedItem, Me.txtGroupName.Text)
 		UpdateForm()		  ' Anzeige Aktualisieren
 	End Sub
 
@@ -580,18 +601,17 @@ Public Class Management
 	Private Sub GroupSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstGroupList.SelectedIndexChanged
 		If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irreguläre Werte abfangen
 		Me.txtGroupName.Text = Me.lstGroupList.SelectedItem		  ' Text aktualisieren
-		Me.cmbGroupLanguage.SelectedItem = voc.Groups(lstGroupList.SelectedIndex).Type		  ' Kombobox aktualisieren
+		Me.cmbGroupLanguage.SelectedItem = cGroups(lstGroupList.SelectedIndex).Type		  ' Kombobox aktualisieren
 	End Sub
 
 	Private Sub UnitAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitAdd.Click
 		If Trim(Me.txtUnitName.Text = "") Then Exit Sub
-		voc.SelectTable(voc.Groups(cmbUnitSelectGroup.SelectedIndex).Table)
-		voc.UnitAdd(Me.txtUnitName.Text)
+		cUnits.Add(Me.txtUnitName.Text)
 		UpdateForm()		  'Anzeige aktualisieren
 	End Sub
 
 	Private Sub UnitEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitEdit.Click
-		voc.UnitEdit(Me.txtUnitName.Text, Me.lstUnitList.SelectedIndex + 1)
+		cUnits.Rename(Me.lstUnitList.SelectedIndex + 1, Me.txtUnitName.Text)
 		UpdateForm()
 	End Sub
 
@@ -605,13 +625,12 @@ Public Class Management
 
 	Private Sub UnitSelectGroup(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbUnitSelectGroup.SelectedIndexChanged
 		' Lektionen anzeigen
-		Dim cUnits As New Collection
 		Dim i As Integer
-		voc.SelectTable(voc.Groups(cmbUnitSelectGroup.SelectedIndex).Table)
-		cUnits = voc.GetUnits
+		cUnits = New xlsUnitCollection(db)
+		cUnits.LoadGroup(cGroups(cmbUnitSelectGroup.SelectedIndex).Table)
 		Me.lstUnitList.Items.Clear()
 		For i = 1 To cUnits.Count
-			lstUnitList.Items.Add(cUnits.Item(i).item(2))
+			lstUnitList.Items.Add(cUnits.Item(i).Name)
 		Next i
 		If cUnits.Count > 0 Then lstUnitList.SelectedIndex = 0 Else Me.txtUnitName.Text = ""
 	End Sub

@@ -1,8 +1,9 @@
 Public Class UnitSelect
     Inherits System.Windows.Forms.Form
-    Private m_Parent As WordTesting
+	Private m_Parent As VocTest
     Friend WithEvents cmbGroup As System.Windows.Forms.ComboBox
-    Private voc As CWordTest
+	Private voc As xlsVocInput
+	Private db As New CDBOperation
     Private cLections As Collection
     Private cTestUnits As New Collection()
 
@@ -175,7 +176,8 @@ Public Class UnitSelect
         ' Laden der Daten
         Dim i As Integer
 
-        voc = New CWordTest(Application.StartupPath() & "\voc.mdb")
+		db.Open(Application.StartupPath() & "\voc.mdb")
+		voc = New xlsVocInput(db)
         For i = 0 To voc.Groups.Count - 1
             Me.cmbGroup.Items.Add(voc.Groups(i).Description)
         Next
@@ -192,42 +194,41 @@ Public Class UnitSelect
         Me.Close()
     End Sub
 
-    Property SetParent() As WordTesting
-        Get
-            Return m_Parent
-        End Get
-        Set(ByVal Form As WordTesting)
-            m_Parent = Form
-        End Set
-    End Property
+	Property SetParent() As VocTest
+		Get
+			Return m_Parent
+		End Get
+		Set(ByVal Form As VocTest)
+			m_Parent = Form
+		End Set
+	End Property
 
-    Private Sub cmbGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbGroup.SelectedIndexChanged
-        voc = New CWordTest(Application.StartupPath() & "\voc.mdb", voc.Groups(cmbGroup.SelectedIndex).Table)
-        cLections = voc.GetUnits()
+	Private Sub cmbGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbGroup.SelectedIndexChanged
+		voc = New xlsVocInput(db, voc.Groups(cmbGroup.SelectedIndex).Table)
 
-        Dim i As Short, cTemp As Collection
+		Dim i As Short, cTemp As Collection
 
-        Me.lstUnits.Items.Clear()
-        For i = 1 To cLections.Count
-            cTemp = cLections.Item(i)
-            lstUnits.Items.Add(cTemp.Item(2))
-        Next i
-        If lstUnits.Items.Count > 0 Then lstUnits.SelectedIndex = 0
-        voc.Close()
-    End Sub
+		Me.lstUnits.Items.Clear()
+		For i = 1 To cLections.Count
+			cTemp = cLections.Item(i)
+			lstUnits.Items.Add(cTemp.Item(2))
+		Next i
+		If lstUnits.Items.Count > 0 Then lstUnits.SelectedIndex = 0
+		voc.Close()
+	End Sub
 
-    Private Sub cmdTake_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdTake.Click
-        Dim structTest As TestUnits
+	Private Sub cmdTake_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdTake.Click
+		Dim structTest As TestUnits
 
-        Me.lstToTest.Items.Add(Me.cmbGroup.SelectedItem & " - " & Me.lstUnits.SelectedItem)
-        structTest.Unit = lstUnits.SelectedIndex + 1 '                  lstUnits.SelectedItem
-        structTest.Table = voc.Groups(cmbGroup.SelectedIndex).Table
-        cTestUnits.Add(structTest)
-        m_Parent.TestType = voc.Groups(cmbGroup.SelectedIndex).Type
-    End Sub
+		Me.lstToTest.Items.Add(Me.cmbGroup.SelectedItem & " - " & Me.lstUnits.SelectedItem)
+		structTest.Unit = lstUnits.SelectedIndex + 1	   '                  lstUnits.SelectedItem
+		structTest.Table = voc.Groups(cmbGroup.SelectedIndex).Table
+		cTestUnits.Add(structTest)
+		m_Parent.TestType = voc.Groups(cmbGroup.SelectedIndex).Type
+	End Sub
 
-    Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
-        m_Parent.TestUnits = cTestUnits
-        Me.Close()
-    End Sub
+	Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
+		m_Parent.TestUnits = cTestUnits
+		Me.Close()
+	End Sub
 End Class

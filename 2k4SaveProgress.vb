@@ -5,9 +5,9 @@ Public Class SaveProgress
 	Private m_bAddOnly As Boolean = True
 	Private m_sDBPath As String = ""
 	Private m_bIsShown As Boolean = False
-	Private m_voc As CWordTest
+	Private m_voc As xlsOldVoc
 
-	'Dim voc As New CWordTest(Application.StartupPath() & "\voc.mdb")
+	'Dim voc As New xlsVocInput(Application.StartupPath() & "\voc.mdb")
 
 #Region " Vom Windows Form Designer generierter Code "
 
@@ -113,25 +113,25 @@ Public Class SaveProgress
 		End Get
 	End Property
 
-	Public Sub SetVoc(ByRef voc As CWordTest)
+	Public Sub SetVoc(ByRef voc As xlsOldVoc)
 		m_voc = voc
 	End Sub
 
 	Public Function Save()
 		Select Case m_voc.SaveTable(m_sDBPath, m_bAddOnly, m_bOverwrite, Me.Progress, Me.lblCurrentElement)
-			Case SaveErrors.NoError
+			Case xlsSaveErrors.NoError
 				Return True
-			Case SaveErrors.NotConnected
+			Case xlsSaveErrors.NotConnected
 				MsgBox("Sie müssen sich mit einer Datenbank verbinden," & vbCrLf & "bevor Sie Daten sichern können!", vbCritical)
 				Return False
-			Case SaveErrors.TableExists
+			Case xlsSaveErrors.TableExists
 				Dim iYesNo As MsgBoxResult = MsgBox("Soll die Tabelle überschrieben werden?", MsgBoxStyle.YesNo)
 				If iYesNo = MsgBoxResult.Yes Then
 					If m_voc.SaveTable(m_sDBPath, m_bAddOnly, True, Me.Progress, Me.lblCurrentElement) Then MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical) : Return False Else Return True
 				Else
 					Return False
 				End If
-			Case SaveErrors.UnknownError
+			Case xlsSaveErrors.UnknownError
 				MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical)
 				Return False
 		End Select

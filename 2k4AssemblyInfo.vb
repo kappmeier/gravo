@@ -7,11 +7,11 @@ Imports System.Runtime.InteropServices
 
 ' Die Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("Vokabeltrainer 2k3-Edition")> 
+<Assembly: AssemblyTitle("Vokabeltrainer 2k4-Edition")> 
 <Assembly: AssemblyDescription("Universeller Vokabel- und Grammatiktrainer für verschiedene Sprachen.")> 
 <Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
 <Assembly: AssemblyProduct("VokTrain")> 
-<Assembly: AssemblyCopyright("©opyleft by Jan-Philipp Kappmeier 1995-2004")> 
+<Assembly: AssemblyCopyright("©opyleft by 1995-2005")> 
 <Assembly: AssemblyTrademark("Jan-Philipp Kappmeier")> 
 <Assembly: CLSCompliant(True)> 
 
@@ -28,4 +28,4 @@ Imports System.Runtime.InteropServices
 ' Sie können alle Werte angeben oder auf die standardmäßigen Build- und Revisionsnummern 
 ' zurückgreifen, indem Sie '*' wie unten angezeigt verwenden:
 
-<Assembly: AssemblyVersion("4.0.*")> 
+<Assembly: AssemblyVersion("4.1.*")> 

@@ -1,7 +1,7 @@
 Public Class TestModeSelect
     Inherits System.Windows.Forms.Form
-    Dim m_Parent As WordTesting
-    'Dim voc As New CWordTest(Application.StartupPath() & "\voc.mdb")
+	Dim m_Parent As VocTest
+    'Dim voc As New xlsVocInput(Application.StartupPath() & "\voc.mdb")
 
 #Region " Windows Form Designer generated code "
 
@@ -37,7 +37,7 @@ Public Class TestModeSelect
     Friend WithEvents optWordToMeaning As System.Windows.Forms.RadioButton
     Friend WithEvents cmbNextWordModes As System.Windows.Forms.ComboBox
     Friend WithEvents cmbNextWordModesWrong As System.Windows.Forms.ComboBox
-    Friend WithEvents cmbIrregularTestModes As System.Windows.Forms.ComboBox
+    Friend WithEvents cmbxlsVocTestExtendedModes As System.Windows.Forms.ComboBox
     Friend WithEvents optDefault As System.Windows.Forms.RadioButton
     Friend WithEvents chkFirstTry As System.Windows.Forms.CheckBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
@@ -45,6 +45,7 @@ Public Class TestModeSelect
     Friend WithEvents Label3 As System.Windows.Forms.Label
 	Friend WithEvents chkOnlyUsed As System.Windows.Forms.CheckBox
 	Friend WithEvents chkDescription As System.Windows.Forms.CheckBox
+	Friend WithEvents chkRequestedOnly As System.Windows.Forms.CheckBox
 	<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
 		Me.cmdOK = New System.Windows.Forms.Button
 		Me.cmbNextWordModes = New System.Windows.Forms.ComboBox
@@ -54,19 +55,20 @@ Public Class TestModeSelect
 		Me.optMeaningToWord = New System.Windows.Forms.RadioButton
 		Me.optWordToMeaning = New System.Windows.Forms.RadioButton
 		Me.chkFirstTry = New System.Windows.Forms.CheckBox
-		Me.cmbIrregularTestModes = New System.Windows.Forms.ComboBox
+		Me.cmbxlsVocTestExtendedModes = New System.Windows.Forms.ComboBox
 		Me.Label1 = New System.Windows.Forms.Label
 		Me.Label2 = New System.Windows.Forms.Label
 		Me.Label3 = New System.Windows.Forms.Label
 		Me.chkOnlyUsed = New System.Windows.Forms.CheckBox
 		Me.chkDescription = New System.Windows.Forms.CheckBox
+		Me.chkRequestedOnly = New System.Windows.Forms.CheckBox
 		Me.GroupBox1.SuspendLayout()
 		Me.SuspendLayout()
 		'
 		'cmdOK
 		'
 		Me.cmdOK.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-		Me.cmdOK.Location = New System.Drawing.Point(272, 176)
+		Me.cmdOK.Location = New System.Drawing.Point(272, 200)
 		Me.cmdOK.Name = "cmdOK"
 		Me.cmdOK.TabIndex = 0
 		Me.cmdOK.Text = "OK"
@@ -140,13 +142,13 @@ Public Class TestModeSelect
 		Me.chkFirstTry.TabIndex = 7
 		Me.chkFirstTry.Text = "Erste-Abfrage-Modus aktivieren"
 		'
-		'cmbIrregularTestModes
+		'cmbxlsVocTestExtendedModes
 		'
-		Me.cmbIrregularTestModes.Location = New System.Drawing.Point(184, 24)
-		Me.cmbIrregularTestModes.Name = "cmbIrregularTestModes"
-		Me.cmbIrregularTestModes.Size = New System.Drawing.Size(168, 21)
-		Me.cmbIrregularTestModes.TabIndex = 9
-		Me.cmbIrregularTestModes.Text = "cmbIrregularTestModes"
+		Me.cmbxlsVocTestExtendedModes.Location = New System.Drawing.Point(184, 24)
+		Me.cmbxlsVocTestExtendedModes.Name = "cmbxlsVocTestExtendedModes"
+		Me.cmbxlsVocTestExtendedModes.Size = New System.Drawing.Size(168, 21)
+		Me.cmbxlsVocTestExtendedModes.TabIndex = 9
+		Me.cmbxlsVocTestExtendedModes.Text = "cmbxlsVocTestExtendedModes"
 		'
 		'Label1
 		'
@@ -177,6 +179,8 @@ Public Class TestModeSelect
 		'
 		'chkOnlyUsed
 		'
+		Me.chkOnlyUsed.Checked = True
+		Me.chkOnlyUsed.CheckState = System.Windows.Forms.CheckState.Checked
 		Me.chkOnlyUsed.FlatStyle = System.Windows.Forms.FlatStyle.Popup
 		Me.chkOnlyUsed.Location = New System.Drawing.Point(168, 128)
 		Me.chkOnlyUsed.Name = "chkOnlyUsed"
@@ -193,17 +197,29 @@ Public Class TestModeSelect
 		Me.chkDescription.TabIndex = 14
 		Me.chkDescription.Text = "Beschreibung immer anzeigen"
 		'
+		'chkRequestedOnly
+		'
+		Me.chkRequestedOnly.Checked = True
+		Me.chkRequestedOnly.CheckState = System.Windows.Forms.CheckState.Checked
+		Me.chkRequestedOnly.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+		Me.chkRequestedOnly.Location = New System.Drawing.Point(168, 176)
+		Me.chkRequestedOnly.Name = "chkRequestedOnly"
+		Me.chkRequestedOnly.Size = New System.Drawing.Size(184, 16)
+		Me.chkRequestedOnly.TabIndex = 15
+		Me.chkRequestedOnly.Text = "Nur Pflicht-Vokabeln"
+		'
 		'TestModeSelect
 		'
 		Me.AcceptButton = Me.cmdOK
 		Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
-		Me.ClientSize = New System.Drawing.Size(354, 207)
+		Me.ClientSize = New System.Drawing.Size(354, 231)
+		Me.Controls.Add(Me.chkRequestedOnly)
 		Me.Controls.Add(Me.chkDescription)
 		Me.Controls.Add(Me.chkOnlyUsed)
 		Me.Controls.Add(Me.Label3)
 		Me.Controls.Add(Me.Label2)
 		Me.Controls.Add(Me.Label1)
-		Me.Controls.Add(Me.cmbIrregularTestModes)
+		Me.Controls.Add(Me.cmbxlsVocTestExtendedModes)
 		Me.Controls.Add(Me.chkFirstTry)
 		Me.Controls.Add(Me.GroupBox1)
 		Me.Controls.Add(Me.cmbNextWordModesWrong)
@@ -224,64 +240,74 @@ Public Class TestModeSelect
     Private Sub TestModeSelect_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Dim i As Integer
         Dim asList As ArrayList
-        asList = CWordTest.NextWordModes
+		asList = xlsVocTest.NextWordModes
+
+
         For i = 0 To asList.Count - 1
             Me.cmbNextWordModes.Items.Add(asList(i))
         Next i
-        asList = CWordTest.NextWordModesWrong
+		asList = xlsVocTest.NextWordModesWrong
         For i = 0 To asList.Count - 1
             Me.cmbNextWordModesWrong.Items.Add(asList(i))
         Next i
-        asList = CWordTest.IrregularTestModes
+		asList = xlsVocTest.ExtendedModes
         For i = 0 To asList.Count - 1
-            Me.cmbIrregularTestModes.Items.Add(asList(i))
+            Me.cmbxlsVocTestExtendedModes.Items.Add(asList(i))
         Next i
         Me.cmbNextWordModes.SelectedIndex = 1
         Me.cmbNextWordModesWrong.SelectedIndex = 4
-        Me.cmbIrregularTestModes.SelectedIndex = 0
+		Me.cmbxlsVocTestExtendedModes.SelectedIndex = 0
+
+		' opt-Wert in Abfrage übertragen, falls nicht geändert wird
+		m_Parent.TestMode = xlsVocTestDirection.LanguageDefault
     End Sub
 
     Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
 		m_Parent.FirstTry = Me.chkFirstTry.Checked
 		m_Parent.ShowOnlyUsed = Me.chkOnlyUsed.Checked
 		m_Parent.Description = Me.chkDescription.Checked
+		m_Parent.RequestedOnly = Me.chkRequestedOnly.Checked
         Me.Close()
     End Sub
 
-    Property SetParent() As WordTesting
-        Get
-            Return m_Parent
-        End Get
-        Set(ByVal Form As WordTesting)
-            m_Parent = Form
-        End Set
-    End Property
+	Property SetParent() As VocTest
+		Get
+			Return m_Parent
+		End Get
+		Set(ByVal Form As VocTest)
+			m_Parent = Form
+		End Set
+	End Property
 
-    Private Sub cmbNextWordModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModes.SelectedIndexChanged
-        m_Parent.NextWordMode = cmbNextWordModes.SelectedIndex
-    End Sub
+	Private Sub cmbNextWordModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModes.SelectedIndexChanged
+		m_Parent.NextWordMode = cmbNextWordModes.SelectedIndex
+	End Sub
 
-    Private Sub cmbNextWordModesWrong_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModesWrong.SelectedIndexChanged
-        m_Parent.NextWordModeWrong = Me.cmbNextWordModesWrong.SelectedIndex
-    End Sub
+	Private Sub cmbNextWordModesWrong_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModesWrong.SelectedIndexChanged
+		m_Parent.NextWordModeWrong = Me.cmbNextWordModesWrong.SelectedIndex
+	End Sub
 
-    Private Sub cmbIrregularTestModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbIrregularTestModes.SelectedIndexChanged
-        m_Parent.IrregularTestMode = Me.cmbIrregularTestModes.SelectedIndex
-    End Sub
+	Private Sub cmbExtendedModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbxlsVocTestExtendedModes.SelectedIndexChanged
+		m_Parent.ExtendedMode = Me.cmbxlsVocTestExtendedModes.SelectedIndex
+	End Sub
 
-    Private Sub optMeaningToWord_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optMeaningToWord.CheckedChanged
-        If optMeaningToWord.Checked = True Then m_Parent.TestMode = TestWordModes.TestWord
-    End Sub
+	Private Sub optMeaningToWord_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optMeaningToWord.CheckedChanged
+		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestWord
+	End Sub
 
-    Private Sub optWordToMeaning_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optWordToMeaning.CheckedChanged
-        If optMeaningToWord.Checked = True Then m_Parent.TestMode = TestWordModes.TestMeaning
-    End Sub
+	Private Sub optWordToMeaning_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optWordToMeaning.CheckedChanged
+		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestMeaning
+	End Sub
 
-    Private Sub optDefault_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optDefault.CheckedChanged
-        If optMeaningToWord.Checked = True Then m_Parent.TestMode = TestWordModes.LanguageDefault
-    End Sub
+	Private Sub optDefault_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optDefault.CheckedChanged
+		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.LanguageDefault
+	End Sub
 
 	Private Sub chkDescription_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkDescription.CheckedChanged
 		If chkDescription.Checked Then MsgBox("Mit angezeigter Beschreibung wird jede Vokabel als mit Hilfe gelöst gewertet!")
+	End Sub
+
+	Private Sub chkRequestedOnly_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkRequestedOnly.CheckedChanged
+
 	End Sub
 End Class
