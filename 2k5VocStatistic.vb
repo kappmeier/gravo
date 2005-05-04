@@ -36,7 +36,7 @@ Public Class VocStatistic
 		Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
 		Me.ClientSize = New System.Drawing.Size(560, 373)
 		Me.Name = "VocStatistic"
-		Me.Text = "VocStatistic"
+		Me.Text = "Statistik"
 
 	End Sub
 

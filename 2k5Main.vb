@@ -172,6 +172,7 @@ Public Class Main
 #End Region
 
 	Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+		Me.Text = AppTitleShort
 		VocTestShow(sender, e)
 		'VocInputShow(sender, e)
 		'VocStatisticShow(sender, e)
@@ -210,9 +211,5 @@ Public Class Main
 	Private Sub mnuExtraManagement_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuExtraManagement.Click
 		Dim frmManagement As New Management
 		frmManagement.ShowDialog(Me)
-	End Sub
-
-	Private Sub mnuInputLast_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
-
 	End Sub
 End Class

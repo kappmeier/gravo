@@ -9,7 +9,6 @@ Public Class xlsWord
 	Protected m_iWordInUnit As Integer
 
 
-
 	Protected m_sLastTested As String
 
 

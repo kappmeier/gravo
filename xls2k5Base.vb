@@ -7,9 +7,9 @@ Public Class xlsBase
 	Protected DBCursor As OleDbDataReader
 
 	' Klassenzustände
-	Protected m_bConnected As Boolean = False
-	Protected m_bTableSelected As Boolean = False
-	Protected m_sTable As String = ""
+	Protected m_bConnected As Boolean = False		' mit der Datenbank verbunden
+	Protected m_bTableSelected As Boolean = False	' ob ein Vokabelset gewählt wurde
+	Protected m_sTable As String = ""		' aktuelles Vokabelset
 
 	Sub New(ByVal db As CDBOperation, ByVal Table As String)	' Bestimmte Tabelle zum Zugriff öffnen
 		m_bConnected = True

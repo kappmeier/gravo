@@ -360,15 +360,15 @@ Public Class VocTest
 		Me.Controls.Add(Me.txtMeaning2)
 		Me.Controls.Add(Me.txtMeaning1)
 		Me.Controls.Add(Me.txtMeaning3)
-		Me.Controls.Add(Me.lblIrregularDescription2)
-		Me.Controls.Add(Me.lblIrregularDescription1)
 		Me.Controls.Add(Me.txtIrregular3)
 		Me.Controls.Add(Me.txtIrregular2)
 		Me.Controls.Add(Me.txtIrregular1)
+		Me.Controls.Add(Me.lblIrregularDescription2)
+		Me.Controls.Add(Me.lblIrregularDescription1)
 		Me.Controls.Add(Me.lblIrregularDescription3)
 		Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
 		Me.Name = "VocTest"
-		Me.Text = "Abfrage - Vokabeltrainer 2k4-Edition"
+		Me.Text = "Abfrage"
 		Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
 		Me.ResumeLayout(False)
 
@@ -378,7 +378,7 @@ Public Class VocTest
 
 	Private Sub VocTest_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 		Dim i As Integer
-		db.open(Application.StartupPath() & "\voc.mdb")
+		db.Open(Application.StartupPath() & "\voc.mdb")
 		voc = New xlsVocTest(db)
 		For i = 0 To voc.Groups.Count - 1
 			Me.cmbGroup.Items.Add(voc.Groups(i).Description)

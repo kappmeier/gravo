@@ -449,7 +449,7 @@ Public Class Management
 		'If bLoaded = False Then Exit Sub
 		''		If Not voc Is Nothing Then voc.Close()
 
-        Dim voc As xlsOldVoc = New xlsOldVoc(db)
+		''	voc = New xlsOldVoc(db)
 		Dim iSelectedGroup As Integer = lstGroupList.SelectedIndex
 		Dim iSelectedGroupUnits As Integer = cmbUnitSelectGroup.SelectedIndex
 		Dim iSelectedUnit = Me.lstUnitList.SelectedIndex
@@ -474,24 +474,24 @@ Public Class Management
 		'lstGroupList.SelectedIndex = iSelectedGroup
 		'cmbUnitSelectGroup.SelectedIndex = iSelectedGroupUnits
 		'Me.lstUnitList.SelectedIndex = iSelectedUnit
-        Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
-        If voc.DatabaseVersionIndex <> 0 Then
-            Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.DatabaseVersionIndex - 1) & " updaten."
-            Me.cmdDataDBVersion.Enabled = True
-        Else
-            Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(0) & " updaten."
-            Me.cmdDataDBVersion.Enabled = False
-        End If
+		'Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
+		'If voc.DatabaseVersionIndex <> 0 Then
+		'	Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.DatabaseVersionIndex - 1) & " updaten."
+		'	Me.cmdDataDBVersion.Enabled = True
+		'Else
+		'	Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(0) & " updaten."
+		'	Me.cmdDataDBVersion.Enabled = False
+		'End If
 
-        'If bDBChosen Then Me.cmdDataSaveUnit.Enabled = True Else Me.cmdDataSaveUnit.Enabled = False
+		'If bDBChosen Then Me.cmdDataSaveUnit.Enabled = True Else Me.cmdDataSaveUnit.Enabled = False
 
-        Try
-            Me.lstGroupList.SelectedIndex = 0
-            Me.cmbUnitSelectGroup.SelectedIndex = 0
-            Me.cmbDataDBSelection.SelectedIndex = 0
-        Catch
-        End Try
-    End Sub
+		Try
+			Me.lstGroupList.SelectedIndex = 0
+			Me.cmbUnitSelectGroup.SelectedIndex = 0
+			Me.cmbDataDBSelection.SelectedIndex = 0
+		Catch
+		End Try
+	End Sub
 
 	Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchlieﬂen.Click
 		Me.Close()
@@ -532,11 +532,10 @@ Public Class Management
 		'Exit Sub
 	End Sub
 
-    Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataDBVersion.Click
-        Dim voc As xlsOldVoc = New xlsOldVoc(db)
-        voc.UpdateDatabaseVersion()
-        UpdateForm()
-    End Sub
+	Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataDBVersion.Click
+		'voc.UpdateDatabaseVersion()
+		'UpdateForm()
+	End Sub
 
 	Private Sub DataSelectSaveDB(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataSelectSaveDB.Click
 		'Me.SaveFile.ShowDialog()

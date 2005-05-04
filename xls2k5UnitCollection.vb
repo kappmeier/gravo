@@ -6,17 +6,14 @@ Public Structure xlsUnitListInfo
 End Structure
 
 Public Class xlsUnitCollection
-	Inherits xlsBase
-
-	Protected m_cList As Collection
-	Protected m_iCount As Integer
+	Inherits xlsCollection
 
 	Public Sub New(ByVal db As CDBOperation)
 		MyBase.New(db)
 		m_cList = New Collection
 	End Sub
 
-	Public Sub Add(ByVal Name As String)
+	Public Shadows Sub Add(ByVal Name As String)
 		Dim wtUnit As New xlsUnitListInfo
 
 		Dim iCount As Integer
@@ -39,23 +36,6 @@ Public Class xlsUnitCollection
 		wtUnit.Number = iCount
 		m_cList.Add(wtUnit)
 	End Sub
-
-	Public Sub Clear()
-		m_cList = Nothing
-		m_cList = New Collection
-	End Sub
-
-	Public ReadOnly Property Count() As Integer
-		Get
-			Return m_cList.Count
-		End Get
-	End Property
-
-	Default Public ReadOnly Property Item(ByVal Index As Integer) As xlsUnitListInfo
-		Get
-			Return m_cList(Index)
-		End Get
-	End Property
 
 	Public Sub LoadGroup(ByVal Group As String)
 		Dim iUnitNumber As Integer

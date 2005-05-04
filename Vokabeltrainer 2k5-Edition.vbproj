@@ -3,14 +3,14 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{395DC7FE-22BE-44CA-AAD5-6F91508BA1C7}</ProjectGuid>
+    <ProjectGuid>{0C8D3827-1528-42F7-AB86-676835D4EDE6}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon>
     </ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>VokTrain2k4</AssemblyName>
+    <AssemblyName>VokTrain2k5</AssemblyName>
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
     <AssemblyOriginatorKeyMode>None</AssemblyOriginatorKeyMode>
@@ -22,13 +22,14 @@
     <OptionCompare>Binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>Off</OptionStrict>
-    <RootNamespace>VokTrain2k4</RootNamespace>
-    <StartupObject>VokTrain2k4.Main</StartupObject>
+    <RootNamespace>VokTrain2k5</RootNamespace>
+    <StartupObject>VokTrain2k5.Main</StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <MyType>WindowsFormsWithCustomSubMain</MyType>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -39,13 +40,12 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationVersion>3.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <ApplicationVersion>3.1.0.%2a</ApplicationVersion>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\</OutputPath>
-    <DocumentationFile>VokTrain2k4.xml</DocumentationFile>
+    <DocumentationFile>VokTrain2k5.xml</DocumentationFile>
     <BaseAddress>285212672</BaseAddress>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
@@ -64,7 +64,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\</OutputPath>
-    <DocumentationFile>VokTrain2k4.xml</DocumentationFile>
+    <DocumentationFile>VokTrain2k5.xml</DocumentationFile>
     <BaseAddress>285212672</BaseAddress>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
@@ -75,7 +75,7 @@
     <DebugSymbols>false</DebugSymbols>
     <Optimize>true</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningLevel>1</WarningLevel>
     <NoWarn>42016,42017,42018,42019,42032</NoWarn>
@@ -108,122 +108,121 @@
     <Import Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="2k4AssemblyInfo.vb">
+    <Compile Include="2k5AssemblyInfo.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="2k4DataManagement.vb">
+    <Compile Include="2k5DataManagement.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4DBOperation.vb">
+    <Compile Include="2k5DBOperation.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="2k4Info.vb">
+    <Compile Include="2k5Def.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="2k5Info.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4Main.vb">
+    <Compile Include="2k5Main.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4SaveProgress.vb">
+    <Compile Include="2k5SaveProgress.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4TestModeSelect.vb">
+    <Compile Include="2k5TestModeSelect.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4UnitSelect.vb">
+    <Compile Include="2k5VocInput.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4VocInput.vb">
+    <Compile Include="2k5VocStatistic.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4VocStatistic.vb">
+    <Compile Include="2k5VocTest.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k4VocTest.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="xls2k4Base.vb">
+    <Compile Include="xls2k5Base.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4Enumerations.vb">
+    <Compile Include="xls2k5Collection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4FormCreator.vb">
+    <Compile Include="xls2k5Enumerations.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4GroupCollection.vb">
+    <Compile Include="xls2k5FormCreator.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4LanguageDefinition.vb">
+    <Compile Include="xls2k5GroupCollection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4LDFBase.vb">
+    <Compile Include="xls2k5LanguageDefinition.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4LDFRule.vb">
+    <Compile Include="xls2k5LDFBase.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4UnitCollection.vb">
+    <Compile Include="xls2k5LDFRule.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4VocBase.vb">
+    <Compile Include="xls2k5MeaningCollection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4VocInput.vb">
+    <Compile Include="xls2k5UnitCollection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4VocTest.vb">
+    <Compile Include="xls2k5VocBase.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4Word.vb">
+    <Compile Include="xls2k5VocInput.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4WordCollection.vb">
+    <Compile Include="xls2k5VocTest.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4WordInformation.vb">
+    <Compile Include="xls2k5Word.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4WordInformationEx.vb">
+    <Compile Include="xls2k5WordCollection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k4WordStats.vb">
+    <Compile Include="xls2k5WordInformation.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="xls2k5WordInformationEx.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="xls2k5WordStats.vb">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xlsOldVoc.vb">
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="2k4DataManagement.resx">
-      <DependentUpon>2k4DataManagement.vb</DependentUpon>
+    <EmbeddedResource Include="2k5DataManagement.resx">
+      <DependentUpon>2k5DataManagement.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k5Info.resx">
+      <DependentUpon>2k5Info.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4Info.resx">
-      <DependentUpon>2k4Info.vb</DependentUpon>
-      <SubType>Designer</SubType>
+    <EmbeddedResource Include="2k5Main.resx">
+      <DependentUpon>2k5Main.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4Main.resx">
-      <DependentUpon>2k4Main.vb</DependentUpon>
+    <EmbeddedResource Include="2k5SaveProgress.resx">
+      <DependentUpon>2k5SaveProgress.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4SaveProgress.resx">
-      <DependentUpon>2k4SaveProgress.vb</DependentUpon>
+    <EmbeddedResource Include="2k5TestModeSelect.resx">
+      <DependentUpon>2k5TestModeSelect.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4TestModeSelect.resx">
-      <DependentUpon>2k4TestModeSelect.vb</DependentUpon>
+    <EmbeddedResource Include="2k5VocInput.resx">
+      <DependentUpon>2k5VocInput.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4UnitSelect.resx">
-      <DependentUpon>2k4UnitSelect.vb</DependentUpon>
+    <EmbeddedResource Include="2k5VocStatistic.resx">
+      <DependentUpon>2k5VocStatistic.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4VocInput.resx">
-      <DependentUpon>2k4VocInput.vb</DependentUpon>
+    <EmbeddedResource Include="2k5VocTest.resx">
+      <DependentUpon>2k5VocTest.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k4VocStatistic.resx">
-      <DependentUpon>2k4VocStatistic.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="2k4VocTest.resx">
-      <DependentUpon>2k4VocTest.vb</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
@@ -231,6 +230,9 @@
       <ProductName>.NET Framework 2.0</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>

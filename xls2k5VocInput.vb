@@ -45,9 +45,9 @@ Public Class xlsVocInput
 			DBConnection.ExecuteNonQuery(DBCommand)
 			GetWord(iNewWordNumber)
 			wtWord.Word = ""
-			wtWord.Meaning1 = ""
-			wtWord.Meaning2 = ""
-			wtWord.Meaning3 = ""
+			'			'			'wtWord.Meaning1 = ""
+			'			'			'wtWord.Meaning2 = ""
+			'			'			'wtWord.Meaning3 = ""
 			wtWord.Extended1 = ""
 			wtWord.Extended2 = ""
 			wtWord.Extended3 = ""

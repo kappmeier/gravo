@@ -7,12 +7,12 @@ Imports System.Runtime.InteropServices
 
 ' Die Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("Vokabeltrainer 2k4-Edition")> 
+<Assembly: AssemblyTitle("Vokabeltrainer 2k5-Edition")> 
 <Assembly: AssemblyDescription("Universeller Vokabel- und Grammatiktrainer für verschiedene Sprachen.")> 
 <Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
 <Assembly: AssemblyProduct("VokTrain")> 
-<Assembly: AssemblyCopyright("©opyleft by 1995-2005")> 
-<Assembly: AssemblyTrademark("Jan-Philipp Kappmeier")> 
+<Assembly: AssemblyCopyright("©opyleft Jan-Philipp Kappmeier, 1995-2005")> 
+<Assembly: AssemblyTrademark("")> 
 <Assembly: CLSCompliant(True)> 
 
 'Die folgende GUID ist für die ID der Typbibliothek, wenn dieses Projekt in COM angezeigt wird

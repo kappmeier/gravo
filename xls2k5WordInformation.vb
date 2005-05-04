@@ -9,9 +9,10 @@ Public Class xlsWordInformation
 	Protected m_sWord As String	  'Vokabel
 	Protected m_sPre As String	'Pre-Vokabel    (to, le, ...)
 	Protected m_sPost As String	  'Post-Vokabel   (Plural, slang, ...)
-	Protected m_sMeaning1 As String
-	Protected m_sMeaning2 As String
-	Protected m_sMeaning3 As String	  'Bedeutung
+	Protected m_sMeaning1 As String = "alt"
+	Protected m_sMeaning2 As String = "alt"
+	Protected m_sMeaning3 As String = "alt"	 'Bedeutung
+	Protected m_cMeaning As xlsMeaningCollection	' Bedeutungsliste
 	Protected m_sExtended1 As String	  'Irregular
 	Protected m_sExtended2 As String	  'Irregular
 	Protected m_sExtended3 As String	  'Irregular
@@ -47,16 +48,15 @@ Public Class xlsWordInformation
 			Exit Sub
 		End If
 
-		DBCommand = "SELECT Word, Meaning1, Meaning2, Meaning3, Pre, Post, Description FROM " & m_sTable & " WHERE WordNumber=" & m_iWordNumber & ";"
+		m_cMeaning = New xlsMeaningCollection(Me.DBConnection, m_sTable, m_iWordNumber)
+
+		DBCommand = "SELECT Word, Pre, Post, Description FROM " & m_sTable & " WHERE WordNumber=" & m_iWordNumber & ";"
 		DBCursor = DBConnection.ExecuteReader(DBCommand)
 		DBCursor.Read()
 		If TypeOf (DBCursor.GetValue(0)) Is DBNull Then m_sWord = "" Else m_sWord = DBCursor.GetValue(0)
-		If TypeOf (DBCursor.GetValue(1)) Is DBNull Then m_sMeaning1 = "" Else m_sMeaning1 = DBCursor.GetValue(1)
-		If TypeOf (DBCursor.GetValue(2)) Is DBNull Then m_sMeaning2 = "" Else m_sMeaning2 = DBCursor.GetValue(2)
-		If TypeOf (DBCursor.GetValue(3)) Is DBNull Then m_sMeaning3 = "" Else m_sMeaning3 = DBCursor.GetValue(3)
-		If TypeOf (DBCursor.GetValue(4)) Is DBNull Then m_sPre = "" Else m_sPre = DBCursor.GetValue(4)
-		If TypeOf (DBCursor.GetValue(5)) Is DBNull Then m_sPost = "" Else m_sPost = DBCursor.GetValue(5)
-		If TypeOf (DBCursor.GetValue(6)) Is DBNull Then m_sDescription = "" Else m_sDescription = DBCursor.GetValue(6)
+		If TypeOf (DBCursor.GetValue(1)) Is DBNull Then m_sPre = "" Else m_sPre = DBCursor.GetValue(1)
+		If TypeOf (DBCursor.GetValue(2)) Is DBNull Then m_sPost = "" Else m_sPost = DBCursor.GetValue(2)
+		If TypeOf (DBCursor.GetValue(3)) Is DBNull Then m_sDescription = "" Else m_sDescription = DBCursor.GetValue(3)
 
 		DBCommand = "SELECT WordType, IrregularForm FROM " & m_sTable & " WHERE WordNumber=" & m_iWordNumber & ";"
 		DBCursor = DBConnection.ExecuteReader(DBCommand)
@@ -129,43 +129,31 @@ Public Class xlsWordInformation
 		End Set
 	End Property
 
-	Property Meaning1() As String
+	ReadOnly Property Meaning() As xlsMeaningCollection
+		Get
+			Return m_cMeaning
+		End Get
+	End Property
+
+	ReadOnly Property Meaning1() As String
 		Get
 			If m_bValid = False Then Return Nothing
 			Return m_sMeaning1
 		End Get
-		Set(ByVal Meaning As String)
-			If m_bconnected = False Or m_bValid = False Then Exit Property
-			m_sMeaning1 = Meaning
-			DBCommand = "UPDATE " & m_sTable & " SET Meaning1='" & AddHighColons(m_sMeaning1) & "' WHERE WordNumber=" & m_iWordNumber & ";"
-			DBConnection.ExecuteReader(DBCommand)
-		End Set
 	End Property
 
-	Property Meaning2() As String
+	ReadOnly Property Meaning2() As String
 		Get
 			If m_bValid = False Then Return Nothing
 			Return m_sMeaning2
 		End Get
-		Set(ByVal Meaning As String)
-			If m_bconnected = False Or m_bValid = False Then Exit Property
-			m_sMeaning2 = Meaning
-			DBCommand = "UPDATE " & m_sTable & " SET Meaning2='" & AddHighColons(m_sMeaning2) & "' WHERE WordNumber=" & m_iWordNumber & ";"
-			DBConnection.ExecuteReader(DBCommand)
-		End Set
 	End Property
 
-	Property Meaning3() As String
+	ReadOnly Property Meaning3() As String
 		Get
 			If m_bValid = False Then Return Nothing
 			Return m_sMeaning3
 		End Get
-		Set(ByVal Meaning As String)
-			If m_bconnected = False Or m_bValid = False Then Exit Property
-			m_sMeaning3 = Meaning
-			DBCommand = "UPDATE " & m_sTable & " SET Meaning3='" & AddHighColons(m_sMeaning3) & "' WHERE WordNumber=" & m_iWordNumber & ";"
-			DBConnection.ExecuteReader(DBCommand)
-		End Set
 	End Property
 
 	Property Extended1() As String

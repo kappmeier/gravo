@@ -23,14 +23,15 @@ Public Class Info
 		MyBase.Dispose(disposing)
 	End Sub
 	Friend WithEvents Label1 As System.Windows.Forms.Label
+	Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel
 
-    ' Für Windows-Formular-Designer erforderlich
-    Private components As System.ComponentModel.Container
+	' Für Windows-Formular-Designer erforderlich
+	Private components As System.ComponentModel.Container
 
-    'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
-    'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
-    'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
-    Friend WithEvents Label2 As System.Windows.Forms.Label
+	'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
+	'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
+	'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
+	Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents chkGermanText As System.Windows.Forms.CheckBox
     Friend WithEvents lblDisclaimer As System.Windows.Forms.Label
@@ -38,6 +39,7 @@ Public Class Info
     Friend WithEvents cmdClose As System.Windows.Forms.Button
     <System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Info))
+        Me.LinkLabel2 = New System.Windows.Forms.LinkLabel
         Me.Label1 = New System.Windows.Forms.Label
         Me.Label2 = New System.Windows.Forms.Label
         Me.Label4 = New System.Windows.Forms.Label
@@ -46,6 +48,18 @@ Public Class Info
         Me.Label5 = New System.Windows.Forms.Label
         Me.cmdClose = New System.Windows.Forms.Button
         Me.SuspendLayout()
+        '
+        'LinkLabel2
+        '
+        Me.LinkLabel2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.LinkLabel2.ImageAlign = System.Drawing.ContentAlignment.TopRight
+        Me.LinkLabel2.Location = New System.Drawing.Point(184, 40)
+        Me.LinkLabel2.Name = "LinkLabel2"
+        Me.LinkLabel2.Size = New System.Drawing.Size(137, 19)
+        Me.LinkLabel2.TabIndex = 3
+        Me.LinkLabel2.TabStop = True
+        Me.LinkLabel2.Text = "http://www.kappmeier.de"
+        Me.LinkLabel2.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
         'Label1
         '
@@ -72,11 +86,11 @@ Public Class Info
         '
         Me.Label4.AutoSize = True
         Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 13.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(99, 57)
+        Me.Label4.Location = New System.Drawing.Point(94, 57)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(100, 22)
         Me.Label4.TabIndex = 6
-        Me.Label4.Text = "2k4-Edition"
+        Me.Label4.Text = "2k5-Edition"
         '
         'lblDisclaimer
         '
@@ -127,12 +141,13 @@ Public Class Info
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.LinkLabel2)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.MinimizeBox = False
         Me.Name = "Info"
         Me.ShowInTaskbar = False
-        Me.Text = "Vokabeltrainer 2k4-Edition"
+        Me.Text = "Vokabeltrainer 2k5 Edition"
         Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -142,6 +157,7 @@ Public Class Info
 #End Region
 
     Private Sub Start_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Me.Text = AppTitleLong
         Me.lblDisclaimer.Text = "! ! ! WARNING ! ! ! " & vbCrLf & "This version of Vokabeltrainer is still beta. We recommend to save your database whenever you've added some vocabulary. This software is distributed ""as is"", we are neither responisble for anything that happens using this software nor responsible for the correct functioning of this piece of software."
     End Sub
 
@@ -151,9 +167,5 @@ Public Class Info
         Else
             Me.lblDisclaimer.Text = "! ! ! WARNING ! ! ! " & vbCrLf & "This version of Vokabeltrainer is still beta. We recommend to save your database whenever you've added some vocabulary. This software is distributed ""as is"", we are neither responisble for anything that happens using this software nor responsible for the correct functioning of this piece of software."
         End If
-    End Sub
-
-    Private Sub Label1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label1.Click
-
     End Sub
 End Class
