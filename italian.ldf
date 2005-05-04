@@ -1,0 +1,89 @@
+LDF:
+Version:1.0
+LangTarg:german
+LangDesc:Deutsch
+Language:
+  Name:italian
+  Desc:Italienisch
+  DescEx:Italienisch - Standard
+  TestDir:mtw
+LanguageEnd:
+Forms:
+  noun:Substantiv
+  verb:Verb
+  adjective:Adjektiv
+  simple:Einfache
+FormsEnd:
+Form:noun
+  Extended:
+    ExtendedForm:1
+  ExtendedEnd:
+  Extended:1
+    Desc:Genus
+    DescEx:Geschlecht
+    Rule:
+        Pre:la
+        SetExtended:f
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:le
+        SetExtended:f
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:il
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:lo
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:gli
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:i
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:l'
+        SetExtended:irregular
+        Force:Irregular
+    RuleEnd:
+  ExtendedEnd:1
+FormEnd:noun
+Form:verb
+  Extended:
+  ExtendedEnd:
+FormEnd:verb
+Form:adjective
+  Extended:
+    ExtendedForm:1
+  ExtendedEnd:
+  Extended:1
+    Desc:Feminin
+    DescEx:weibliche Form
+    Rule:
+      WordRight:o
+      CopyExtended:
+      CutExtendedRight:1
+      AddExtended:a
+      Force:Regular
+    RuleEnd:
+    Rule:
+      WordRight:e
+      CopyExtended:
+      Force:Regular
+    RuleEnd:
+  ExtendedEnd:1
+FormEnd:adjective
+Form:simple
+  Extended:
+  ExtendedEnd:
+FormEnd:simple

@@ -1,0 +1,84 @@
+LDF:
+Version:1.0
+LangTarg:german
+LangDesc:Deutsch
+Language:
+  Name:french
+  Desc:Französisch
+  DescEx:Französisch – Standard
+  TestDir:mtw
+LanguageEnd:
+Forms:
+  noun:Substantiv
+  verb:Verb
+  adjective:Adjektiv
+  simple:Einfache
+FormsEnd:
+Form:noun
+  Extended:
+    ExtendedForm:1
+  ExtendedEnd:
+  Extended:1
+    Desc:Genus
+    DescEx:Geschlecht
+    Rule:
+        Pre:le
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:la
+        SetExtended:f
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:un
+        SetExtended:m
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:une
+        SetExtended:f
+        Force:Regular
+    RuleEnd:
+    Rule:
+        Pre:l'
+        SetExtended:irregular
+        Force:Irregular
+    RuleEnd:
+  ExtendedEnd:1
+FormEnd:noun
+Form:verb
+  Extended:
+    ExtendedForm:1
+  ExtendedEnd:
+  Extended:1
+    Desc:1. Person Singular
+    DescEx:1. Person Singular
+    Rule:
+      WordRight:er
+      CopyExtended:
+      CutExtendedRight:2
+      AddExtended:e
+      Force:Regular
+    RuleEnd:
+  ExtendedEnd:1
+FormEnd:verb
+Form:adjective
+  Extended:
+    ExtendedForm:1
+  ExtendedEnd:
+  Extended:1
+    Desc:Feminin
+    DescEx:Weibliche Form
+    Rule:
+        CopyExtended:Word
+        AddExtended:e
+        Force:Regular
+    RuleEnd:
+  ExtendedEnd:1
+FormEnd:adjective
+Form:simple
+  Extended:
+  ExtendedEnd:
+FormEnd:simple

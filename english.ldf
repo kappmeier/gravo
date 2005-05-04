@@ -1,0 +1,32 @@
+LDF:
+Version:1.0
+LangTarg:german
+LangDesc:Deutsch
+Language:
+  Name:english
+  Desc:Englisch
+  DescEx:Englisch – Standard
+  TestDir:mtw
+LanguageEnd:
+Forms:
+  noun:Substantiv
+  verb:Verb
+  adjective:Adjektiv
+  simple:Einfache
+FormsEnd:
+Form:noun
+  Extended:
+  ExtendedEnd:
+FormEnd:noun
+Form:verb
+  Extended:
+  ExtendedEnd:
+FormEnd:verb
+Form:adjective
+  Extended:
+  ExtendedEnd:
+FormEnd:adjective
+Form:simple
+  Extended:
+  ExtendedEnd:
+FormEnd:simple
