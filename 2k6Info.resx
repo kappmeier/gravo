@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblDisclaimer.Text" xml:space="preserve">
-    <value>! ! ! WARNUNG ! ! ! Diese Version von Vokabeltrainer ist noch im beta-Status. Wir emfehlen nach jeder Vokabeleingabe die Datenbank zu sichern. Diese Software wird vertrieben "wie sie ist", wir sind nicht verantwortlich für das, was durch Benutzung dieser Software geschieht, noch wird die Funktionsfähigkeit dieser Software garantiert.</value>
+    <value>! ! ! WARNING ! ! ! This version of Vokabeltrainer is still beta. We recommend to save your database whenever you've added some vocabulary. This software is distributed "as is", we are neither responisble for anything that happens using this software nor responsible for the correct functioning of this piece of software.</value>
   </data>
 </root>

@@ -2,17 +2,15 @@ Public Class Management
 	Inherits System.Windows.Forms.Form
 
 	' Datenbank-Zugriff
-	'Dim voc As xlsOldVoc
-	'Dim vocSave As xlsOldVoc
-	Dim db As New CDBOperation
-	Dim cGroups As xlsVocInputGroupCollection	' Vorhandene Lehrgruppen
-	Dim cUnits As xlsUnitCollection		' Vorhandene Lehrgruppen
+	Dim voc As xlsDBManagement	' Zugriff auf Vokabel-Datenbank
+	Dim ldf As xlsLDFManagement	' Zugriff auf Languages die im LDF-System vorhanden sind
+	Dim hashGroups As Hashtable	' GroupDescription zu GroupTable zuordnen
 
 	' Datenverwaltung
-	Dim bDBChosen As Boolean = False	' Gültige Datenbank ausgewählt?
-	Dim sDBPath As String = ""	  ' Datenbankpfad für die Sicherung
-	Dim bExport As Boolean = True	' Exportieren oder Importieren
-	Dim bLoaded As Boolean = False
+	'Dim bDBChosen As Boolean = False	' Gültige Datenbank ausgewählt?
+	'Dim sDBPath As String = ""	  ' Datenbankpfad für die Sicherung
+	'Dim bExport As Boolean = True	' Exportieren oder Importieren
+	'Dim bLoaded As Boolean = False
 
 
 #Region " Windows Form Designer generated code "
@@ -62,7 +60,6 @@ Public Class Management
 	Friend WithEvents cmdGroupAdd As System.Windows.Forms.Button
 	Friend WithEvents txtGroupName As System.Windows.Forms.TextBox
 	Friend WithEvents cmbGroupLanguage As System.Windows.Forms.ComboBox
-	Friend WithEvents lblGroupInfo As System.Windows.Forms.Label
 	Friend WithEvents lstUnitList As System.Windows.Forms.ListBox
 	Friend WithEvents cmdUnitDelete As System.Windows.Forms.Button
 	Friend WithEvents cmdUnitEdit As System.Windows.Forms.Button
@@ -74,6 +71,7 @@ Public Class Management
 	Friend WithEvents tabUnit As System.Windows.Forms.TabPage
 	Friend WithEvents optImport As System.Windows.Forms.RadioButton
 	Friend WithEvents optExport As System.Windows.Forms.RadioButton
+	Friend WithEvents cmbLDFType As System.Windows.Forms.ComboBox
 	<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
 		Me.tab = New System.Windows.Forms.TabControl
 		Me.tabData = New System.Windows.Forms.TabPage
@@ -88,7 +86,7 @@ Public Class Management
 		Me.lblSelectedDB = New System.Windows.Forms.Label
 		Me.cmdDataSelectSaveDB = New System.Windows.Forms.Button
 		Me.tabGroup = New System.Windows.Forms.TabPage
-		Me.lblGroupInfo = New System.Windows.Forms.Label
+		Me.cmbLDFType = New System.Windows.Forms.ComboBox
 		Me.cmdGroupDelete = New System.Windows.Forms.Button
 		Me.cmbGroupLanguage = New System.Windows.Forms.ComboBox
 		Me.cmdGroupEdit = New System.Windows.Forms.Button
@@ -234,7 +232,7 @@ Public Class Management
 		'
 		'tabGroup
 		'
-		Me.tabGroup.Controls.Add(Me.lblGroupInfo)
+		Me.tabGroup.Controls.Add(Me.cmbLDFType)
 		Me.tabGroup.Controls.Add(Me.cmdGroupDelete)
 		Me.tabGroup.Controls.Add(Me.cmbGroupLanguage)
 		Me.tabGroup.Controls.Add(Me.cmdGroupEdit)
@@ -247,19 +245,19 @@ Public Class Management
 		Me.tabGroup.TabIndex = 1
 		Me.tabGroup.Text = "Gruppen"
 		'
-		'lblGroupInfo
+		'cmbLDFType
 		'
-		Me.lblGroupInfo.Location = New System.Drawing.Point(168, 80)
-		Me.lblGroupInfo.Name = "lblGroupInfo"
-		Me.lblGroupInfo.Size = New System.Drawing.Size(88, 88)
-		Me.lblGroupInfo.TabIndex = 7
-		Me.lblGroupInfo.Text = "#"
+		Me.cmbLDFType.Location = New System.Drawing.Point(168, 48)
+		Me.cmbLDFType.Name = "cmbLDFType"
+		Me.cmbLDFType.Size = New System.Drawing.Size(176, 21)
+		Me.cmbLDFType.TabIndex = 8
+		Me.cmbLDFType.Text = "xystd"
 		'
 		'cmdGroupDelete
 		'
 		Me.cmdGroupDelete.Enabled = False
 		Me.cmdGroupDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-		Me.cmdGroupDelete.Location = New System.Drawing.Point(264, 144)
+		Me.cmdGroupDelete.Location = New System.Drawing.Point(264, 200)
 		Me.cmdGroupDelete.Name = "cmdGroupDelete"
 		Me.cmdGroupDelete.Size = New System.Drawing.Size(80, 24)
 		Me.cmdGroupDelete.TabIndex = 6
@@ -276,7 +274,7 @@ Public Class Management
 		'cmdGroupEdit
 		'
 		Me.cmdGroupEdit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-		Me.cmdGroupEdit.Location = New System.Drawing.Point(264, 112)
+		Me.cmdGroupEdit.Location = New System.Drawing.Point(264, 144)
 		Me.cmdGroupEdit.Name = "cmdGroupEdit"
 		Me.cmdGroupEdit.Size = New System.Drawing.Size(80, 24)
 		Me.cmdGroupEdit.TabIndex = 3
@@ -284,7 +282,7 @@ Public Class Management
 		'
 		'txtGroupName
 		'
-		Me.txtGroupName.Location = New System.Drawing.Point(168, 48)
+		Me.txtGroupName.Location = New System.Drawing.Point(168, 80)
 		Me.txtGroupName.Name = "txtGroupName"
 		Me.txtGroupName.Size = New System.Drawing.Size(176, 20)
 		Me.txtGroupName.TabIndex = 2
@@ -300,7 +298,7 @@ Public Class Management
 		'cmdGroupAdd
 		'
 		Me.cmdGroupAdd.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-		Me.cmdGroupAdd.Location = New System.Drawing.Point(264, 80)
+		Me.cmdGroupAdd.Location = New System.Drawing.Point(264, 112)
 		Me.cmdGroupAdd.Name = "cmdGroupAdd"
 		Me.cmdGroupAdd.Size = New System.Drawing.Size(80, 24)
 		Me.cmdGroupAdd.TabIndex = 0
@@ -420,77 +418,44 @@ Public Class Management
 #End Region
 
 	Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+		Dim i As Integer	   ' Index
+		Dim db As New CDBOperation		  ' Datenbankoperationen
+		db.Open(Application.StartupPath() & "\voc.mdb")	   ' Datenbank öffnen
+		voc = New xlsDBManagement(db)		  ' Datenbank zur Verfügung stellen
+		hashGroups = New Hashtable
 
-		db.Open(Application.StartupPath() & "\voc.mdb")
-
-		cGroups = New xlsVocInputGroupCollection(db)
-
-		'voc = New xlsOldVoc(db)
-
-		'Dim cTemp As Collection
-		Dim i As Integer		   ' Indexzähler
-
-		Dim cLanguages As New Collection
-		cLanguages.Add("General")		 ' 1
-		cLanguages.Add("English")		 ' 2
-		cLanguages.Add("French")		  ' 3
-		cLanguages.Add("Latin")		   ' 4
-		cLanguages.Add("Italian")		   ' 5
 		' Anzeigen der verfügbaren Sprachen
-		For i = 1 To cLanguages.Count
-			Me.cmbGroupLanguage.Items.Add(cLanguages.Item(i))
+		ldf = New xlsLDFManagement
+		For i = 1 To ldf.Languages.Count
+			cmbGroupLanguage.Items.Add(ldf.Languages.Item(i).Name)		  '.Description)
 		Next i
-		'bLoaded = True
+
+		' Anzeigen der verschiedenen LDF's. (geht ja nur eine ;) )
+		cmbLDFType.Items.Add("xystd")
+		cmbLDFType.SelectedIndex = 0
 		UpdateForm()
 	End Sub
 
 	Private Sub UpdateForm()
+		Dim i As Integer		  ' Index
+		' Datenbank-Versionsinfo
+		Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
+		Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.NextVersionIndex) & " updaten."
+		If voc.DatabaseVersionIndex = 0 Then cmdDataDBVersion.Enabled = False Else cmdDataDBVersion.Enabled = True
 
-		'If bLoaded = False Then Exit Sub
-		''		If Not voc Is Nothing Then voc.Close()
-
-		''	voc = New xlsOldVoc(db)
-		Dim iSelectedGroup As Integer = lstGroupList.SelectedIndex
-		Dim iSelectedGroupUnits As Integer = cmbUnitSelectGroup.SelectedIndex
-		Dim iSelectedUnit = Me.lstUnitList.SelectedIndex
-		Dim i As Integer
-
-		' Füllen der Listen mit allen verfügbaren Gruppen, DataDBSelection extra, je Export-Status
+		' Gruppen in die Listen einfügen
 		lstGroupList.Items.Clear()
 		cmbUnitSelectGroup.Items.Clear()
-		cmbDataDBSelection.Items.Clear()
-		For i = 0 To cGroups.Count - 1
-			Me.lstGroupList.Items.Add(cGroups(i).Description)
-			Me.cmbUnitSelectGroup.Items.Add(cGroups(i).Description)
-			If bExport Then Me.cmbDataDBSelection.Items.Add(cGroups(i).Description)
-		Next
-
-		'If Not bExport And bDBChosen Then
-		'	For i = 0 To vocSave.Groups.Count - 1
-		'		Me.cmbDataDBSelection.Items.Add(vocSave.Groups(i).Description)
-		'	Next i
-		'End If
-
-		'lstGroupList.SelectedIndex = iSelectedGroup
-		'cmbUnitSelectGroup.SelectedIndex = iSelectedGroupUnits
-		'Me.lstUnitList.SelectedIndex = iSelectedUnit
-		'Me.lblDataDBVersion.Text = "Aktuelle Datenbank-Version:" & vbCrLf & voc.DatabaseVersion
-		'If voc.DatabaseVersionIndex <> 0 Then
-		'	Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(voc.DatabaseVersionIndex - 1) & " updaten."
-		'	Me.cmdDataDBVersion.Enabled = True
-		'Else
-		'	Me.cmdDataDBVersion.Text = "Auf Version " & voc.DatabaseVersion(0) & " updaten."
-		'	Me.cmdDataDBVersion.Enabled = False
-		'End If
-
-		'If bDBChosen Then Me.cmdDataSaveUnit.Enabled = True Else Me.cmdDataSaveUnit.Enabled = False
-
-		Try
-			Me.lstGroupList.SelectedIndex = 0
-			Me.cmbUnitSelectGroup.SelectedIndex = 0
-			Me.cmbDataDBSelection.SelectedIndex = 0
-		Catch
-		End Try
+		hashGroups.Clear()
+		For i = 0 To voc.CountGroups - 1
+			hashGroups.Add(voc.Groups.Item(i + 1).Description, voc.Groups.Item(i + 1).Table)
+			lstGroupList.Items.Add(voc.Groups.Item(i + 1).Description)
+			cmbUnitSelectGroup.Items.Add(voc.Groups.Item(i + 1).description)
+		Next i
+		If voc.CountGroups > 0 Then		  ' Erstes Listelement auswählen
+			lstGroupList.SelectedIndex = 0
+			cmbUnitSelectGroup.SelectedIndex = 0
+		End If
 	End Sub
 
 	Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchließen.Click
@@ -498,7 +463,7 @@ Public Class Management
 	End Sub
 
 	Private Sub ClosingForm(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-		'voc.Close()
+		voc.Close()
 	End Sub
 
 	Private Sub DataSaveUnit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataSaveUnit.Click
@@ -533,8 +498,8 @@ Public Class Management
 	End Sub
 
 	Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataDBVersion.Click
-		'voc.UpdateDatabaseVersion()
-		'UpdateForm()
+		voc.UpdateDatabaseVersion()
+		UpdateForm()
 	End Sub
 
 	Private Sub DataSelectSaveDB(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDataSelectSaveDB.Click
@@ -582,15 +547,22 @@ Public Class Management
 
 	Private Sub GroupAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupAdd.Click
 		If Trim(Me.txtGroupName.Text) = "" Then Exit Sub
-		cGroups.Add(Me.txtGroupName.Text, Me.cmbGroupLanguage.SelectedIndex + 1)
+		voc.AddGroup(Me.txtGroupName.Text, Me.cmbGroupLanguage.SelectedItem, Me.cmbLDFType.SelectedItem)
 		UpdateForm()
 	End Sub
 
 	Private Sub GroupEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupEdit.Click
 		If Trim(Me.txtGroupName.Text) = "" Then Exit Sub
+		MsgBox("Die Sprache kann nicht geändert Werden!")
+		MsgBox("Es ist zur Zeit nicht möglich, den LDF-Typ zu ändern! Warten sie auf ein Update.")
+
 		' Ändern der Gruppen-Informationen in der Datenbank
-		cGroups.Rename(Me.lstGroupList.SelectedItem, Me.txtGroupName.Text)
+		Dim sOldText = txtGroupName.Text
+		voc.UpdateGroup(lstGroupList.SelectedItem, sOldText)
+
 		UpdateForm()		  ' Anzeige Aktualisieren
+		Dim iIndex As Integer = lstGroupList.FindStringExact(sOldText)
+		lstGroupList.SelectedIndex = iIndex
 	End Sub
 
 	Private Sub GroupDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupDelete.Click
@@ -599,19 +571,23 @@ Public Class Management
 
 	Private Sub GroupSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstGroupList.SelectedIndexChanged
 		If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irreguläre Werte abfangen
-		Me.txtGroupName.Text = Me.lstGroupList.SelectedItem		  ' Text aktualisieren
-		Me.cmbGroupLanguage.SelectedItem = cGroups(lstGroupList.SelectedIndex).Type		  ' Kombobox aktualisieren
+		voc.SelectGroup(hashGroups.Item(lstGroupList.SelectedItem))
+		txtGroupName.Text = lstGroupList.SelectedItem		  ' Text aktualisieren
+		Me.cmbGroupLanguage.SelectedIndex = cmbGroupLanguage.FindStringExact(voc.CurrentGroup.Language)
 	End Sub
 
 	Private Sub UnitAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitAdd.Click
 		If Trim(Me.txtUnitName.Text = "") Then Exit Sub
-		cUnits.Add(Me.txtUnitName.Text)
-		UpdateForm()		  'Anzeige aktualisieren
+		voc.AddUnit(txtUnitName.Text)
+		Me.lstUnitList.Items.Add(txtUnitName.Text)
+		Me.lstUnitList.SelectedItem = txtUnitName.Text
 	End Sub
 
 	Private Sub UnitEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitEdit.Click
-		cUnits.Rename(Me.lstUnitList.SelectedIndex + 1, Me.txtUnitName.Text)
-		UpdateForm()
+		Dim iCurrentSelection = lstUnitList.SelectedIndex
+		voc.UpdateUnit(lstUnitList.SelectedIndex + 1, txtUnitName.Text)
+		Me.UnitSelectGroup(sender, e)
+		lstUnitList.SelectedIndex = iCurrentSelection
 	End Sub
 
 	Private Sub UnitDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitDelete.Click
@@ -624,13 +600,15 @@ Public Class Management
 
 	Private Sub UnitSelectGroup(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbUnitSelectGroup.SelectedIndexChanged
 		' Lektionen anzeigen
-		Dim i As Integer
-		cUnits = New xlsUnitCollection(db)
-		cUnits.LoadGroup(cGroups(cmbUnitSelectGroup.SelectedIndex).Table)
-		Me.lstUnitList.Items.Clear()
-		For i = 1 To cUnits.Count
-			lstUnitList.Items.Add(cUnits.Item(i).Name)
+		Dim i As Integer		  ' Index
+		lstUnitList.Items.Clear()		  ' Liste leeren
+		voc.SelectGroup(voc.Groups.Item(cmbUnitSelectGroup.SelectedIndex + 1).table)
+		cmdUnitEdit.Enabled = voc.CountUnits <> 0
+		If voc.CountUnits = 0 Then txtUnitName.Text = "" : Exit Sub
+		voc.SelectUnit(1)
+		For i = 0 To voc.CountUnits - 1
+			lstUnitList.Items.Add(voc.GetUnitName(i + 1))
 		Next i
-		If cUnits.Count > 0 Then lstUnitList.SelectedIndex = 0 Else Me.txtUnitName.Text = ""
+		lstUnitList.SelectedIndex = 0
 	End Sub
 End Class

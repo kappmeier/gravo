@@ -7,7 +7,7 @@ Imports System.Runtime.InteropServices
 
 ' Die Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("Vokabeltrainer 2k5-Edition")> 
+<Assembly: AssemblyTitle("Vokabeltrainer 2k6-Edition")> 
 <Assembly: AssemblyDescription("Universeller Vokabel- und Grammatiktrainer für verschiedene Sprachen.")> 
 <Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
 <Assembly: AssemblyProduct("VokTrain")> 

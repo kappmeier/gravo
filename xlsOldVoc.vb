@@ -1,16 +1,16 @@
 Imports System.Data.OleDb
 
 Public Class xlsOldVoc
-	Inherits xlsBase
+	Inherits xlsDBBase
 
 #Region " Variablen "
 	' Klassenzustände
 	Protected m_bTestMode As Boolean = False
 
 	' Vokabeln
-	Public Word As xlsWordInformationEx
-	Protected wtWordsInUnit As xlsWordCollection
-	Protected wtUnitsInGroup As xlsUnitCollection
+	Public Word As xlsWord
+	Protected wtWordsInUnit As Collection
+	Protected wtUnitsInGroup As Collection
 	Protected wtWord As xlsWord
 
 	Protected m_iUnit As Integer
@@ -20,8 +20,6 @@ Public Class xlsOldVoc
 
 
 	Protected m_iTestType As Integer	 'Abfrageart (Random ...)
-	Public Groups As xlsVocInputGroupCollection
-	Protected sVersionHistory() As String = {"1.22", "1.21", "1.20", "1.11", "1.10", "1.00"}	  ' Neuste vorne
 	Protected bNew = True	 ' Neuer Datensatz
 	Protected cTestUnits As Collection
 	Protected m_sTestWord As String
@@ -49,167 +47,59 @@ Public Class xlsOldVoc
 	Sub New(ByVal db As CDBOperation, ByVal Table As String)	' Bestimmte Tabelle zum Zugriff öffnen
 		MyBase.new(db, Table)
 		m_bTestMode = False
-		Groups = New xlsVocInputGroupCollection(db)
-		wtWordsInUnit = New xlsWordCollection(db)
-		wtUnitsInGroup = New xlsUnitCollection(db)
+		'Groups = New xlsVocInputGroupCollection(db)
+		'wtWordsInUnit = New xlsCollection(db)
+		wtUnitsInGroup = New Collection
 		wtWord = New xlsWord(db)
 	End Sub
 
 	Sub New(ByVal db As CDBOperation)	   ' Keinen Speziellen Table auswählen
 		MyBase.New(db)
 		m_bTestMode = False
-		Groups = New xlsVocInputGroupCollection(db)
-		wtWordsInUnit = New xlsWordCollection(db)
-		wtUnitsInGroup = New xlsUnitCollection(db)
+		'Groups = New xlsVocInputGroupCollection(db)
+		'wtWordsInUnit = New xlsWordCollection(db)
+		wtUnitsInGroup = New Collection
 		wtWord = New xlsWord(db)
 	End Sub
 
 	Sub SelectTable(ByVal Table As String)
-		m_sTable = Table
-		m_bTableSelected = True
+		'Me.Table = Table
 		m_bTestMode = False
-	End Sub
-
-	Sub CloseTable()
-		m_sTable = ""		  ' Zur Sicherheit, später überflüssig TODO
-		m_bTableSelected = False
-		m_bTestMode = False
-	End Sub
-
-	Sub Close()
-		If m_bConnected = False Then Exit Sub
-		DBConnection.Close()
-		m_bConnected = False
 	End Sub
 
 	Overridable Function GetWord(ByVal WordNumber As Int32) As xlsWord
-		If m_bconnected = False Or m_btableselected = False Then Return Nothing
+		If IsConnected() = False Or IsGroupSelected() = False Then Return Nothing
 
-		wtWord.LoadWord(WordNumber, m_stable)
+		'wtWord.LoadWord(WordNumber, Table)
 		m_iUnit = wtWord.UnitNumber
 		m_iWordNumber = WordNumber
 		Return wtWord
 	End Function
 
-	Overridable ReadOnly Property WordsInUnit(ByVal UnitNumber As Int32) As xlsWordCollection
+	Overridable ReadOnly Property WordsInUnit(ByVal UnitNumber As Int32) As Collection
 		Get
-			If m_bConnected = False Then Exit Property
-			If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Property
+			If IsConnected() = False Then Exit Property
+			If (m_bTestMode = True) Or (IsGroupSelected() = False) Then Exit Property
 
-			wtWordsInUnit.LoadUnit(UnitNumber, m_stable)
+			'wtWordsInUnit.LoadUnit(UnitNumber, CurrentGroupName)
 			Return wtWordsInUnit
 		End Get
 	End Property
 
-	Overridable ReadOnly Property UnitsInGroup() As xlsUnitCollection
+	Overridable ReadOnly Property UnitsInGroup() As Collection
 		Get
-			If m_bConnected = False Then Exit Property
-			If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Property
+			If Me.IsConnected = False Then Exit Property
+			If (m_bTestMode = True) Or (IsGroupSelected() = False) Then Exit Property
 
-			wtUnitsInGroup.LoadGroup(m_stable)
+			'wtUnitsInGroup.LoadGroup(CurrentGroupName)
 			Return wtUnitsInGroup
 		End Get
 	End Property
 
-	Overridable Sub NewWord()
-		If m_bConnected = False Then Exit Sub
-		If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Sub
-
-		' Vokabelnummer feststellen
-		Dim iCountWords As Integer = WordsInUnit(m_iUnit).Count
-		Dim iCountAll As Integer
-		DBCommand = "SELECT COUNT(*) FROM " & m_sTable & ";"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
-		DBCursor.Read()
-		If TypeOf (DBCursor.GetValue(0)) Is DBNull Then iCountAll = 0 Else iCountAll = DBCursor.GetValue(0)
-
-		' Zuerst schauen, ob gelöschte Vokabeln vorhanden sind.
-		Dim iNewWordNumber As Integer
-		iNewWordNumber = Me.GetDeleted
-		If iNewWordNumber <> 0 Then
-			DBCommand = "UPDATE " & m_sTable & " SET Deleted=" & False & " WHERE WordNumber=" & iNewWordNumber & ";"
-			DBConnection.ExecuteNonQuery(DBCommand)
-			DBCommand = "UPDATE " & m_sTable & " SET UnitNumber=" & m_iUnit & ", WordInUnit=" & iCountWords + 1 & " WHERE WordNumber=" & iNewWordNumber & ";"
-			DBConnection.ExecuteNonQuery(DBCommand)
-			GetWord(iNewWordNumber)
-			wtWord.Word = ""
-			'			'			'wtWord.Meaning1 = ""
-			'			'			'wtWord.Meaning2 = ""
-			'			'			'wtWord.Meaning3 = ""
-			wtWord.Extended1 = ""
-			wtWord.Extended2 = ""
-			wtWord.Extended3 = ""
-			wtWord.ExtendedIsValid = False
-			wtWord.Description = ""
-			wtWord.MustKnow = True
-			wtWord.WordType = 1
-		Else		  ' Datensatz einfügen
-			iNewWordNumber = iCountAll + 1
-			DBCommand = "INSERT INTO " & m_sTable & " VALUES ("
-			DBCommand += AddHighColons(m_iUnit) & ","
-			DBCommand += AddHighColons(0) & ","
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += AddHighColons(iNewWordNumber) & ","
-			DBCommand += AddHighColons(iCountWords + 1) & ","
-			DBCommand += AddHighColons(0) & ","
-			DBCommand += True & ","
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += False & ","
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += "'" & AddHighColons("") & "',"
-			DBCommand += False & ");"			 ' Description + Deleted
-			dbConnection.ExecuteNonQuery(DBCommand)
-			CreateNewStat(iNewWordNumber)
-		End If
-	End Sub
-
-	Overridable Sub NewWord(ByVal Unit As Integer)
-		m_iUnit = Unit
-		NewWord()
-	End Sub
-
-	Protected Function CreateNewStat(ByVal WordNumber As Integer)
-		DBCommand = "INSERT INTO " & m_stable & "Stats VALUES ("
-		DBCommand += AddHighColons(WordNumber) & ","
-		DBCommand += AddHighColons(0) & ","
-		DBCommand += AddHighColons(0) & ","
-		DBCommand += AddHighColons(0) & ","
-		DBCommand += AddHighColons(0) & ","
-		DBCommand += AddHighColons(0) & ","
-		DBCommand += "'" & AddHighColons("01.01.1900") & "',"
-		DBCommand += "'" & AddHighColons("01.01.1900") & "',"
-		DBCommand += AddHighColons(False) & ","
-		DBCommand &= AddHighColons(0) & ","
-		DBCommand &= AddHighColons(0) & ","
-		DBCommand &= AddHighColons(0) & ");"
-		DBConnection.ExecuteReader(dbcommand)
-	End Function
-
-	Sub Delete()
-		If m_bConnected = False Then Exit Sub
-		If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Sub
-
-		' Aktuelle Vokabel auf "Deleted" setzen
-		DBCommand = "UPDATE " & m_sTable & " SET Deleted=" & True & " WHERE WordNumber=" & m_iWordNumber & ";"
-		DBConnection.ExecuteNonQuery(DBCommand)
-
-		' Nachfolgende Vokabeln in derselben Lektion eine Nummer heraufsetzen
-		Dim i As Integer
-		For i = wtWord.WordInUnit + 1 To WordsInUnit(m_iUnit).Count + 1		 ' Da vorher schon einer auf Deleted gesetzt wurde, um eins erhöhen
-			DBCommand = "UPDATE " & m_sTable & " SET WordInUnit=" & i - 1 & " WHERE WordInUnit=" & i & ";"
-			DBConnection.ExecuteNonQuery(DBCommand)
-		Next i
-	End Sub
 
 	Protected Function ExistDeleted() As Boolean
-		DBCommand = "SELECT COUNT(Deleted) FROM " & m_sTable & " WHERE Deleted=" & True & ";"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
+		Dim sCommand = "SELECT COUNT(Deleted) FROM " & CurrentGroupName & " WHERE Deleted=" & True & ";"
+		ExecuteReader(sCommand)
 		DBCursor.Read()
 		Dim iCount As Integer
 		If TypeOf (DBCursor.GetValue(0)) Is DBNull Then iCount = 0 Else iCount = DBCursor.GetValue(0)
@@ -220,8 +110,8 @@ Public Class xlsOldVoc
 		If Not ExistDeleted() Then
 			Return 0
 		Else
-			DBCommand = "SELECT WordNumber FROM " & m_sTable & " WHERE Deleted=" & True & ";"
-			DBCursor = DBConnection.ExecuteReader(DBCommand)
+			Dim sCommand = "SELECT WordNumber FROM " & CurrentGroupName & " WHERE Deleted=" & True & ";"
+			ExecuteReader(sCommand)
 			DBCursor.Read()
 			If TypeOf (DBCursor.GetValue(0)) Is DBNull Then Return 0 Else Return DBCursor.GetValue(0)
 		End If
@@ -361,82 +251,6 @@ Public Class xlsOldVoc
 		'	Application.DoEvents()
 		'End If
 		'Return xlsSaveErrors.NoError		 ' Beenden. OK
-	End Function
-
-	Function DatabaseVersion() As String
-		Return sVersionHistory(DatabaseVersionIndex)
-	End Function
-
-	Function DatabaseVersion(ByVal Index As Integer) As String
-		Return sVersionHistory(Index)
-	End Function
-
-	Function DatabaseVersionIndex() As Integer
-		' Version Prüfen
-		Dim bFound As Boolean = False
-		Dim i As Integer = 0
-		Do Until bFound = True		  'Or i = sVersionHistory.Length spätestens bei 1.00 ist schluß
-			DBCommand = "SELECT Version FROM Version WHERE Version='" & sVersionHistory(i) & "'"
-			DBCursor = DBConnection.ExecuteReader(DBCommand)
-			DBCursor.Read()
-			Try
-				If DBCursor.GetValue(0) Then bFound = True Else i += 1
-			Catch e As Exception
-				i += 1
-			End Try
-		Loop
-		Return i
-	End Function
-
-	Function UpdateDatabaseVersion()
-		' Die Datenbank auf die neueste Version bringen.
-		Dim i As Integer
-		Dim iVersion = DatabaseVersionIndex()
-		If iVersion = 0 Then Exit Function
-		Select Case sVersionHistory(iVersion)
-			Case "1.00"			 ' Startversion
-				' Einfügen der Versions-Zählung
-				DBCommand = "INSERT INTO Version VALUES('1.10', '24.10.2003', 'Versionsinfo')"
-			Case "1.10"			 ' Versionsinfo schon hinzugefügt
-				' Hinzufügen von Beschreibungen zu den Wörtern
-				For i = 0 To Groups.Count - 1
-					DBCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Description TEXT(80);"
-					DBConnection.ExecuteNonQuery(DBCommand)
-				Next i
-				DBCommand = "INSERT INTO Version VALUES('1.11', '25.10.2003', 'Beschreibung')"
-			Case "1.11"			 ' Beschreibung schon hinzugefügt
-				' Hinzufügen von Lösch-Feldern
-				For i = 0 To Groups.Count - 1
-					DBCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Deleted BIT;"
-					DBConnection.ExecuteNonQuery(DBCommand)
-				Next i
-				DBCommand = "INSERT INTO Version VALUES('1.20', '26.10.2003', 'Löschen')"
-			Case "1.20"			 ' Löschen schon hinzugefügt
-				' Hinzufügen von Stat-Informationen für Hilfe
-				For i = 0 To Groups.Count - 1
-					DBCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe1Richtig INT;"
-					DBConnection.ExecuteNonQuery(DBCommand)
-					DBCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe2Richtig INT;"
-					DBConnection.ExecuteNonQuery(DBCommand)
-					DBCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe3Richtig INT;"
-					DBConnection.ExecuteNonQuery(DBCommand)
-				Next i
-				DBCommand = "INSERT INTO Version VALUES('1.21', '29.02.2004', 'Hilfe')"
-			Case "1.21"			 'Hilfe schon hinzugefügt
-				' Hinzufügen von Stat-Informationen für Hilfe
-				For i = 0 To Groups.Count - 1
-					DBCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN AdditionalTargetLangInfo TEXT(80);"
-					DBConnection.ExecuteNonQuery(DBCommand)
-				Next i
-				DBCommand = "INSERT INTO Version VALUES('1.22', '15.09.2004', 'Zusatzinfo')"
-			Case "1.22"			 ' Zusatzinformation schon hinzugefügt
-				' Hinzufügen von Benutzern
-				'DBCommand = "INSERT INTO Version VALUES('2.00', '01.10.2003', 'Benutzer')"
-			Case "2.00"			 'Benutzer
-				' Aktuelle Version
-				'DBCommand = ""
-		End Select
-		DBConnection.ExecuteNonQuery(DBCommand)
 	End Function
 #End Region
 
@@ -767,7 +581,7 @@ Public Class xlsOldVoc
 
 	ReadOnly Property TypeText(ByVal TypeNumber) As String
 		Get
-			If m_bConnected = False Then Exit Property
+			If IsConnected() = False Then Exit Property
 			Dim sList As New ArrayList
 			sList = Types()
 			Return sList(TypeNumber)
@@ -792,7 +606,7 @@ Public Class xlsOldVoc
 	End Property
 
 	Protected Sub CreateTypeForms()
-		If m_bConnected = False Then Exit Sub
+		If IsConnected() = False Then Exit Sub
 		If m_bTestMode = False Then Exit Sub
 
 		Select Case Language()
@@ -1034,85 +848,69 @@ Public Class xlsOldVoc
 #Region " Unit-Funktionen "
 
 	Overridable Function GetUnit(ByVal Number As Integer) As String
-		If m_bConnected = False Then Exit Function
+		If IsConnected() = False Then Exit Function
 		'If m_bTestMode Or m_bNoSpecialMode Then Exit Function
 
 		Dim sTemp As String
 
-		DBCommand = "SELECT Name FROM " & m_sTable & "Units WHERE Nummer=" & Number & ";"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
+		'DBCommand = "SELECT Name FROM " & CurrentGroupName & "Units WHERE Nummer=" & Number & ";"
+		'DBCursor = DBConnection.ExecuteReader(DBCommand)
 		If DBCursor.Read Then sTemp = DBCursor.GetString(0) Else sTemp = ""
 
 		Return sTemp
 	End Function
 
 	Overridable Function GetUnitNumber(ByVal Name As String) As Integer
-		If m_bConnected = False Then Exit Function
+		If IsConnected() = False Then Exit Function
 		'If m_bTestMode Or m_bNoSpecialMode Then Exit Function
 		Dim iTemp As Integer
 
-		DBCommand = "SELECT Nummer FROM " & m_sTable & "Units WHERE Name='" & AddHighColons(Name) & "';"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
+		'DBCommand = "SELECT Nummer FROM " & CurrentGroupName & "Units WHERE Name='" & AddHighColons(Name) & "';"
+		'DBCursor = DBConnection.ExecuteReader(DBCommand)
 		If DBCursor.Read Then iTemp = DBCursor.GetInt32(0) Else iTemp = 0
 
 		Return iTemp
 	End Function
 
 	Overridable Function UnitAdd(ByVal UnitName As String)
-		If m_bConnected = False Then Exit Function
-		If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Function
+		If IsConnected() = False Then Exit Function
+		If (m_bTestMode = True) Or (IsGroupSelected() = False) Then Exit Function
 
 		Dim iCount As Integer
-		DBCommand = "SELECT COUNT(Nummer) FROM " & m_sTable & "Units"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
+		'DBCommand = "SELECT COUNT(Nummer) FROM " & CurrentGroupName & "Units"
+		'DBCursor = DBConnection.ExecuteReader(DBCommand)
 		DBCursor.Read()
 		If TypeOf (DBCursor.GetValue(0)) Is DBNull Then iCount = 0 Else iCount = DBCursor.GetValue(0)
 
-		DBCommand = "INSERT INTO " & m_sTable & "Units VALUES (" & iCount + 1 & ", '" & AddHighColons(UnitName) & "')"
-		DBConnection.ExecuteReader(DBCommand)
+		'DBCommand = "INSERT INTO " & CurrentGroupName & "Units VALUES (" & iCount + 1 & ", '" & AddHighColons(UnitName) & "')"
+		'DBConnection.ExecuteReader(DBCommand)
 	End Function
 
 	Overridable Function UnitEdit(ByVal Name As String, ByVal Unit As Integer)
-		If m_bConnected = False Then Exit Function
-		If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Function
+		If IsConnected() = False Then Exit Function
+		If (m_bTestMode = True) Or (IsGroupSelected() = False) Then Exit Function
 
-		DBCommand = "UPDATE " & m_sTable & "Units SET Name='" & Name & "' WHERE Nummer=" & Unit & ";"
-		DBConnection.ExecuteNonQuery(DBCommand)
+		'DBCommand = "UPDATE " & CurrentGroupName & "Units SET Name='" & Name & "' WHERE Nummer=" & Unit & ";"
+		'DBConnection.ExecuteNonQuery(DBCommand)
 	End Function
 
 	Overridable Function UnitEdit(ByVal Name As String, ByVal Unit As String)
-		If m_bConnected = False Then Exit Function
-		If (m_bTestMode = True) Or (m_bTableSelected = False) Then Exit Function
+		If IsConnected() = False Then Exit Function
+		If (m_bTestMode = True) Or (IsGroupSelected() = False) Then Exit Function
 
-		DBCommand = "UPDATE " & m_sTable & "Units SET Name='" & Name & "' WHERE Nummer=" & Unit & ";"
-		DBConnection.ExecuteNonQuery(DBCommand)
+		'DBCommand = "UPDATE " & CurrentGroupName & "Units SET Name='" & Name & "' WHERE Nummer=" & Unit & ";"
+		'DBConnection.ExecuteNonQuery(DBCommand)
 	End Function
 #End Region
 
 #Region " Zusätzliche Wort-Informationen "
-	ReadOnly Property Language() As String
-		Get
-			If m_bConnected = False Then Exit Property
-			If Trim(m_sTable) = "" Then Exit Property
-
-			Dim sLanguage As String
-
-			DBCommand = "SELECT Art FROM Tables WHERE Tabelle='" & m_sTable & "';"
-			DBCursor = DBConnection.ExecuteReader(DBCommand)
-			DBCursor.Read()
-			If TypeOf (DBCursor.GetValue(0)) Is DBNull Then sLanguage = "" Else sLanguage = DBCursor.GetValue(0)
-
-
-			Return sLanguage
-		End Get
-	End Property
 
 	Property TestType() As Integer
 		Get
 			Return m_iTestType
 		End Get
 		Set(ByVal Value As Integer)
-			If (m_bTestMode = False) Or (m_bTableSelected = False) Then Exit Property
+			If (m_bTestMode = False) Or (IsGroupSelected() = False) Then Exit Property
 			m_iTestType = Value
 		End Set
 	End Property

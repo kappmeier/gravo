@@ -16,20 +16,20 @@ Public Class xlsMeaningCollection
 
 	Public Shadows Sub Add(ByVal Meaning As String)
 		If Count >= 3 Then Exit Sub ' Hier gehört eine Exception rein, das klappt noch nicht!
-		If m_stable = "" Then Exit Sub
-		If m_bconnected = False Then Exit Sub
-		DBCommand = "UPDATE " & m_sTable & " SET Meaning" & Count + 1 & "='" & AddHighColons(Meaning) & "' WHERE WordNumber=" & m_iWordNumber & ";"
-		DBConnection.ExecuteReader(DBCommand)
+		If CurrentGroupName = "" Then Exit Sub
+		If IsConnected() = False Then Exit Sub
+		Dim sCommand = "UPDATE " & CurrentGroupName & " SET Meaning" & Count + 1 & "='" & AddHighColons(Meaning) & "' WHERE WordNumber=" & m_iWordNumber & ";"
+		ExecuteReader(sCommand)
 		m_clist.Add(Meaning)
 	End Sub
 
 	Public Sub SetWord(ByVal Table As String, ByVal Number As Integer)
 		Dim i As Integer
 		Dim sTemp As String
-		m_stable = Table
+		Table = Table
 		m_iWordNumber = Number
-		DBCommand = "SELECT Meaning1, Meaning2, Meaning3 FROM " & m_sTable & " WHERE WordNumber=" & m_iWordNumber & ";"
-		DBCursor = DBConnection.ExecuteReader(DBCommand)
+		Dim sCommand = "SELECT Meaning1, Meaning2, Meaning3 FROM " & Table & " WHERE WordNumber=" & m_iWordNumber & ";"
+		ExecuteReader(sCommand)
 		DBCursor.Read()
 		For i = 0 To 2
 			If Not TypeOf (DBcursor.GetValue(i)) Is DBNull Then sTemp = dbcursor.GetValue(i)
@@ -38,8 +38,8 @@ Public Class xlsMeaningCollection
 	End Sub
 
 	Public Sub SetWord(ByVal Number As Integer)
-		If m_stable = "" Then Return
-		SetWord(m_stable, Number)
+		If CurrentGroupName = "" Then Return
+		SetWord(CurrentGroupName, Number)
 	End Sub
 
 	Public Sub Update(ByVal OldMeaning As String, ByVal NewMeaning As String)

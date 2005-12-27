@@ -47,6 +47,7 @@ Public Class Main
 	Friend WithEvents MenuItem7 As System.Windows.Forms.MenuItem
 	Friend WithEvents mnuExtraManagement As System.Windows.Forms.MenuItem
 	Friend WithEvents MenuItem9 As System.Windows.Forms.MenuItem
+	Friend WithEvents MenuItem8 As System.Windows.Forms.MenuItem
 	<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
 		Me.ContextMenu1 = New System.Windows.Forms.ContextMenu
 		Me.MainMenu1 = New System.Windows.Forms.MainMenu
@@ -61,6 +62,7 @@ Public Class Main
 		Me.MenuItem3 = New System.Windows.Forms.MenuItem
 		Me.mnuExtraManagement = New System.Windows.Forms.MenuItem
 		Me.MenuItem7 = New System.Windows.Forms.MenuItem
+		Me.MenuItem8 = New System.Windows.Forms.MenuItem
 		Me.MenuItem9 = New System.Windows.Forms.MenuItem
 		Me.MenuItem4 = New System.Windows.Forms.MenuItem
 		Me.MenuItem1 = New System.Windows.Forms.MenuItem
@@ -117,7 +119,7 @@ Public Class Main
 		'MenuItem3
 		'
 		Me.MenuItem3.Index = 2
-		Me.MenuItem3.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuExtraManagement, Me.MenuItem7, Me.MenuItem9, Me.MenuItem4})
+		Me.MenuItem3.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuExtraManagement, Me.MenuItem7, Me.MenuItem8, Me.MenuItem9, Me.MenuItem4})
 		Me.MenuItem3.Text = "E&xtras"
 		'
 		'mnuExtraManagement
@@ -131,14 +133,19 @@ Public Class Main
 		Me.MenuItem7.Index = 1
 		Me.MenuItem7.Text = "Datenbank überprüfen"
 		'
+		'MenuItem8
+		'
+		Me.MenuItem8.Index = 2
+		Me.MenuItem8.Text = "LDF-Editor ..."
+		'
 		'MenuItem9
 		'
-		Me.MenuItem9.Index = 2
+		Me.MenuItem9.Index = 3
 		Me.MenuItem9.Text = "-"
 		'
 		'MenuItem4
 		'
-		Me.MenuItem4.Index = 3
+		Me.MenuItem4.Index = 4
 		Me.MenuItem4.Text = "&Optionen ..."
 		'
 		'MenuItem1
@@ -161,7 +168,7 @@ Public Class Main
 		'Main
 		'
 		Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
-		Me.ClientSize = New System.Drawing.Size(600, 373)
+		Me.ClientSize = New System.Drawing.Size(616, 413)
 		Me.IsMdiContainer = True
 		Me.Menu = Me.MainMenu1
 		Me.Name = "Main"
@@ -173,7 +180,7 @@ Public Class Main
 
 	Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
 		Me.Text = AppTitleShort
-		VocTestShow(sender, e)
+		'VocTestShow(sender, e)
 		'VocInputShow(sender, e)
 		'VocStatisticShow(sender, e)
 	End Sub

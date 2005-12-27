@@ -1,37 +1,37 @@
 Public Class Info
-	Inherits System.Windows.Forms.Form
+    Inherits System.Windows.Forms.Form
 
 #Region " Windows Form Designer generated code "
 
-	Public Sub New()
-		MyBase.New()
+    Public Sub New()
+        MyBase.New()
 
-		' Dieser Aufruf ist für den Windows-Formular-Designer erforderlich.
-		InitializeComponent()
+        ' Dieser Aufruf ist für den Windows-Formular-Designer erforderlich.
+        InitializeComponent()
 
-		' Initialisierungen nach dem Aufruf InitializeComponent() hinzufügen
+        ' Initialisierungen nach dem Aufruf InitializeComponent() hinzufügen
 
-	End Sub
+    End Sub
 
-	' Form überschreibt den Löschvorgang zur Bereinigung der Komponentenliste.
-	Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
-		If disposing Then
-			If Not (components Is Nothing) Then
-				components.Dispose()
-			End If
-		End If
-		MyBase.Dispose(disposing)
-	End Sub
-	Friend WithEvents Label1 As System.Windows.Forms.Label
-	Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel
+    ' Form überschreibt den Löschvorgang zur Bereinigung der Komponentenliste.
+    Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+        If disposing Then
+            If Not (components Is Nothing) Then
+                components.Dispose()
+            End If
+        End If
+        MyBase.Dispose(disposing)
+    End Sub
+    Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel
 
-	' Für Windows-Formular-Designer erforderlich
-	Private components As System.ComponentModel.Container
+    ' Für Windows-Formular-Designer erforderlich
+    Private components As System.ComponentModel.Container
 
-	'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
-	'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
-	'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
-	Friend WithEvents Label2 As System.Windows.Forms.Label
+    'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
+    'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
+    'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
+    Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents chkGermanText As System.Windows.Forms.CheckBox
     Friend WithEvents lblDisclaimer As System.Windows.Forms.Label
@@ -90,7 +90,7 @@ Public Class Info
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(100, 22)
         Me.Label4.TabIndex = 6
-        Me.Label4.Text = "2k5-Edition"
+        Me.Label4.Text = "2k6-Edition"
         '
         'lblDisclaimer
         '
@@ -147,7 +147,7 @@ Public Class Info
         Me.MinimizeBox = False
         Me.Name = "Info"
         Me.ShowInTaskbar = False
-        Me.Text = "Vokabeltrainer 2k5 Edition"
+        Me.Text = "Vokabeltrainer 2k6-Edition"
         Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
         Me.ResumeLayout(False)
         Me.PerformLayout()

@@ -259,14 +259,14 @@ Public Class TestModeSelect
 		Me.cmbxlsVocTestExtendedModes.SelectedIndex = 0
 
 		' opt-Wert in Abfrage übertragen, falls nicht geändert wird
-		m_Parent.TestMode = xlsVocTestDirection.LanguageDefault
+		'm_Parent.TestMode = xlsVocTestDirection.LanguageDefault
     End Sub
 
     Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
-		m_Parent.FirstTry = Me.chkFirstTry.Checked
-		m_Parent.ShowOnlyUsed = Me.chkOnlyUsed.Checked
-		m_Parent.Description = Me.chkDescription.Checked
-		m_Parent.RequestedOnly = Me.chkRequestedOnly.Checked
+		'm_Parent.FirstTry = Me.chkFirstTry.Checked
+		'm_Parent.ShowOnlyUsed = Me.chkOnlyUsed.Checked
+		'm_Parent.Description = Me.chkDescription.Checked
+		'm_Parent.RequestedOnly = Me.chkRequestedOnly.Checked
         Me.Close()
     End Sub
 
@@ -280,27 +280,27 @@ Public Class TestModeSelect
 	End Property
 
 	Private Sub cmbNextWordModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModes.SelectedIndexChanged
-		m_Parent.NextWordMode = cmbNextWordModes.SelectedIndex
+		'm_Parent.NextWordMode = cmbNextWordModes.SelectedIndex
 	End Sub
 
 	Private Sub cmbNextWordModesWrong_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbNextWordModesWrong.SelectedIndexChanged
-		m_Parent.NextWordModeWrong = Me.cmbNextWordModesWrong.SelectedIndex
+		'm_Parent.NextWordModeWrong = Me.cmbNextWordModesWrong.SelectedIndex
 	End Sub
 
 	Private Sub cmbExtendedModes_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbxlsVocTestExtendedModes.SelectedIndexChanged
-		m_Parent.ExtendedMode = Me.cmbxlsVocTestExtendedModes.SelectedIndex
+		'm_Parent.ExtendedMode = Me.cmbxlsVocTestExtendedModes.SelectedIndex
 	End Sub
 
 	Private Sub optMeaningToWord_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optMeaningToWord.CheckedChanged
-		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestWord
+		'If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestWord
 	End Sub
 
 	Private Sub optWordToMeaning_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optWordToMeaning.CheckedChanged
-		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestMeaning
+		'If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.TestMeaning
 	End Sub
 
 	Private Sub optDefault_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles optDefault.CheckedChanged
-		If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.LanguageDefault
+		'If optMeaningToWord.Checked = True Then m_Parent.TestMode = xlsVocTestDirection.LanguageDefault
 	End Sub
 
 	Private Sub chkDescription_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkDescription.CheckedChanged

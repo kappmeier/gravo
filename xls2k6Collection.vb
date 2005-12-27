@@ -1,7 +1,7 @@
 Imports System.Data.OleDb
 
 Public Class xlsCollection
-	Inherits xlsBase
+	Inherits xlsDBBase
 
 	Protected m_cList As Collection
 	Protected m_iCount As Integer
