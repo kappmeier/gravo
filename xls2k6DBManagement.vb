@@ -3,15 +3,15 @@ Imports System.Data.OleDb
 Public Class xlsDBManagement
 	Inherits xlsDBBase
 
-	Private sVersionHistory() As String = {"2.01", "2.00", "1.22", "1.21", "1.20", "1.11", "1.10", "1.00"}	  ' Neuste vorne
+  Private sVersionHistory() As String = {"3.00", "2.10", "2.01", "2.00", "1.22", "1.21", "1.20", "1.11", "1.10", "1.00"}    ' Neuste vorne
 
 	Sub New()
 		MyBase.New()
 	End Sub
 
-	Sub New(ByVal db As CDBOperation)
-		MyBase.New(db)
-    End Sub
+  Sub New(ByVal db As AccessDatabaseOperation)
+    MyBase.New(db)
+  End Sub
 
 	Public Sub AddGroup(ByVal sGroupName As String, ByVal sLanguage As String, ByVal sLDFType As String)
 		' sLanguage ist ein beliebiger string, allerdings sinnvoll in zusammenhang mit dem LDF system
@@ -56,17 +56,17 @@ Public Class xlsDBManagement
 
 		sCommand = "INSERT INTO " & CurrentGroupName & "Units VALUES("
 		sCommand &= iCount & ","
-		sCommand &= "'" & Me.AddHighColons(sName) & "')"
+    sCommand &= "'" & AddHighColons(sName) & "')"
 		ExecuteNonQuery(sCommand)
 
 		Me.LoadUnitInfos()
 	End Sub
 
-	Private Function CreateTables(ByVal TableName As String)
-		CreateTableWords(TableName)
-		CreateTableWordsStats(TableName)
-		CreateTableWordsUnits(TableName)
-	End Function
+  Private Sub CreateTables(ByVal TableName As String)
+    CreateTableWords(TableName)
+    CreateTableWordsStats(TableName)
+    CreateTableWordsUnits(TableName)
+  End Sub
 
 	Private Sub CreateTableWords(ByVal Name As String)
 		' Erstellt Tabellen nach Version 1.20
@@ -83,9 +83,10 @@ Public Class xlsDBManagement
 		Dim sCommandText As String
 		sCommandText = "CREATE TABLE " & Name & "Stats (WordNumber INTEGER, Abfragen INTEGER, AbfragenGesamt INTEGER, "
 		sCommandText += "Richtig INTEGER, Falsch INTEGER, FalschGesamt INTEGER, ErsteAbfrage DATETIME, LetzteAbfrage DATETIME, "
-		sCommandText += "AbfrageGestartet BIT, Hilfe1Richtig INT, Hilfe2Richtig INT, Hilfe3Richtig INT)"
-		ExecuteNonQuery(sCommandText)
-	End Sub
+    sCommandText += "AbfrageGestartet BIT, Hilfe1Richtig INT, Hilfe2Richtig INT, Hilfe3Richtig INT, "
+    sCommandText &= "NextTest INT, NextInterval INT)"
+    ExecuteNonQuery(sCommandText)
+  End Sub
 
 	Private Sub CreateTableWordsUnits(ByVal Name As String)
 		Dim sCommandText As String
@@ -96,7 +97,7 @@ Public Class xlsDBManagement
 	End Sub
 
 	Function DatabaseVersion() As String
-		If IsConnected() = False Then Exit Function ' TODO exception werfen
+    If IsConnected() = False Then Return "" ' TODO exception werfen
 		Return sVersionHistory(DatabaseVersionIndex)
 	End Function
 
@@ -109,7 +110,7 @@ Public Class xlsDBManagement
 		Dim bFound As Boolean = False
 		Dim i As Integer = 0
 		Do Until bFound = True		  'Or i = sVersionHistory.Length spätestens bei 1.00 ist schluß
-			Dim sCommand = "SELECT Version FROM Version WHERE Version='" & sVersionHistory(i) & "'"
+      Dim sCommand As String = "SELECT Version FROM Version WHERE Version='" & sVersionHistory(i) & "'"
 			ExecuteReader(sCommand)
 			DBCursor.Read()
 			Try
@@ -143,113 +144,162 @@ Public Class xlsDBManagement
 		End If
 	End Function
 
-	Function UpdateDatabaseVersion()
-		Dim sCommand As String
-		' Die Datenbank auf die neueste Version bringen.
-		Dim i As Integer
-		Dim iVersion = DatabaseVersionIndex()
-		If iVersion = 0 Then Exit Function
-		Select Case sVersionHistory(iVersion)
-			Case "1.00"			 ' Startversion
-				' Einfügen der Versions-Zählung
-				sCommand = "INSERT INTO Version VALUES('1.10', '24.10.2003', 'Versionsinfo')"
-			Case "1.10"			 ' Versionsinfo schon hinzugefügt
-				' Hinzufügen von Beschreibungen zu den Wörtern
-				For i = 0 To Groups.Count - 1
-					sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Description TEXT(80);"
-					ExecuteNonQuery(sCommand)
-				Next i
-				sCommand = "INSERT INTO Version VALUES('1.11', '25.10.2003', 'Beschreibung')"
-			Case "1.11"			 ' Beschreibung schon hinzugefügt
-				' Hinzufügen von Lösch-Feldern
-				For i = 0 To Groups.Count - 1
-					sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Deleted BIT;"
-					ExecuteNonQuery(sCommand)
-				Next i
-				sCommand = "INSERT INTO Version VALUES('1.20', '26.10.2003', 'Löschen')"
-			Case "1.20"			 ' Löschen schon hinzugefügt
-				' Hinzufügen von Stat-Informationen für Hilfe
-				For i = 0 To Groups.Count - 1
-					sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe1Richtig INT;"
-					ExecuteNonQuery(sCommand)
-					sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe2Richtig INT;"
-					ExecuteNonQuery(sCommand)
-					sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe3Richtig INT;"
-					ExecuteNonQuery(sCommand)
-				Next i
-				sCommand = "INSERT INTO Version VALUES('1.21', '29.02.2004', 'Hilfe')"
-			Case "1.21"			 'Hilfe schon hinzugefügt
-				' Hinzufügen von Stat-Informationen für Hilfe
-				For i = 0 To Groups.Count - 1
-					sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN AdditionalTargetLangInfo TEXT(80);"
-					ExecuteNonQuery(sCommand)
-				Next i
-				sCommand = "INSERT INTO Version VALUES('1.22', '15.09.2004', 'Zusatzinfo')"
-			Case "1.22"			 ' Zusatzinformation schon hinzugefügt
-				' Alle Vokabeln aus den drei Bedeutungsfeldern zusammenfassen.
-				For i = 0 To GroupNames().Count - 1
-					Dim j As Integer
-					Dim iWordCount As Int32
-					Dim sMeaning1, sMeaning2, sMeaning3 As String
-					' Die Gruppe laden 
-					SelectGroup(GroupNames.Item(i))
-					sCommand = "SELECT COUNT(WordNumber) FROM " & CurrentGroupName
-					ExecuteReader(sCommand)
-					DBCursor.Read()
-					If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then iWordCount = DBCursor.GetValue(0) Else iWordCount = 0
-					' alle Vokabeln durchgehen
-					For j = 1 To iWordCount
-						sCommand = "SELECT Meaning1, Meaning2, Meaning3 FROM " & CurrentGroupName & " WHERE WordNumber= " & j
-						ExecuteReader(sCommand)
-						DBCursor.Read()						 ' muesste eigentlich gehen, da nummern nicht gelöscht werden können
-						If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then sMeaning1 = DBCursor.GetValue(0) Else sMeaning1 = ""
-						If Not TypeOf (DBCursor.GetValue(1)) Is DBNull Then sMeaning2 = DBCursor.GetValue(1) Else sMeaning2 = ""
-						If Not TypeOf (DBCursor.GetValue(2)) Is DBNull Then sMeaning3 = DBCursor.GetValue(2) Else sMeaning3 = ""
-						If Trim(sMeaning2) <> "" Then sMeaning1 = Trim(sMeaning1) & ";" & Trim(sMeaning2)
-						If Trim(sMeaning3) <> "" Then sMeaning1 = Trim(sMeaning1) & ";" & Trim(sMeaning3)
-						DBCursor.Close()
-						sCommand = "UPDATE " & CurrentGroupName & " SET Meaning1 = '" & AddHighColons(sMeaning1) & "' WHERE WordNumber = " & j & ";"
-						Me.ExecuteNonQuery(sCommand)
-					Next j
-					' Löschen der Spalten
-					sCommand = "ALTER TABLE " & CurrentGroupName & " DROP COLUMN Meaning2, Meaning3;"
-					ExecuteNonQuery(sCommand)
-				Next i
-				sCommand = "INSERT INTO Version VALUES('2.00', '10.12.2005', 'Wortbedeutungen')"
-			Case "2.00"			 ' Beliebige Anzahl an Wortbedeutungen schon hinzugefügt
-				' Zu Table eine neue spalte hinzufügen
+  Sub Reorganize()
+    ' Durchsuchen aller Felder NextTest und NextInterval ob da überhall Werte > 1 gespeichert sind
+    Dim i As Integer
+    Dim sCommand As String
 
-				sCommand = "ALTER TABLE Tables ADD COLUMN Type TEXT(16)"
-				sCommand = "INSERT INTO Tables VALUES('Neue Lektion', 'Italian03', 'italian', 'xystd')"
-				ExecuteNonQuery(sCommand)
-				sCommand = "UPDATE Tables SET Type = 'xystd'"
-				ExecuteNonQuery(sCommand)
-				sCommand = "INSERT INTO Version VALUES('2.01', '12.12.2005', 'LDF-Typ')"
-			Case "2.01"
-				' Aktuelle Version
-				' sCommand = "INSERT INTO Version VALUES('2.01', '10.12.2005', 'Update')"
-		End Select
-		ExecuteNonQuery(sCommand)
-	End Function
+    Dim dbc As CDBOperation = New CDBOperation()
+    dbc.Open(DBConnection.Path)
 
-	Public Function UpdateGroup(ByVal sOldName As String, ByVal sNewName As String)
-		' Namen einer Gruppe ändern
-		If Trim(sNewName) = "" Then Exit Function ' TODO Exception, außerdem prüfen ob überhaupt existiert
-		Dim sCommand As String
-		sCommand = "UPDATE tables SET tables.Group='" & AddHighColons(sNewName) & "' WHERE tables.Group='" & sOldName & "'"
-		ExecuteNonQuery(sCommand)
+    For i = 1 To Groups.Count
+      sCommand = "SELECT NextTest, NextInterval, WordNumber FROM " & Groups(i).Table & "Stats"
+      ExecuteReader(sCommand)
+      'DBCursor.Read()
+      'If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then iWordCount = DBCursor.GetValue(0) Else iWordCount = 0
 
-		' In den Listen ändern, dazu einfach neu einlesen (langsam aber einfach ;) es gibt wahrscheinlich nicht viele lektionen)
-		Dim sCurrent As String
-		If CurrentGroupName = sOldName Then sCurrent = sNewName Else sCurrent = CurrentGroupName
-		Me.LoadGroupInfos()		  ' Protected-Methode aufrufen zum aktualisieren. evtl später mal mittels update-methode
-		Me.SelectGroup(sCurrent)
-	End Function
+      Do While DBCursor.Read
+        Dim iNext, iInterval, iWordNumber As Integer
+        If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then iNext = DBCursor.GetInt32(0) Else iNext = 1
+        If Not TypeOf (DBCursor.GetValue(1)) Is DBNull Then iInterval = DBCursor.GetInt32(1) Else iInterval = 1
+        If Not TypeOf (DBCursor.GetValue(2)) Is DBNull Then iWordNumber = DBCursor.GetInt32(2) Else iWordNumber = 0
+        If iWordNumber > 0 Then
+          ' Aktualisieren der anderen Einträge
+          sCommand = "UPDATE " & Groups(i).Table & "Stats SET NextTest=" & iNext & ", NextInterval=" & iInterval & " WHERE WordNumber=" & iWordNumber & ";"
+          dbc.ExecuteNonQuery(sCommand) ' hier wird eine zweite Datenbankverbindung benutzt
+        End If
+      Loop
+    Next i
+  End Sub
 
-	Public Function UpdateUnit(ByVal UnitNumber As Integer, ByVal NewName As String)
-		Dim sCommand As String
-		sCommand = "UPDATE " & CurrentGroupName & "Units SET Name='" & xlsVocInput.AddHighColons(NewName) & "' WHERE Nummer=" & UnitNumber
-		ExecuteNonQuery(sCommand)
-		Me.LoadUnitInfos()
-	End Function
+  Sub UpdateDatabaseVersion()
+    Dim sCommand As String = ""
+    ' Die Datenbank auf die neueste Version bringen.
+    Dim i As Integer
+    Dim iVersion As Integer = DatabaseVersionIndex()
+    If iVersion = 0 Then Exit Sub
+    Select Case sVersionHistory(iVersion)
+      Case "1.00"      ' Startversion
+        ' Einfügen der Versions-Zählung
+        sCommand = "INSERT INTO Version VALUES('1.10', '24.10.2003', 'Versionsinfo')"
+      Case "1.10"      ' Versionsinfo schon hinzugefügt
+        ' Hinzufügen von Beschreibungen zu den Wörtern
+        For i = 0 To Groups.Count - 1
+          sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Description TEXT(80);"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('1.11', '25.10.2003', 'Beschreibung')"
+      Case "1.11"      ' Beschreibung schon hinzugefügt
+        ' Hinzufügen von Lösch-Feldern
+        For i = 0 To Groups.Count - 1
+          sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN Deleted BIT;"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('1.20', '26.10.2003', 'Löschen')"
+      Case "1.20"      ' Löschen schon hinzugefügt
+        ' Hinzufügen von Stat-Informationen für Hilfe
+        For i = 0 To Groups.Count - 1
+          sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe1Richtig INT;"
+          ExecuteNonQuery(sCommand)
+          sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe2Richtig INT;"
+          ExecuteNonQuery(sCommand)
+          sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN Hilfe3Richtig INT;"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('1.21', '29.02.2004', 'Hilfe')"
+      Case "1.21"      'Hilfe schon hinzugefügt
+        ' Hinzufügen von Stat-Informationen für Hilfe
+        For i = 0 To Groups.Count - 1
+          sCommand = "ALTER TABLE " & Groups(i).Table & " ADD COLUMN AdditionalTargetLangInfo TEXT(80);"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('1.22', '15.09.2004', 'Zusatzinfo')"
+      Case "1.22"      ' Zusatzinformation schon hinzugefügt
+        ' Alle Vokabeln aus den drei Bedeutungsfeldern zusammenfassen.
+        For i = 0 To GroupNames().Count - 1
+          Dim j As Integer
+          Dim iWordCount As Int32
+          Dim sMeaning1, sMeaning2, sMeaning3 As String
+          ' Die Gruppe laden 
+          SelectGroup(GroupNames.Item(i))
+          sCommand = "SELECT COUNT(WordNumber) FROM " & CurrentGroupName
+          ExecuteReader(sCommand)
+          DBCursor.Read()
+          If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then iWordCount = DBCursor.GetValue(0) Else iWordCount = 0
+          ' alle Vokabeln durchgehen
+          For j = 1 To iWordCount
+            sCommand = "SELECT Meaning1, Meaning2, Meaning3 FROM " & CurrentGroupName & " WHERE WordNumber= " & j
+            ExecuteReader(sCommand)
+            DBCursor.Read()            ' muesste eigentlich gehen, da nummern nicht gelöscht werden können
+            If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then sMeaning1 = DBCursor.GetValue(0) Else sMeaning1 = ""
+            If Not TypeOf (DBCursor.GetValue(1)) Is DBNull Then sMeaning2 = DBCursor.GetValue(1) Else sMeaning2 = ""
+            If Not TypeOf (DBCursor.GetValue(2)) Is DBNull Then sMeaning3 = DBCursor.GetValue(2) Else sMeaning3 = ""
+            If Trim(sMeaning2) <> "" Then sMeaning1 = Trim(sMeaning1) & ";" & Trim(sMeaning2)
+            If Trim(sMeaning3) <> "" Then sMeaning1 = Trim(sMeaning1) & ";" & Trim(sMeaning3)
+            DBCursor.Close()
+            sCommand = "UPDATE " & CurrentGroupName & " SET Meaning1 = '" & AddHighColons(sMeaning1) & "' WHERE WordNumber = " & j & ";"
+            Me.ExecuteNonQuery(sCommand)
+          Next j
+          ' Löschen der Spalten
+          sCommand = "ALTER TABLE " & CurrentGroupName & " DROP COLUMN Meaning2, Meaning3;"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('2.00', '10.12.2005', 'Wortbedeutungen')"
+      Case "2.00"      ' Beliebige Anzahl an Wortbedeutungen schon hinzugefügt
+        ' Zu Table eine neue spalte hinzufügen
+
+        sCommand = "ALTER TABLE Tables ADD COLUMN Type TEXT(16)"
+        ExecuteNonQuery(sCommand)
+                sCommand = "UPDATE Tables SET Type = 'std'"
+        ExecuteNonQuery(sCommand)
+        sCommand = "INSERT INTO Version VALUES('2.01', '12.12.2005', 'LDF-Typ')"
+      Case "2.01"
+        ' Möglichkeiten für stärkes Abfrage-Management
+        ' Abfrage wie mit Karteikarten möglich --> zwei neue Integer-Spalten in den Stats-Tables
+        ' In der ersten wird gespeichert, wie viele Abfragen noch passieren müssen, bis das Wort erneut
+        ' abgefragt wird. In der zweiten wird gespeichert, welches Intervall bei der nächsten Abfrage
+        ' benutzt werden soll.
+        ' Das Intervall wird bei richtiger beantwortung verdoppelt, bei falscher Beantwortung halbiert.
+        ' Das Minimum wird 1 sein.
+        For i = 1 To Groups.Count
+          sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN NextTest INT;"
+          ExecuteNonQuery(sCommand)
+          sCommand = "ALTER TABLE " & Groups(i).Table & "Stats ADD COLUMN NextInterval INT;"
+          ExecuteNonQuery(sCommand)
+        Next i
+        sCommand = "INSERT INTO Version VALUES('2.10', '13.07.2006', 'Karteikarten')"
+      Case "2.10" ' Karteikarten-Abfrage schon hinzugefügt
+        sCommand = ""
+        ' Wurde manuell durchgeführt, evtl. später mal hier einfügen:
+        ' hinzufügen von tabellen DictionaryMain, DictionaryWords als haupt-datenbanken aus denen die gruppen wörter
+        ' auswählen.
+        sCommand = "INSERT INTO Version VALUES('3.00', '01.09.2006', 'Update')"
+      Case "3.00" ' Neue organisation schon eingefügt
+        ' Aktuelle Version
+        ' sCommand = "INSERT INTO Version VALUES('3.00', '01.09.2006', 'Update')"
+        sCommand = ""
+    End Select
+    ExecuteNonQuery(sCommand)
+  End Sub
+
+  Public Sub UpdateGroup(ByVal sOldName As String, ByVal sNewName As String)
+    ' Namen einer Gruppe ändern
+    If Trim(sNewName) = "" Then Exit Sub ' TODO Exception, außerdem prüfen ob überhaupt existiert
+    Dim sCommand As String
+    sCommand = "UPDATE tables SET tables.Group='" & AddHighColons(sNewName) & "' WHERE tables.Group='" & sOldName & "'"
+    ExecuteNonQuery(sCommand)
+
+    ' In den Listen ändern, dazu einfach neu einlesen (langsam aber einfach ;) es gibt wahrscheinlich nicht viele lektionen)
+    Dim sCurrent As String
+    If CurrentGroupName = sOldName Then sCurrent = sNewName Else sCurrent = CurrentGroupName
+    Me.LoadGroupInfos()     ' Protected-Methode aufrufen zum aktualisieren. evtl später mal mittels update-methode
+    Me.SelectGroup(sCurrent)
+  End Sub
+
+  Public Sub UpdateUnit(ByVal UnitNumber As Integer, ByVal NewName As String)
+    Dim sCommand As String
+    sCommand = "UPDATE " & CurrentGroupName & "Units SET Name='" & xlsVocInput.AddHighColons(NewName) & "' WHERE Nummer=" & UnitNumber
+    ExecuteNonQuery(sCommand)
+    Me.LoadUnitInfos()
+  End Sub
 End Class

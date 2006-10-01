@@ -23,3 +23,8 @@ Public Enum xlsVocTestHelpModes
 	MiddleHelp
 	HeavyHelp
 End Enum
+
+Public Enum xlsTestSystem
+  All
+  Cards
+End Enum

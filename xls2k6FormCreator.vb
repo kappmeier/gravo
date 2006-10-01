@@ -14,7 +14,7 @@ Public Class xlsFormCreator
 		m_cDescEx = New Collection
 
 		' Extended Gruppen Herausfinden
-		Dim i As Integer
+    'Dim i As Integer
 		Dim ldfCommandBlock As Collection
 		m_sFormName = Me.GetCommandRight("Form", ldfFormBlock)
 		If GetCommandBlockStartPos("Extended", "", ldfFormBlock) = 0 Then Exit Sub
@@ -46,7 +46,7 @@ Public Class xlsFormCreator
 		Dim ldfRuleBlock As Collection
 		Dim ldfRule As xlsLDFRule
 
-		Dim xlsRuleList = New Collection
+    Dim xlsRuleList As Collection = New Collection
 		While Trim(ldfExtendedBlock.Item(2).left) = "Rule"
 			ldfRuleBlock = Me.GetCommandBlock(2, ldfExtendedBlock)
 			ldfRule = New xlsLDFRule(ldfRuleBlock)

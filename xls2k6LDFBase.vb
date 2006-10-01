@@ -3,7 +3,6 @@ Public Class xlsLDFBase
 	Private m_ldfCommandLines As Collection
 	Private m_ldfLastError As xlsLanguageDefinitionErrors
 
-
 	Public Sub New()
 		m_ldfLastError = xlsLanguageDefinitionErrors.NoErrors
 	End Sub
@@ -72,9 +71,9 @@ Public Class xlsLDFBase
 
 	Protected Function GetCommandBlockStartPos(ByVal LeftPart As String, ByVal RightPart As String, ByVal ldfCommandlines As Collection) As Integer
 		Dim i As Integer
-		For i = 1 To ldfCommandlines.Count()
-			If ldfCommandlines(i).Left = LeftPart And ldfCommandlines(i).right = RightPart Then Exit For
-		Next i
+    For i = 1 To ldfCommandlines.Count()
+      If ldfCommandlines(i).Left = LeftPart And ldfCommandlines(i).right = RightPart Then Exit For
+    Next i
 		If i > ldfCommandlines.Count Then Return 0 Else Return i
 	End Function
 

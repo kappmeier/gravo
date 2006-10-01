@@ -23,10 +23,10 @@
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>Off</OptionStrict>
     <RootNamespace>VokTrain2k6</RootNamespace>
-    <StartupObject>VokTrain2k6.Main</StartupObject>
+    <StartupObject>VokTrain2k6.My.MyApplication</StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <MyType>WindowsForms</MyType>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
   </PropertyGroup>
@@ -119,6 +119,12 @@
     <Compile Include="2k6TestModeSelect.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="2k6TestSimple.Designer.vb">
+      <DependentUpon>2k6TestSimple.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k6TestSimple.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="2k6VocInput.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -128,6 +134,42 @@
     <Compile Include="2k6VocTest.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="2k6VocabularyExplorer.Designer.vb">
+      <DependentUpon>2k6VocabularyExplorer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k6VocabularyExplorer.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k6AccessDataBaseOperation.vb" />
+    <Compile Include="2k6WordInput.Designer.vb">
+      <DependentUpon>2k6WordInput.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k6WordInput.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="Form1.Designer.vb">
+      <DependentUpon>2k6GroupInput.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k6GroupInput.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="xls2k6ExceptionCards.vb" />
+    <Compile Include="xls2k6Cards.vb" />
+    <Compile Include="xls2k6ExceptionInput.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.vb" />
+    <Compile Include="xls2k6ExceptionEntryExists.vb" />
+    <Compile Include="xls2k6ExceptionEntryNotFound.vb" />
+    <Compile Include="xls2k6ExceptionLanguageNotFound.vb" />
     <Compile Include="xls2k6Base.vb">
       <SubType>Code</SubType>
     </Compile>
@@ -140,12 +182,17 @@
     <Compile Include="xls2k6DBManagement.vb">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="xls2k6Dictionary.vb" />
+    <Compile Include="xls2k6DictionaryEntry.vb" />
     <Compile Include="xls2k6Enumerations.vb">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xls2k6FormCreator.vb">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="xls2k6Group.vb" />
+    <Compile Include="xls2k6GroupEntry.vb" />
+    <Compile Include="xls2k6Groups.vb" />
     <Compile Include="xls2k6LanguageDefinition.vb">
       <SubType>Code</SubType>
     </Compile>
@@ -176,11 +223,16 @@
     <Compile Include="xls2k6Word.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xlsOldVoc.vb">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="xls2k6LDF.vb" />
+    <Compile Include="xls2k6WordBase.vb" />
+    <Compile Include="xls2k6TestBase.vb" />
     <EmbeddedResource Include="2k6DataManagement.resx">
       <DependentUpon>2k6DataManagement.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k6GroupInput.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k6GroupInput.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6Info.resx">
       <DependentUpon>2k6Info.vb</DependentUpon>
@@ -188,25 +240,81 @@
     </EmbeddedResource>
     <EmbeddedResource Include="2k6Main.resx">
       <DependentUpon>2k6Main.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6SaveProgress.resx">
       <DependentUpon>2k6SaveProgress.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6TestModeSelect.resx">
       <DependentUpon>2k6TestModeSelect.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k6TestSimple.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k6TestSimple.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6VocInput.resx">
       <DependentUpon>2k6VocInput.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6VocStatistic.resx">
       <DependentUpon>2k6VocStatistic.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="2k6VocTest.resx">
       <DependentUpon>2k6VocTest.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k6VocabularyExplorer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k6VocabularyExplorer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k6WordInput.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k6WordInput.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
+    <COMReference Include="MSComCtl2">
+      <Guid>{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+    <COMReference Include="MSComctlLib">
+      <Guid>{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="My Project\Settings.settings">
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>

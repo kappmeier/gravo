@@ -26,16 +26,16 @@ Public Class xlsDBBase
 	Sub New()
 	End Sub
 
-	Sub New(ByVal db As CDBOperation, ByVal sTable As String)	' Bestimmte Tabelle zum Zugriff öffnen
-		MyClass.new(db)
-		m_bTableSelected = True
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation, ByVal sTable As String)  ' Bestimmte Tabelle zum Zugriff öffnen
+    MyClass.new(db)
+    m_bTableSelected = True
+  End Sub
 
-	Sub New(ByVal db As CDBOperation)
-		MyBase.New(db)
-		LoadGroupInfos()
-		m_bTableSelected = False
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation)
+    MyBase.New(db)
+    LoadGroupInfos()
+    m_bTableSelected = False
+  End Sub
 
 	Public ReadOnly Property CountGroups() As Integer
 		Get
@@ -79,16 +79,17 @@ Public Class xlsDBBase
 		End Get
 	End Property
 
-	Public Function GetUnitName(ByVal iUnitNumber As Int32)
-		' liest zu einer gegebnenen unit-nummer den namen ein
-		If IsGroupSelected() = False Then Exit Function ' TODO exception
-		Dim sCommand As String
-		sCommand = "SELECT Name FROM " & CurrentGroupName & "Units WHERE Nummer = " & iUnitNumber & ";"
-		ExecuteReader(sCommand)
-		DBCursor.Read()
-		If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then Return DBCursor.GetString(0)
-		DBCursor.Close()
-	End Function
+  Public Function GetUnitName(ByVal iUnitNumber As Int32) As String
+    ' liest zu einer gegebnenen unit-nummer den namen ein
+    If IsGroupSelected() = False Then Throw New Exception("Keine Gruppe ausgewählt.")
+    Dim sCommand As String
+    sCommand = "SELECT Name FROM " & CurrentGroupName & "Units WHERE Nummer = " & iUnitNumber & ";"
+    ExecuteReader(sCommand)
+    DBCursor.Read()
+    If Not TypeOf (DBCursor.GetValue(0)) Is DBNull Then Return DBCursor.GetString(0)
+    DBCursor.Close()
+    Return ""
+  End Function
 
 	Public Function GroupDescriptionToName(ByVal sDescription As String) As String
 		Dim i As Integer		  ' Index
@@ -121,8 +122,8 @@ Public Class xlsDBBase
 	ReadOnly Property Language() As String
 		Get
 			Dim sCommand As String
-			If IsConnected() = False Then Exit Property
-			If Trim(CurrentGroupName) = "" Then Exit Property
+      If IsConnected() = False Then Throw New Exception("Not connected")
+      If Trim(CurrentGroupName) = "" Then Throw New Exception("Falsche Group")
 
 			Dim sLanguage As String
 
@@ -138,8 +139,8 @@ Public Class xlsDBBase
 	ReadOnly Property LDFType() As String
 		Get
 			Dim sCommand As String
-			If IsConnected() = False Then Exit Property
-			If Trim(CurrentGroupName) = "" Then Exit Property
+      If IsConnected() = False Then Throw New Exception("Nicht verbunden")
+      If Trim(CurrentGroupName) = "" Then Throw New Exception("falsche Gruppenbezeichnung")
 
 			Dim sLDFType As String
 
@@ -171,7 +172,9 @@ Public Class xlsDBBase
 			aGroups.Add(structGroup.Table)			 ' hinzufügen in die arraylist
 		Loop
 		DBCursor.Close()
-		' Gruppe auswählen
+        ' Gruppe auswählen
+        ' TODO In LoadGroupInfos wird SelectGroup aufgerufen, aber es wird die in der mutterklasse aufgerufen,
+        ' wo noch gar nichts initialisiert worden ist!
 		If CountGroups > 0 Then SelectGroup(aGroups(0)) Else Exit Sub
 	End Sub
 

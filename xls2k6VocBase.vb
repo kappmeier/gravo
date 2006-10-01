@@ -21,13 +21,13 @@ Public Class xlsVocBase
 	Private m_bWordSelected As Boolean = False
 	' Klassenzustände
 
-	Sub New(ByVal db As CDBOperation, ByVal Table As String)	' Bestimmte Tabelle zum Zugriff öffnen
-		MyBase.new(db, Table)
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation, ByVal Table As String) ' Bestimmte Tabelle zum Zugriff öffnen
+    MyBase.new(db, Table)
+  End Sub
 
-	Sub New(ByVal db As CDBOperation)	   ' Keinen Speziellen Table auswählen
-		MyBase.New(db)
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation)     ' Keinen Speziellen Table auswählen
+    MyBase.New(db)
+  End Sub
 
 	Public Function CountWords() As Integer
 		Return cWordNumbers.Count
@@ -106,12 +106,12 @@ Public Class xlsVocBase
 
 
 	' Löschen oder auch nicht ?`????? ß? ß??? ???? ??? ?? ?
-	Overridable Function GetWord(ByVal WordNumber As Int32) As xlsWord
-		If IsConnected() = False Or IsGroupSelected() = False Then Return Nothing
+    Overridable Function GetWord(ByVal WordNumber As Int32) As xlsWord
+        If IsConnected() = False Or IsGroupSelected() = False Then Return Nothing
 
-		CurrentWord.LoadWord(WordNumber, CurrentGroupName)
-		SelectUnit(CurrentWord.UnitNumber)		 'm_iUnit = wtWord.UnitNumber
-		'm_iWordNumber = WordNumber
-		Return CurrentWord
-	End Function
+        CurrentWord.LoadWord(WordNumber, CurrentGroupName)
+        SelectUnit(CurrentWord.UnitNumber)       'm_iUnit = wtWord.UnitNumber
+        'm_iWordNumber = WordNumber
+        Return CurrentWord
+    End Function
 End Class

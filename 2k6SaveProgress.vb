@@ -5,7 +5,7 @@ Public Class SaveProgress
 	Private m_bAddOnly As Boolean = True
 	Private m_sDBPath As String = ""
 	Private m_bIsShown As Boolean = False
-	Private m_voc As xlsOldVoc
+  Private m_voc As xlsBase
 
 	'Dim voc As New xlsVocInput(Application.StartupPath() & "\voc.mdb")
 
@@ -113,29 +113,29 @@ Public Class SaveProgress
 		End Get
 	End Property
 
-	Public Sub SetVoc(ByRef voc As xlsOldVoc)
-		m_voc = voc
-	End Sub
+  Public Sub SetVoc(ByRef voc As xlsBase)
+    m_voc = voc
+  End Sub
 
-	Public Function Save()
-		Select Case m_voc.SaveTable(m_sDBPath, m_bAddOnly, m_bOverwrite, Me.Progress, Me.lblCurrentElement)
-			Case xlsSaveErrors.NoError
-				Return True
-			Case xlsSaveErrors.NotConnected
-				MsgBox("Sie müssen sich mit einer Datenbank verbinden," & vbCrLf & "bevor Sie Daten sichern können!", vbCritical)
-				Return False
-			Case xlsSaveErrors.TableExists
-				Dim iYesNo As MsgBoxResult = MsgBox("Soll die Tabelle überschrieben werden?", MsgBoxStyle.YesNo)
-				If iYesNo = MsgBoxResult.Yes Then
-					If m_voc.SaveTable(m_sDBPath, m_bAddOnly, True, Me.Progress, Me.lblCurrentElement) Then MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical) : Return False Else Return True
-				Else
-					Return False
-				End If
-			Case xlsSaveErrors.UnknownError
-				MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical)
-				Return False
-		End Select
-	End Function
+    Public Function Save() As Boolean
+    Select Case 1 'm_voc.SaveTable(m_sDBPath, m_bAddOnly, m_bOverwrite, Me.Progress, Me.lblCurrentElement)
+      Case xlsSaveErrors.NoError
+        Return True
+      Case xlsSaveErrors.NotConnected
+        MsgBox("Sie müssen sich mit einer Datenbank verbinden," & vbCrLf & "bevor Sie Daten sichern können!", vbCritical)
+        Return False
+      Case xlsSaveErrors.TableExists
+        Dim iYesNo As MsgBoxResult = MsgBox("Soll die Tabelle überschrieben werden?", MsgBoxStyle.YesNo)
+        If iYesNo = MsgBoxResult.Yes Then
+          'If m_voc.SaveTable(m_sDBPath, m_bAddOnly, True, Me.Progress, Me.lblCurrentElement) Then MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical) : Return False Else Return True
+        Else
+          Return False
+        End If
+      Case xlsSaveErrors.UnknownError
+        MsgBox("Sichern fehlgeschlagen!", MsgBoxStyle.Critical)
+        Return False
+    End Select
+    End Function
 
 	Private Sub SaveProgress_Paint(ByVal sender As Object, ByVal e As System.Windows.Forms.PaintEventArgs) Handles MyBase.Paint
 		m_bIsShown = True

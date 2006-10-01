@@ -10,7 +10,9 @@ Public Class xlsLDFBaseEx
 	Private m_cFormDesc As Collection
 	Private m_cFormDescEx As Collection
 
-	Private m_bQuickLoad As Boolean
+  Private m_cRules As Collection ' enthält für jede sprache eine unter-collection in selber reihenfolge
+
+  Private m_bQuickLoad As Boolean
 
 	Sub New()
 		MyBase.New()
@@ -38,60 +40,61 @@ Public Class xlsLDFBaseEx
 		End Get
 	End Property
 
-	Private Sub LoadFormInfos()
-		Dim ldfCommandLines As Collection = Me.CommandLines
-		Dim ldfCommandBlock As Collection
-		Dim ldfInnerBlock As Collection
-		Dim ldfFormBlock As Collection
-		Dim ldfExtended As ArrayList
-		Dim ldfExtendedEx As ArrayList
+  Protected Overridable Sub LoadFormInfos()
+    Dim ldfCommandLines As Collection = Me.CommandLines
+    Dim ldfCommandBlock As Collection
+    Dim ldfInnerBlock As Collection
+    Dim ldfFormBlock As Collection
+    Dim ldfExtended As ArrayList
+    Dim ldfExtendedEx As ArrayList
 
-		Me.m_cFormDesc = New Collection
-		Me.m_cFormDescEx = New Collection
+    Me.m_cFormDesc = New Collection
+    Me.m_cFormDescEx = New Collection
+    m_cRules = New Collection
 
-		Dim i As Integer		 ' Index
-		Dim j As Integer		 ' Index
-		For i = 1 To Me.m_cFormList.Count
-			ldfCommandBlock = Me.GetCommandBlock(getcommandblockstartpos("Form", m_cFormList.Item(i).left, ldfCommandLines), ldfCommandLines)
-			' ldfCommandBlock enthält nun den Block für diese Wortform
-			' Finde alle validen Formen von 1 bis 3 heraus
-			ldfInnerBlock = Me.GetCommandBlockStripped(getcommandblockstartpos("Extended", "", ldfCommandBlock), ldfCommandBlock)
-			' Für jeden Eintrag durchlaufen
-			ldfExtended = New ArrayList
-			ldfExtendedEx = New ArrayList
-			For j = 1 To ldfInnerBlock.Count		  ' TODO Begrenzung auf drei einfügen oder entfernen
-				ldfFormBlock = Me.GetCommandBlockStripped(getcommandblockstartpos("Extended", j, ldfCommandBlock), ldfCommandBlock)
-				ldfExtended.Add(GetCommandRight("Desc", ldfFormBlock))
-				ldfExtendedEx.Add(GetCommandRight("DescEx", ldfFormBlock))
-			Next j
-			For j = 1 To 3 - ldfExtended.Count
-				ldfExtended.Add("")
-				ldfExtendedEx.Add("")
-			Next j
-			m_cFormDesc.Add(ldfExtended)
-			m_cFormDescEx.Add(ldfExtendedEx)
-		Next i
+    Dim i As Integer     ' Index
+    Dim j As Integer     ' Index
 
-	End Sub
+    For i = 1 To Me.m_cFormList.Count
+      ldfCommandBlock = Me.GetCommandBlock(GetCommandBlockStartPos("Form", m_cFormList.Item(i).left, ldfCommandLines), ldfCommandLines)
+      ' ldfCommandBlock enthält nun den Block für diese Wortform
+      ' Finde alle validen Formen von 1 bis 3 heraus
+      ldfInnerBlock = Me.GetCommandBlockStripped(GetCommandBlockStartPos("Extended", "", ldfCommandBlock), ldfCommandBlock)
+      ' Für jeden Eintrag durchlaufen
+      ldfExtended = New ArrayList
+      ldfExtendedEx = New ArrayList
+
+      Dim ldfFormRules As Collection = New Collection ' speichert für eine Wortart alle drei typen
+
+      For j = 1 To ldfInnerBlock.Count      ' TODO Begrenzung auf drei einfügen oder entfernen
+        ldfFormBlock = Me.GetCommandBlockStripped(GetCommandBlockStartPos("Extended", j, ldfCommandBlock), ldfCommandBlock)
+        ldfExtended.Add(GetCommandRight("Desc", ldfFormBlock))
+        ldfExtendedEx.Add(GetCommandRight("DescEx", ldfFormBlock))
+
+        ' rules-liste füllen
+        Dim ldfRule As xlsLDFRule
+        Dim ldfThisForm As Collection = New Collection
+        Do While ldfFormBlock.Count > 1
+          ldfRule = New xlsLDFRule(GetCommandBlock(1, ldfFormBlock))
+          ldfThisForm.Add(ldfRule)
+        Loop
+        ldfFormRules.Add(ldfThisForm)
+      Next j
+      m_cRules.Add(ldfFormRules)
+      For j = 1 To 3 - ldfExtended.Count
+        ldfExtended.Add("")
+        ldfExtendedEx.Add("")
+      Next j
+      m_cFormDesc.Add(ldfExtended)
+      m_cFormDescEx.Add(ldfExtendedEx)
+    Next i
+  End Sub
 
 	Private Sub LoadFormList()
-		'Forms:
-		'noun:Substantiv
-		'verb:Verb
-		'adjective:Adjektiv
-		'simple:Einfache
-		'adverb:Adverb
-		'FormsEnd:
-		Dim ldfCommandLines As Collection = Me.CommandLines
+    Dim ldfCommandLines As Collection = Me.CommandLines
 
 		m_cFormList = GetCommandBlockstripped(GetCommandBlockStartPos("Forms", "", ldfCommandLines), ldfCommandLines)
-		'm_cFormList.Remove(1)
-		'm_cFormList.Remove(m_cFormList.Count())
-
-		Dim i As Integer
-		Dim ldfFormCreator As xlsFormCreator
-		Dim ldfFormCommandBlock As Collection
-	End Sub
+  End Sub
 
 	Private Sub LoadLanguageInfo()
 		' TODO LoadLanguageInfo in die Base-Klasse verschieben und in xlsLDFLanguageDefinition löschen
@@ -102,8 +105,8 @@ Public Class xlsLDFBaseEx
 		'TestDir: mtw
 		'LanguageEnd:
 		Dim xlsLanguage As xlsLanguageInfo
-		Dim sLastError As String
-		Dim ldfCommandLines = Me.CommandLines
+    'Dim sLastError As String
+    Dim ldfCommandLines As Collection = Me.CommandLines()
 
 		Dim ldfCommandBlock As Collection = GetCommandBlock(GetCommandBlockStartPos("Language", "", ldfCommandLines), ldfCommandLines)
 
@@ -112,9 +115,9 @@ Public Class xlsLDFBaseEx
 		xlsLanguage.Description = GetCommandRight("Desc", ldfCommandBlock)
 		xlsLanguage.DescriptionEx = GetCommandRight("DescEx", ldfCommandBlock)
 		If GetCommandRight("TestDir", ldfCommandBlock) = "mtw" Then
-			xlsLanguage.TestDirection = xlsLanguageTestDirection.TestWord
+      xlsLanguage.TestDirection = xlsLanguageTestDirection.TestMeaning
 		ElseIf GetCommandRight("TestDir", ldfCommandBlock) = "wtm" Then
-			xlsLanguage.TestDirection = xlsLanguageTestDirection.TestMeaning
+      xlsLanguage.TestDirection = xlsLanguageTestDirection.TestWord
 		Else
 			Me.SetError(xlsLanguageDefinitionErrors.UnexpectedLanguageInfoTestDir)
 			'Return sLastError TODO exception werfen
@@ -130,7 +133,6 @@ Public Class xlsLDFBaseEx
 			LoadFormList()
 			LoadFormInfos()
 		End If
-
 	End Sub
 
 	Private Sub LoadMainInfo()
@@ -162,21 +164,27 @@ Public Class xlsLDFBaseEx
 		End Set
 	End Property
 
-	Public ReadOnly Property Version() As String
-		Get
-			Return m_iVersionMajor & "." & m_iVersionMinor
-		End Get
-	End Property
+  Public ReadOnly Property RuleList() As Collection
+    Get
+      Return Me.m_cRules
+    End Get
+  End Property
 
-	Public ReadOnly Property VersionMajor() As Integer
-		Get
-			Return m_iVersionMajor
-		End Get
-	End Property
+  Public ReadOnly Property Version() As String
+    Get
+      Return m_iVersionMajor & "." & m_iVersionMinor
+    End Get
+  End Property
 
-	Public ReadOnly Property VersionMinor() As Integer
-		Get
-			Return m_iVersionMinor
-		End Get
-	End Property
+  Public ReadOnly Property VersionMajor() As Integer
+    Get
+      Return m_iVersionMajor
+    End Get
+  End Property
+
+  Public ReadOnly Property VersionMinor() As Integer
+    Get
+      Return m_iVersionMinor
+    End Get
+  End Property
 End Class

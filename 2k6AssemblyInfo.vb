@@ -11,7 +11,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("Universeller Vokabel- und Grammatiktrainer für verschiedene Sprachen.")> 
 <Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
 <Assembly: AssemblyProduct("VokTrain")> 
-<Assembly: AssemblyCopyright("©opyleft Jan-Philipp Kappmeier, 1995-2005")> 
+<Assembly: AssemblyCopyright("©opyleft Jan-Philipp Kappmeier 1995-2006")> 
 <Assembly: AssemblyTrademark("")> 
 <Assembly: CLSCompliant(True)> 
 

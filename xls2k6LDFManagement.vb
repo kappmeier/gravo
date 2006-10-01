@@ -7,7 +7,7 @@ Public Class xlsLDFManagement
 	Private m_sSelectedFileName As String
 	Private m_sPath As String
 
-	Private htLDF As Hashtable
+  Private htLDF As Hashtable
 
 	Public Sub New()
 		MyBase.New()
@@ -39,20 +39,20 @@ Public Class xlsLDFManagement
 			Me.m_cLanguages = New Collection
 
 			' Laden der Main-Infos in eine Collection
-			LoadLDF(sPath & "\" & "italian_std" & ".ldf")
-			htLDF.Add(LanguageInfo, "italian_std")
+            LoadLDF(sPath & "\" & "italian_std" & ".ldf")
+            htLDF.Add(LanguageInfo, "italian_std")
 			m_cLanguages.Add(LanguageInfo)
 
-			LoadLDF(sPath & "\" & "english_std" & ".ldf")
-			htLDF.Add(LanguageInfo, "english_std")
+            LoadLDF(sPath & "\" & "english_std" & ".ldf")
+            htLDF.Add(LanguageInfo, "english_std")
 			m_cLanguages.Add(LanguageInfo)
 
-			LoadLDF(sPath & "\" & "french_std" & ".ldf")
-			htLDF.Add(LanguageInfo, "french_std")
+            LoadLDF(sPath & "\" & "french_std" & ".ldf")
+            htLDF.Add(LanguageInfo, "french_std")
 			m_cLanguages.Add(LanguageInfo)
 
-			LoadLDF(sPath & "\" & "latin_std" & ".ldf")
-			htLDF.Add(LanguageInfo, "latin_std")
+            LoadLDF(sPath & "\" & "latin_std" & ".ldf")
+            htLDF.Add(LanguageInfo, "latin_std")
 			m_cLanguages.Add(LanguageInfo)
 			QuickLoad = False
 		End Set

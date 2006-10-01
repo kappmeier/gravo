@@ -5,13 +5,13 @@ Public Class xlsVocInput
 
 	Public Word As xlsWord
 
-	Sub New(ByVal db As CDBOperation, ByVal Table As String)	' Bestimmte Tabelle zum Zugriff öffnen
-		MyBase.new(db, Table)
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation, ByVal Table As String) ' Bestimmte Tabelle zum Zugriff öffnen
+    MyBase.new(db, Table)
+  End Sub
 
-	Sub New(ByVal db As CDBOperation)	   ' Keinen Speziellen Table auswählen
-		MyBase.New(db)
-	End Sub
+  Sub New(ByVal db As AccessDatabaseOperation)     ' Keinen Speziellen Table auswählen
+    MyBase.New(db)
+  End Sub
 
 	Overridable Function NewWord() As Integer
 		If IsConnected() = False Then Exit Function
@@ -82,24 +82,27 @@ Public Class xlsVocInput
 		Return NewWord()
 	End Function
 
-	Protected Function CreateNewStat(ByVal WordNumber As Integer)
-		Dim sCommand As String
-		sCommand = "INSERT INTO " & CurrentGroupName & "Stats VALUES ("
-		sCommand += AddHighColons(WordNumber) & ","
-		sCommand += AddHighColons(0) & ","
-		sCommand += AddHighColons(0) & ","
-		sCommand += AddHighColons(0) & ","
-		sCommand += AddHighColons(0) & ","
-		sCommand += AddHighColons(0) & ","
-		sCommand += "'" & AddHighColons("01.01.1900") & "',"
-		sCommand += "'" & AddHighColons("01.01.1900") & "',"
-		sCommand += AddHighColons(False) & ","
-		sCommand &= AddHighColons(0) & ","
-		sCommand &= AddHighColons(0) & ","
-		sCommand &= AddHighColons(0) & ");"
-		ExecuteReader(sCommand)
-		DBCursor.Close()
-	End Function
+  Protected Sub CreateNewStat(ByVal WordNumber As Integer)
+    Dim sCommand As String
+    sCommand = "INSERT INTO " & CurrentGroupName & "Stats VALUES ("
+    sCommand += AddHighColons(WordNumber) & ","
+    sCommand += AddHighColons(0) & ","
+    sCommand += AddHighColons(0) & ","
+    sCommand += AddHighColons(0) & ","
+    sCommand += AddHighColons(0) & ","
+    sCommand += AddHighColons(0) & ","
+    sCommand += "'" & AddHighColons("01.01.1900") & "',"
+    sCommand += "'" & AddHighColons("01.01.1900") & "',"
+    sCommand += AddHighColons(False) & ","
+    sCommand &= AddHighColons(0) & ","
+    sCommand &= AddHighColons(0) & ","
+    sCommand &= AddHighColons(0) & ","
+    sCommand &= AddHighColons(1) & ","
+    sCommand &= AddHighColons(1)
+    sCommand &= ");"
+    ExecuteReader(sCommand)
+    DBCursor.Close()
+  End Sub
 
 	Protected Function ExistDeleted() As Boolean
 		Dim sCommand As String
@@ -128,9 +131,9 @@ Public Class xlsVocInput
 
 
 
-	' ********************************
-	' * Muß noch überarbeitet werden *
-	' ********************************
+  ' *************************************
+  ' * TODO Muß noch überarbeitet werden *
+  ' *************************************
 	Sub Delete()
 		If IsConnected() = False Then Exit Sub
 		If (IsGroupSelected() = False) Then Exit Sub

@@ -69,7 +69,7 @@ Public Class Info
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(74, 13)
         Me.Label1.TabIndex = 2
-        Me.Label1.Text = "© 1995 - 2005"
+        Me.Label1.Text = "© 1995 - 2006"
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.BottomLeft
         '
         'Label2

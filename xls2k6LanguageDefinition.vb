@@ -94,7 +94,7 @@ Public Class xlsLanguageDefinitionOld
 
 	Public ReadOnly Property FormList() As Collection
 		Get
-			Dim i As Integer
+      'Dim i As Integer
 			Dim sList As New Collection
 			'For i = 1 To m_ldfFormList.Count
 			'sList.Add(m_ldfFormList(i).right)
@@ -137,7 +137,7 @@ Public Class xlsLanguageDefinitionOld
 	End Function
 
 	Public Function CreateExtended1(ByVal FormName As String, ByVal wtWord As xlsWord) As String
-		Dim iType = wtWord.WordType()
+    Dim iType As Integer = wtWord.WordType()
 		Dim i As Integer = 0
 		Do
 			i += 1
@@ -145,4 +145,3 @@ Public Class xlsLanguageDefinitionOld
 		If i >= m_ldfFormCreator.Count Then Return "" Else Return m_ldfFormCreator(i).createform(wtWord)
 	End Function
 End Class
-

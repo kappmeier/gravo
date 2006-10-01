@@ -22,28 +22,45 @@ Public Class xlsLDFRule
 					If Not wtWord.Pre = m_Rules.Item(i).right Then
 						bStop = True
 					End If
-				Case "WordRight"
-					If Not Right(wtWord.Word, Len(m_Rules.Item(i).right)) = m_Rules.Item(i).right Then
-						bStop = True
-					End If
-				Case "Force"				' Irreguläres Wort forcieren
-					If m_Rules.Item(i).right = "Irregular" Then
-						m_sOutput = "LDF_FORCE_IRREGULAR"
-						m_bRuleUsed = True
-						bStop = True
-					Else					  ' Reguläres Wort. Ausgabe ist schon belegt, schleife stoppen
-						m_bRuleUsed = True
-						bStop = True
-					End If
+        Case "WordRight"
+          If Not Right(wtWord.Word, Len(m_Rules.Item(i).right)) = m_Rules.Item(i).right Then
+            bStop = True
+          End If
+        Case "WordLeft"
+          If Not Left(wtWord.Word, Len(m_Rules.Item(i).right)) = m_Rules.Item(i).right Then
+            bStop = True
+          End If
+        Case "Force"        ' Irreguläres Wort forcieren
+          If m_Rules.Item(i).right = "Irregular" Then
+            m_sOutput = "LDF_FORCE_IRREGULAR"
+            m_bRuleUsed = True
+            bStop = True
+          Else            ' Reguläres Wort. Ausgabe ist schon belegt, schleife stoppen
+            m_bRuleUsed = True
+            bStop = True
+          End If
 				Case "SetExtended"				' Extended-Wert setzen
 					m_sOutput = m_Rules.Item(i).right
 				Case "AddExtended"				' Zum vorhandenen Extended-Wert etwas hinzufügen
-					m_sOutput &= m_Rules.Item(i).right
-				Case "CutExtendedRight"
-					m_sOutput = Left(m_sOutput, Len(m_sOutput) - Val(m_Rules.Item(i).right))
-				Case "CopyExtended"				' Ein schon vorhandenes Datenfeld in Extended kopieren
-					m_sOutput = wtWord.Word
-			End Select
+          m_sOutput &= m_Rules.Item(i).right
+        Case "AddExtendedLeft"
+          m_sOutput = m_Rules.Item(i).right & m_sOutput
+        Case "AddSpaceLeft"
+          m_sOutput = " " & m_sOutput
+        Case "CutExtendedRight"
+          If m_sOutput <> "" Then m_sOutput = Left(m_sOutput, Len(m_sOutput) - Val(m_Rules.Item(i).right))
+        Case "CopyExtended"       ' Ein schon vorhandenes Datenfeld in Extended kopieren
+          Dim sTemp As String = m_Rules.Item(i).right
+          Select Case sTemp
+            Case ""
+            Case "Word"
+              m_sOutput = wtWord.Word
+            Case "Pre"
+              m_sOutput = wtWord.Pre
+            Case "Post"
+              m_sOutput = wtWord.Post
+          End Select
+      End Select
 			i += 1
 		Loop
 	End Sub

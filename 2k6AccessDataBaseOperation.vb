@@ -1,17 +1,27 @@
 Imports System.Data.OleDb
 
-Public Class CDBOperation
+Public Class AccessDatabaseOperation
   Protected oledbCmd As OleDbCommand = New OleDbCommand
   Protected oledbConnect As OleDbConnection = New OleDbConnection
   Protected oleCursor As OleDbDataReader
   Protected bInit As Boolean
-  Private m_Path As String
+  Protected m_Path As String
+  Protected m_sCommand As String = ""
+
+  Public Sub New()
+
+  End Sub
+
+  Public Sub New(ByVal DBPath As String)
+    Open(DBPath)
+  End Sub
 
   Public ReadOnly Property Path() As String
     Get
       Return m_Path
     End Get
   End Property
+
   Public Function Open(ByVal DBPath As String) As Boolean
     If bInit Then Close()
     oledbConnect.ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" & DBPath
@@ -23,6 +33,7 @@ Public Class CDBOperation
   End Function
 
   Public Function ExecuteNonQuery(ByVal DBPath As String, ByVal CommandText As String) As Boolean
+    m_sCommand = CommandText
     If bInit Then Close()
     Open(DBPath)
     oledbCmd.CommandText = CommandText
@@ -37,6 +48,7 @@ Public Class CDBOperation
   End Function
 
   Public Function ExecuteNonQuery(ByVal CommandText As String) As Boolean
+    m_sCommand = CommandText
     If Not bInit Then Return False
     If Not oleCursor Is Nothing Then oleCursor.Close()
     oledbCmd.CommandText = CommandText
@@ -51,7 +63,12 @@ Public Class CDBOperation
     Return True
   End Function
 
+  Public Function ExecuteNonQuery() As Boolean
+    Return ExecuteNonQuery(m_sCommand)
+  End Function
+
   Public Function ExecuteReader(ByVal DBPath As String, ByVal CommandText As String) As OleDbDataReader
+    m_sCommand = CommandText
     If bInit Then Close()
     Open(DBPath)
     oledbCmd.CommandText = CommandText
@@ -65,11 +82,12 @@ Public Class CDBOperation
   End Function
 
   Public Function ExecuteReader(ByVal CommandText As String) As OleDbDataReader
+    m_sCommand = CommandText
 
-    If oledbConnect.State <> ConnectionState.Open Then MsgBox("Not open")
+    If oledbConnect.State <> ConnectionState.Open Then MsgBox("Database is not open")
 
     If Not bInit Then Return Nothing
-    ReOpen()
+    'ReOpen()
     If Not oleCursor Is Nothing Then oleCursor.Close()
     oledbCmd.CommandText = CommandText
     Try
@@ -80,6 +98,10 @@ Public Class CDBOperation
       oleCursor = oledbCmd.ExecuteReader()
     End Try
     Return oleCursor
+  End Function
+
+  Public Function ExecuteReader() As OleDbDataReader
+    Return ExecuteReader(m_sCommand)
   End Function
 
   Public Function Close() As Boolean
@@ -103,5 +125,23 @@ Public Class CDBOperation
     oledbCmd.Connection = oledbConnect
     bInit = True
     Return True
+  End Function
+
+  Public Shared Function AddHighColons(ByVal Text As String) As String
+    Dim sTemp, sTemp2 As String
+    Dim i As Integer = 0
+    sTemp2 = Text
+    sTemp = ""
+    Do
+      i = InStr(1, sTemp2, "'")
+      If i > 0 Then
+        sTemp = sTemp & Mid(sTemp2, 1, i) & "'"
+        sTemp2 = Right(sTemp2, Len(sTemp2) - i)
+      Else
+        sTemp = sTemp & sTemp2
+        sTemp2 = ""
+      End If
+    Loop Until sTemp2 = ""
+    Return sTemp
   End Function
 End Class
