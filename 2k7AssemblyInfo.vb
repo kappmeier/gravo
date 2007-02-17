@@ -7,11 +7,11 @@ Imports System.Runtime.InteropServices
 
 ' Die Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("Vokabeltrainer 2k6-Edition")> 
+<Assembly: AssemblyTitle("Vokabeltrainer 2k7-Edition")> 
 <Assembly: AssemblyDescription("Universeller Vokabel- und Grammatiktrainer für verschiedene Sprachen.")> 
 <Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
 <Assembly: AssemblyProduct("VokTrain")> 
-<Assembly: AssemblyCopyright("©opyleft Jan-Philipp Kappmeier 1995-2006")> 
+<Assembly: AssemblyCopyright("©opyleft Jan-Philipp Kappmeier 1995-2007")> 
 <Assembly: AssemblyTrademark("")> 
 <Assembly: CLSCompliant(True)> 
 

@@ -40,10 +40,10 @@ Public Class xlsDictionary
     Return cLanguages
   End Function
 
-  Public Function DictionarySubEntrys(ByVal Word As String) As Collection
+  Public Function DictionarySubEntrys(byval Language as String, ByVal Word As String) As Collection
     Dim cSubWords As New Collection
     Dim DBCursor As OleDbDataReader
-    Dim sCommand As String = "SELECT Index FROM DictionaryMain WHERE WordEntry='" & AddHighColons(Word) & "';"
+    Dim sCommand As String = "SELECT Index FROM DictionaryMain WHERE WordEntry='" & AddHighColons(Word) & "' AND LanguageName='" & AddHighColons(Language) & "';"
     DBCursor = DBConnection.ExecuteReader(sCommand)
     Dim e As New Exception("Eintrag " & Word & " nicht in DictionaryMain.")
     If DBCursor.HasRows = False Then Throw e
@@ -262,5 +262,16 @@ Public Class xlsDictionary
     Dim sOutput As String = SecureGetString(DBCursor, 0)
     DBCursor.Close()
     Return sOutput
+  End Function
+
+  Public Function GetSubEntryIndex(ByVal MainIndex As Integer, ByVal Word As String, ByVal Meaning As String) As Integer
+    Dim DBCursor As OleDbDataReader
+    Dim sCommand As String = "SELECT Index FROM DictionaryWords WHERE Word='" & AddHighColons(Word) & "' AND Meaning='" & AddHighColons(Meaning) & "' AND MainIndex=" & MainIndex & ";"
+    DBCursor = DBConnection.ExecuteReader(sCommand)
+    If DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Der Eintrag existiert nicht.")
+    DBCursor.Read()
+    Dim iOutput As String = SecureGetInt32(DBCursor, 0)
+    DBCursor.Close()
+    Return iOutput
   End Function
 End Class

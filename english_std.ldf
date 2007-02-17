@@ -1,9 +1,10 @@
 LDF:
-Version:1.0
+Version:1.1
 LangTarg:german
 LangDesc:Deutsch
 Language:
   Name:english
+  Type:std
   Desc:Englisch
   DescEx:Englisch – Standard
   TestDir:mtw
@@ -13,6 +14,7 @@ Forms:
   verb:Verb
   adjective:Adjektiv
   simple:Einfache
+  adverb:Adverb
 FormsEnd:
 Form:noun
   Extended:
@@ -30,3 +32,7 @@ Form:simple
   Extended:
   ExtendedEnd:
 FormEnd:simple
+Form:adverb
+  Extended:
+  ExtendedEnd:
+FormEnd:adverb

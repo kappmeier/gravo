@@ -3,7 +3,7 @@ Imports System.Data.OleDb
 Public Class xlsTestBase
   Inherits xlsBase
   ' Abfragen von Vokabeln
-  ' unterstützt keine Gruppen
+  ' unterstützt (nur) ganze Sprachen, keine Gruppen
 
   Private ldfManagement As New xlsLDFManagement
   Private cTestWords As Collection
@@ -28,10 +28,11 @@ Public Class xlsTestBase
   ' außen über einen NextWord() aufruf dieser mechanismus außer kraft gesetzt werden.
   Private bUseCards As Boolean = True         ' soll das Karteikarten-System benutzt werden?
 
-
+  Public Sub New()
+    ldfManagement.LDFPath = Application.StartupPath() ' TODO in den konstruktor packen
+  End Sub
 
   Overridable Sub Start(ByRef TestWords As Collection)  ' Wörter sollen übergeben werden Collection von indizes aus DictionaryWords
-    ldfManagement.LDFPath = Application.StartupPath() ' TODO in den konstruktor packen
     'Randomize(Now.ToOADate) ' zufallszahlengenerator initialisieren
     Randomize()
 
@@ -52,7 +53,8 @@ Public Class xlsTestBase
 
   Overridable Sub Start(ByVal Language As String)
     ' Finde alle Wörter, die zu dieser Sprache passen heraus
-    Dim cWords As Collection = New Collection
+        Dim cWords As Collection = New Collection
+
     Dim sCommand As String = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index AND M.LanguageName='" & AddHighColons(Language) & "'"
     Dim DBCursor As OleDbDataReader = DBConnection.ExecuteReader(sCommand)
     Do While DBCursor.Read
@@ -77,7 +79,6 @@ Public Class xlsTestBase
   End Sub
 
   Overridable Sub NextWord()
-
     Me.bFirstTest = True
     ' übernehmen, falls cards aus sind, ansonsten testen, ob es überhaupt abgefragt werden soll
     If Me.bUseCards = False Then
@@ -111,6 +112,7 @@ Public Class xlsTestBase
           End If
         Catch ex As Exception
           ' anderer fehler
+          MsgBox("Dürfte eigentlich nicht vorkommen! Evtl. ein Fehler mit der Count-Tabelle?", MsgBoxStyle.Critical, "Fehler")
           Throw ex
         End Try
       Loop

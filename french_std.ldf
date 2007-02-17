@@ -1,9 +1,10 @@
 LDF:
-Version:1.0
+Version:1.1
 LangTarg:german
 LangDesc:Deutsch
 Language:
   Name:french
+  Type:std
   Desc:Französisch
   DescEx:Französisch – Standard
   TestDir:mtw
@@ -70,7 +71,7 @@ Form:adjective
   ExtendedEnd:
   Extended:1
     Desc:Feminin
-    DescEx:Weibliche Form
+    DescEx:weibliche Form
     Rule:
         CopyExtended:Word
         AddExtended:e

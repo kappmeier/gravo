@@ -36,16 +36,9 @@ Public Class GroupInput
   End Sub
 
   Private Sub cmbSelectGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbSelectGroup.SelectedIndexChanged
-    ' Neue Gruppe ausgewählt. Zeige die enthaltenen Vokabeln in der liste an
-    lstWordsInGroup.BeginUpdate()
-    lstWordsInGroup.Items.Clear()
-    Dim group As xlsGroupEntry = cGroups(Me.cmbSelectGroup.SelectedIndex + 1)
-    grp.GroupTable = group.Table
-    Dim cWordStrings As Collection = grp.GetWords()
-    For Each sWord As String In cWordStrings
-      Me.lstWordsInGroup.Items.Add(sWord)
-    Next
-    lstWordsInGroup.EndUpdate()
+    UpdateWordsInGroup()
+
+    ' update für die liste aller wörter. nur haupteinträge werden eingefügt
     lstAllWords.BeginUpdate()
     lstAllWords.Items.Clear()
         'cWords = dic.GetWords("italian", "std")
@@ -54,28 +47,21 @@ Public Class GroupInput
       Me.lstAllWords.Items.Add(word)
     Next
 
-    'Dim cWords As Collection = voc.DictionaryEntrys(cLanguages.Item(i))
-
     lstAllWords.EndUpdate()
   End Sub
 
   Private Sub lstAllWords_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstAllWords.SelectedIndexChanged
-    Dim iIndex As Integer = lstAllWords.SelectedIndex
-    Dim word As String
-    word = cWords.Item(iIndex + 1)
-    Dim iMainIndex As Integer = dic.GetEntryIndex("italian", word)
+    Dim sMainEntry As String = dic.GetEntry(dic.GetEntryIndex("italian", cWords.Item(lstAllWords.SelectedIndex + 1)))
+    cMeanings = dic.GetWordsAndSubWords("italian", sMainEntry)
 
-    Dim sMainEntry As String = dic.GetEntry(iMainIndex)
-    cMeanings = dic.GetWordsAndSubWords("italian", sMainEntry) ', sMainEntry)
     ' Anzeigen aller Einträge aus der Collection
-    Dim lvItem As ListViewItem
     lstWords.Items.Clear()
     For Each wCurrent As xlsDictionaryEntry In cMeanings
-      lvItem = lstWords.Items.Add(wCurrent.Pre)
+      Dim lvItem As ListViewItem = lstWords.Items.Add(wCurrent.Pre)
       lvItem.SubItems.AddRange(New String() {wCurrent.Word, wCurrent.Post, wCurrent.Meaning})
     Next
-    Dim iMeanings As Integer = lstWords.Items.Count
-    If iMeanings >= 1 Then lstWords.SelectedIndices.Add(0)
+
+    If lstWords.Items.Count >= 1 Then lstWords.SelectedIndices.Add(0)
   End Sub
 
   Private Sub cmdSelect_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSelect.Click
@@ -84,8 +70,10 @@ Public Class GroupInput
     Dim iIndex As Integer = lstWords.SelectedIndices.Item(0)
     Dim wtWord As xlsDictionaryEntry = cMeanings.Item(iIndex + 1)
     ' Wort ist bekannt, in die Gruppe hinzufügen
+
     grp.Add(wtWord.WordIndex)
 
+    UpdateWordsInGroup()
   End Sub
 
   Private Sub cmdSearch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSearch.Click
@@ -94,4 +82,37 @@ Public Class GroupInput
       Me.lstAllWords.SelectedIndex = index
     End If
   End Sub
+
+  Private Sub lstWordsInGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstWordsInGroup.SelectedIndexChanged
+    UpdateWordsInGroupSelected()
+  End Sub
+
+  Private Sub UpdateWordsInGroupSelected()
+    Dim cWords As Collection = grp.GetWords(lstWordsInGroup.SelectedItem)
+
+    lstMeanings.Items.Clear()
+    For Each wCurrent As xlsDictionaryEntry In cWords
+      Dim lvItem As ListViewItem = lstMeanings.Items.Add(wCurrent.Pre)
+      lvItem.SubItems.AddRange(New String() {wCurrent.Word, wCurrent.Post, wCurrent.Meaning})
+    Next
+
+    If lstMeanings.Items.Count >= 1 Then lstMeanings.SelectedIndices.Add(0)
+  End Sub
+
+  Private Sub UpdateWordsInGroup()
+    Dim selected As Integer = lstWordsInGroup.SelectedIndex
+
+    ' Neue Gruppe ausgewählt. Zeige die enthaltenen Vokabeln in der liste an
+    lstWordsInGroup.BeginUpdate()
+    lstWordsInGroup.Items.Clear()
+    Dim group As xlsGroupEntry = cGroups(cmbSelectGroup.SelectedIndex + 1)
+    grp.GroupTable = group.Table
+    Dim cWordStrings As Collection = grp.GetWords()
+    For Each sWord As String In cWordStrings
+      lstWordsInGroup.Items.Add(sWord)
+    Next
+    lstWordsInGroup.EndUpdate()
+    If Not selected >= lstWordsInGroup.Items.Count Then lstWordsInGroup.SelectedIndex = selected
+  End Sub
 End Class
+

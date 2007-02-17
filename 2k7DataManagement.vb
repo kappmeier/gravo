@@ -258,192 +258,192 @@ Public Class Management
     Me.cmbLDFType.Size = New System.Drawing.Size(176, 21)
     Me.cmbLDFType.TabIndex = 8
         Me.cmbLDFType.Text = "std"
-        '
-        'cmdGroupDelete
-        '
-        Me.cmdGroupDelete.Enabled = False
-        Me.cmdGroupDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdGroupDelete.Location = New System.Drawing.Point(264, 200)
-        Me.cmdGroupDelete.Name = "cmdGroupDelete"
-        Me.cmdGroupDelete.Size = New System.Drawing.Size(80, 24)
-        Me.cmdGroupDelete.TabIndex = 6
-        Me.cmdGroupDelete.Text = "Löschen"
-        '
-        'cmbGroupLanguage
-        '
-        Me.cmbGroupLanguage.Location = New System.Drawing.Point(168, 16)
-        Me.cmbGroupLanguage.Name = "cmbGroupLanguage"
-        Me.cmbGroupLanguage.Size = New System.Drawing.Size(176, 21)
-        Me.cmbGroupLanguage.TabIndex = 4
-        Me.cmbGroupLanguage.Text = "ComboBox1"
-        '
-        'cmdGroupEdit
-        '
-        Me.cmdGroupEdit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdGroupEdit.Location = New System.Drawing.Point(264, 144)
-        Me.cmdGroupEdit.Name = "cmdGroupEdit"
-        Me.cmdGroupEdit.Size = New System.Drawing.Size(80, 24)
-        Me.cmdGroupEdit.TabIndex = 3
-        Me.cmdGroupEdit.Text = "Ändern"
-        '
-        'txtGroupName
-        '
-        Me.txtGroupName.Location = New System.Drawing.Point(168, 80)
-        Me.txtGroupName.Name = "txtGroupName"
-        Me.txtGroupName.Size = New System.Drawing.Size(176, 20)
-        Me.txtGroupName.TabIndex = 2
-        Me.txtGroupName.Text = "#"
-        '
-        'lstGroupList
-        '
-        Me.lstGroupList.Location = New System.Drawing.Point(8, 16)
-        Me.lstGroupList.Name = "lstGroupList"
-        Me.lstGroupList.Size = New System.Drawing.Size(144, 212)
-        Me.lstGroupList.TabIndex = 1
-        '
-        'cmdGroupAdd
-        '
-        Me.cmdGroupAdd.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdGroupAdd.Location = New System.Drawing.Point(264, 112)
-        Me.cmdGroupAdd.Name = "cmdGroupAdd"
-        Me.cmdGroupAdd.Size = New System.Drawing.Size(80, 24)
-        Me.cmdGroupAdd.TabIndex = 0
-        Me.cmdGroupAdd.Text = "Hinzufügen"
-        '
-        'tabUnit
-        '
-        Me.tabUnit.Controls.Add(Me.cmbUnitSelectGroup)
-        Me.tabUnit.Controls.Add(Me.lblUnitInfo)
-        Me.tabUnit.Controls.Add(Me.cmdUnitDelete)
-        Me.tabUnit.Controls.Add(Me.cmdUnitEdit)
-        Me.tabUnit.Controls.Add(Me.txtUnitName)
-        Me.tabUnit.Controls.Add(Me.lstUnitList)
-        Me.tabUnit.Controls.Add(Me.cmdUnitAdd)
-        Me.tabUnit.Location = New System.Drawing.Point(4, 22)
-        Me.tabUnit.Name = "tabUnit"
-        Me.tabUnit.Size = New System.Drawing.Size(360, 238)
-        Me.tabUnit.TabIndex = 2
-        Me.tabUnit.Text = "Lektionen"
-        '
-        'cmbUnitSelectGroup
-        '
-        Me.cmbUnitSelectGroup.Location = New System.Drawing.Point(8, 16)
-        Me.cmbUnitSelectGroup.Name = "cmbUnitSelectGroup"
-        Me.cmbUnitSelectGroup.Size = New System.Drawing.Size(336, 21)
-        Me.cmbUnitSelectGroup.TabIndex = 16
-        Me.cmbUnitSelectGroup.Text = "ComboBox1"
-        '
-        'lblUnitInfo
-        '
-        Me.lblUnitInfo.Location = New System.Drawing.Point(168, 80)
-        Me.lblUnitInfo.Name = "lblUnitInfo"
-        Me.lblUnitInfo.Size = New System.Drawing.Size(88, 88)
-        Me.lblUnitInfo.TabIndex = 15
-        Me.lblUnitInfo.Text = "#"
-        '
-        'cmdUnitDelete
-        '
-        Me.cmdUnitDelete.Enabled = False
-        Me.cmdUnitDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdUnitDelete.Location = New System.Drawing.Point(264, 144)
-        Me.cmdUnitDelete.Name = "cmdUnitDelete"
-        Me.cmdUnitDelete.Size = New System.Drawing.Size(80, 24)
-        Me.cmdUnitDelete.TabIndex = 14
-        Me.cmdUnitDelete.Text = "Löschen"
-        '
-        'cmdUnitEdit
-        '
-        Me.cmdUnitEdit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdUnitEdit.Location = New System.Drawing.Point(264, 112)
-        Me.cmdUnitEdit.Name = "cmdUnitEdit"
-        Me.cmdUnitEdit.Size = New System.Drawing.Size(80, 24)
-        Me.cmdUnitEdit.TabIndex = 11
-        Me.cmdUnitEdit.Text = "Ändern"
-        '
-        'txtUnitName
-        '
-        Me.txtUnitName.Location = New System.Drawing.Point(168, 48)
-        Me.txtUnitName.Name = "txtUnitName"
-        Me.txtUnitName.Size = New System.Drawing.Size(176, 20)
-        Me.txtUnitName.TabIndex = 10
-        Me.txtUnitName.Text = "txtNameUnit"
-        '
-        'lstUnitList
-        '
-        Me.lstUnitList.Location = New System.Drawing.Point(8, 48)
-        Me.lstUnitList.Name = "lstUnitList"
-        Me.lstUnitList.Size = New System.Drawing.Size(144, 160)
-        Me.lstUnitList.TabIndex = 9
-        '
-        'cmdUnitAdd
-        '
-        Me.cmdUnitAdd.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdUnitAdd.Location = New System.Drawing.Point(264, 80)
-        Me.cmdUnitAdd.Name = "cmdUnitAdd"
-        Me.cmdUnitAdd.Size = New System.Drawing.Size(80, 24)
-        Me.cmdUnitAdd.TabIndex = 8
-        Me.cmdUnitAdd.Text = "Hinzufügen"
-        '
-        'cmdSchließen
-        '
-        Me.cmdSchließen.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.cmdSchließen.Location = New System.Drawing.Point(296, 280)
-        Me.cmdSchließen.Name = "cmdSchließen"
-        Me.cmdSchließen.Size = New System.Drawing.Size(75, 23)
-        Me.cmdSchließen.TabIndex = 2
-        Me.cmdSchließen.Text = "Schließen"
-        '
-        'SaveFile
-        '
-        Me.SaveFile.CreatePrompt = True
-        Me.SaveFile.FileName = "new.mdb"
-        Me.SaveFile.Filter = "Database|*.mdb"
-        Me.SaveFile.InitialDirectory = "C:\"
-        Me.SaveFile.OverwritePrompt = False
-        Me.SaveFile.Title = "Datei zum Speichern auswählen"
-        '
-        'Management
-        '
-        Me.AcceptButton = Me.cmdSchließen
-        Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
-        Me.ClientSize = New System.Drawing.Size(384, 310)
-        Me.Controls.Add(Me.cmdSchließen)
-        Me.Controls.Add(Me.tab)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
-        Me.MaximizeBox = False
-        Me.Name = "Management"
-        Me.ShowInTaskbar = False
-        Me.Text = "Daten-Management"
-        Me.tab.ResumeLayout(False)
-        Me.tabData.ResumeLayout(False)
-        Me.tabGroup.ResumeLayout(False)
-        Me.tabGroup.PerformLayout()
-        Me.tabUnit.ResumeLayout(False)
-        Me.tabUnit.PerformLayout()
-        Me.ResumeLayout(False)
+    '
+    'cmdGroupDelete
+    '
+    Me.cmdGroupDelete.Enabled = False
+    Me.cmdGroupDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdGroupDelete.Location = New System.Drawing.Point(264, 200)
+    Me.cmdGroupDelete.Name = "cmdGroupDelete"
+    Me.cmdGroupDelete.Size = New System.Drawing.Size(80, 24)
+    Me.cmdGroupDelete.TabIndex = 6
+    Me.cmdGroupDelete.Text = "Löschen"
+    '
+    'cmbGroupLanguage
+    '
+    Me.cmbGroupLanguage.Location = New System.Drawing.Point(168, 16)
+    Me.cmbGroupLanguage.Name = "cmbGroupLanguage"
+    Me.cmbGroupLanguage.Size = New System.Drawing.Size(176, 21)
+    Me.cmbGroupLanguage.TabIndex = 4
+    Me.cmbGroupLanguage.Text = "ComboBox1"
+    '
+    'cmdGroupEdit
+    '
+    Me.cmdGroupEdit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdGroupEdit.Location = New System.Drawing.Point(264, 144)
+    Me.cmdGroupEdit.Name = "cmdGroupEdit"
+    Me.cmdGroupEdit.Size = New System.Drawing.Size(80, 24)
+    Me.cmdGroupEdit.TabIndex = 3
+    Me.cmdGroupEdit.Text = "Ändern"
+    '
+    'txtGroupName
+    '
+    Me.txtGroupName.Location = New System.Drawing.Point(168, 80)
+    Me.txtGroupName.Name = "txtGroupName"
+    Me.txtGroupName.Size = New System.Drawing.Size(176, 20)
+    Me.txtGroupName.TabIndex = 2
+    Me.txtGroupName.Text = "#"
+    '
+    'lstGroupList
+    '
+    Me.lstGroupList.Location = New System.Drawing.Point(8, 16)
+    Me.lstGroupList.Name = "lstGroupList"
+    Me.lstGroupList.Size = New System.Drawing.Size(144, 212)
+    Me.lstGroupList.TabIndex = 1
+    '
+    'cmdGroupAdd
+    '
+    Me.cmdGroupAdd.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdGroupAdd.Location = New System.Drawing.Point(264, 112)
+    Me.cmdGroupAdd.Name = "cmdGroupAdd"
+    Me.cmdGroupAdd.Size = New System.Drawing.Size(80, 24)
+    Me.cmdGroupAdd.TabIndex = 0
+    Me.cmdGroupAdd.Text = "Hinzufügen"
+    '
+    'tabUnit
+    '
+    Me.tabUnit.Controls.Add(Me.cmbUnitSelectGroup)
+    Me.tabUnit.Controls.Add(Me.lblUnitInfo)
+    Me.tabUnit.Controls.Add(Me.cmdUnitDelete)
+    Me.tabUnit.Controls.Add(Me.cmdUnitEdit)
+    Me.tabUnit.Controls.Add(Me.txtUnitName)
+    Me.tabUnit.Controls.Add(Me.lstUnitList)
+    Me.tabUnit.Controls.Add(Me.cmdUnitAdd)
+    Me.tabUnit.Location = New System.Drawing.Point(4, 22)
+    Me.tabUnit.Name = "tabUnit"
+    Me.tabUnit.Size = New System.Drawing.Size(360, 238)
+    Me.tabUnit.TabIndex = 2
+    Me.tabUnit.Text = "Lektionen"
+    '
+    'cmbUnitSelectGroup
+    '
+    Me.cmbUnitSelectGroup.Location = New System.Drawing.Point(8, 16)
+    Me.cmbUnitSelectGroup.Name = "cmbUnitSelectGroup"
+    Me.cmbUnitSelectGroup.Size = New System.Drawing.Size(336, 21)
+    Me.cmbUnitSelectGroup.TabIndex = 16
+    Me.cmbUnitSelectGroup.Text = "ComboBox1"
+    '
+    'lblUnitInfo
+    '
+    Me.lblUnitInfo.Location = New System.Drawing.Point(168, 80)
+    Me.lblUnitInfo.Name = "lblUnitInfo"
+    Me.lblUnitInfo.Size = New System.Drawing.Size(88, 88)
+    Me.lblUnitInfo.TabIndex = 15
+    Me.lblUnitInfo.Text = "#"
+    '
+    'cmdUnitDelete
+    '
+    Me.cmdUnitDelete.Enabled = False
+    Me.cmdUnitDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdUnitDelete.Location = New System.Drawing.Point(264, 144)
+    Me.cmdUnitDelete.Name = "cmdUnitDelete"
+    Me.cmdUnitDelete.Size = New System.Drawing.Size(80, 24)
+    Me.cmdUnitDelete.TabIndex = 14
+    Me.cmdUnitDelete.Text = "Löschen"
+    '
+    'cmdUnitEdit
+    '
+    Me.cmdUnitEdit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdUnitEdit.Location = New System.Drawing.Point(264, 112)
+    Me.cmdUnitEdit.Name = "cmdUnitEdit"
+    Me.cmdUnitEdit.Size = New System.Drawing.Size(80, 24)
+    Me.cmdUnitEdit.TabIndex = 11
+    Me.cmdUnitEdit.Text = "Ändern"
+    '
+    'txtUnitName
+    '
+    Me.txtUnitName.Location = New System.Drawing.Point(168, 48)
+    Me.txtUnitName.Name = "txtUnitName"
+    Me.txtUnitName.Size = New System.Drawing.Size(176, 20)
+    Me.txtUnitName.TabIndex = 10
+    Me.txtUnitName.Text = "txtNameUnit"
+    '
+    'lstUnitList
+    '
+    Me.lstUnitList.Location = New System.Drawing.Point(8, 48)
+    Me.lstUnitList.Name = "lstUnitList"
+    Me.lstUnitList.Size = New System.Drawing.Size(144, 160)
+    Me.lstUnitList.TabIndex = 9
+    '
+    'cmdUnitAdd
+    '
+    Me.cmdUnitAdd.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdUnitAdd.Location = New System.Drawing.Point(264, 80)
+    Me.cmdUnitAdd.Name = "cmdUnitAdd"
+    Me.cmdUnitAdd.Size = New System.Drawing.Size(80, 24)
+    Me.cmdUnitAdd.TabIndex = 8
+    Me.cmdUnitAdd.Text = "Hinzufügen"
+    '
+    'cmdSchließen
+    '
+    Me.cmdSchließen.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+    Me.cmdSchließen.Location = New System.Drawing.Point(296, 280)
+    Me.cmdSchließen.Name = "cmdSchließen"
+    Me.cmdSchließen.Size = New System.Drawing.Size(75, 23)
+    Me.cmdSchließen.TabIndex = 2
+    Me.cmdSchließen.Text = "Schließen"
+    '
+    'SaveFile
+    '
+    Me.SaveFile.CreatePrompt = True
+    Me.SaveFile.FileName = "new.mdb"
+    Me.SaveFile.Filter = "Database|*.mdb"
+    Me.SaveFile.InitialDirectory = "C:\"
+    Me.SaveFile.OverwritePrompt = False
+    Me.SaveFile.Title = "Datei zum Speichern auswählen"
+    '
+    'Management
+    '
+    Me.AcceptButton = Me.cmdSchließen
+    Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
+    Me.ClientSize = New System.Drawing.Size(384, 310)
+    Me.Controls.Add(Me.cmdSchließen)
+    Me.Controls.Add(Me.tab)
+    Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+    Me.MaximizeBox = False
+    Me.Name = "Management"
+    Me.ShowInTaskbar = False
+    Me.Text = "Daten-Management"
+    Me.tab.ResumeLayout(False)
+    Me.tabData.ResumeLayout(False)
+    Me.tabGroup.ResumeLayout(False)
+    Me.tabGroup.PerformLayout()
+    Me.tabUnit.ResumeLayout(False)
+    Me.tabUnit.PerformLayout()
+    Me.ResumeLayout(False)
 
-    End Sub
+  End Sub
 
 #End Region
 
-    Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Dim i As Integer     ' Index
-        Dim db As New AccessDatabaseOperation       ' Datenbankoperationen
-        db.Open(Application.StartupPath() & "\voc.mdb")    ' Datenbank öffnen
-        voc = New xlsDBManagement(db)     ' Datenbank zur Verfügung stellen
-        hashGroups = New Hashtable
+  Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+    Dim i As Integer     ' Index
+    Dim db As New AccessDatabaseOperation       ' Datenbankoperationen
+    db.Open(Application.StartupPath() & "\voc.mdb")    ' Datenbank öffnen
+    voc = New xlsDBManagement(db)     ' Datenbank zur Verfügung stellen
+    hashGroups = New Hashtable
 
-        ' Anzeigen der verfügbaren Sprachen
-        ldf = New xlsLDFManagement
-        For i = 1 To ldf.Languages.Count
-            cmbGroupLanguage.Items.Add(ldf.Languages.Item(i).Name)      '.Description)
-        Next i
+    ' Anzeigen der verfügbaren Sprachen
+    ldf = New xlsLDFManagement
+    For i = 1 To ldf.Languages.Count
+      cmbGroupLanguage.Items.Add(ldf.Languages.Item(i).Name)      '.Description)
+    Next i
 
-        ' Anzeigen der verschiedenen LDF's. (geht ja nur eine ;) )
+    ' Anzeigen der verschiedenen LDF's. (geht ja nur eine ;) )
         cmbLDFType.Items.Add("std")
-        cmbLDFType.SelectedIndex = 0
-        UpdateForm()
-    End Sub
+    cmbLDFType.SelectedIndex = 0
+    UpdateForm()
+  End Sub
 
   Private Sub UpdateForm()
     Dim i As Integer      ' Index

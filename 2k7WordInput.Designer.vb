@@ -42,6 +42,8 @@ Partial Class WordInput
     Me.Button3 = New System.Windows.Forms.Button
     Me.cmbLanguages = New System.Windows.Forms.ComboBox
     Me.cmbXLSTypes = New System.Windows.Forms.ComboBox
+    Me.chkDirectAdd = New System.Windows.Forms.CheckBox
+    Me.cmbDirectAddGroup = New System.Windows.Forms.ComboBox
     Me.GroupBox1.SuspendLayout()
     Me.GroupBox2.SuspendLayout()
     Me.SuspendLayout()
@@ -262,11 +264,31 @@ Partial Class WordInput
     Me.cmbXLSTypes.Sorted = True
     Me.cmbXLSTypes.TabIndex = 2
     '
+    'chkDirectAdd
+    '
+    Me.chkDirectAdd.AutoSize = True
+    Me.chkDirectAdd.Location = New System.Drawing.Point(12, 145)
+    Me.chkDirectAdd.Name = "chkDirectAdd"
+    Me.chkDirectAdd.Size = New System.Drawing.Size(219, 17)
+    Me.chkDirectAdd.TabIndex = 15
+    Me.chkDirectAdd.Text = "Vokabeln sofort einer Gruppe hinzufügen"
+    Me.chkDirectAdd.UseVisualStyleBackColor = True
+    '
+    'cmbDirectAddGroup
+    '
+    Me.cmbDirectAddGroup.FormattingEnabled = True
+    Me.cmbDirectAddGroup.Location = New System.Drawing.Point(12, 168)
+    Me.cmbDirectAddGroup.Name = "cmbDirectAddGroup"
+    Me.cmbDirectAddGroup.Size = New System.Drawing.Size(246, 21)
+    Me.cmbDirectAddGroup.TabIndex = 16
+    '
     'WordInput
     '
     Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
     Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
     Me.ClientSize = New System.Drawing.Size(523, 304)
+    Me.Controls.Add(Me.cmbDirectAddGroup)
+    Me.Controls.Add(Me.chkDirectAdd)
     Me.Controls.Add(Me.cmbXLSTypes)
     Me.Controls.Add(Me.cmbLanguages)
     Me.Controls.Add(Me.Button3)
@@ -282,6 +304,7 @@ Partial Class WordInput
     Me.GroupBox2.ResumeLayout(False)
     Me.GroupBox2.PerformLayout()
     Me.ResumeLayout(False)
+    Me.PerformLayout()
 
   End Sub
   Friend WithEvents txtWord As System.Windows.Forms.TextBox
@@ -307,4 +330,6 @@ Partial Class WordInput
   Friend WithEvents Label6 As System.Windows.Forms.Label
   Friend WithEvents Label5 As System.Windows.Forms.Label
   Friend WithEvents Label4 As System.Windows.Forms.Label
+  Friend WithEvents chkDirectAdd As System.Windows.Forms.CheckBox
+  Friend WithEvents cmbDirectAddGroup As System.Windows.Forms.ComboBox
 End Class

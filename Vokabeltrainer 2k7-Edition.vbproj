@@ -10,7 +10,7 @@
     </ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>VokTrain2k6</AssemblyName>
+    <AssemblyName>VokTrain2k7</AssemblyName>
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
     <AssemblyOriginatorKeyMode>None</AssemblyOriginatorKeyMode>
@@ -22,17 +22,30 @@
     <OptionCompare>Binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>Off</OptionStrict>
-    <RootNamespace>VokTrain2k6</RootNamespace>
-    <StartupObject>VokTrain2k6.My.MyApplication</StartupObject>
+    <RootNamespace>Gravo2k7</RootNamespace>
+    <StartupObject>Gravo2k7.My.MyApplication</StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <MyType>WindowsForms</MyType>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationVersion>4.2.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\</OutputPath>
-    <DocumentationFile>VokTrain2k6.xml</DocumentationFile>
+    <DocumentationFile>VokTrain2k7.xml</DocumentationFile>
     <BaseAddress>285212672</BaseAddress>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
@@ -51,7 +64,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\</OutputPath>
-    <DocumentationFile>VokTrain2k6.xml</DocumentationFile>
+    <DocumentationFile>VokTrain2k7.xml</DocumentationFile>
     <BaseAddress>285212672</BaseAddress>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
@@ -95,68 +108,68 @@
     <Import Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="2k6AssemblyInfo.vb">
+    <Compile Include="2k7AssemblyInfo.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="2k6DataManagement.vb">
+    <Compile Include="2k7DataManagement.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6DBOperation.vb">
+    <Compile Include="2k7DBOperation.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="2k6Def.vb">
+    <Compile Include="2k7Def.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="2k6Info.vb">
+    <Compile Include="2k7Info.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6Main.vb">
+    <Compile Include="2k7Main.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6SaveProgress.vb">
+    <Compile Include="2k7SaveProgress.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6TestModeSelect.vb">
+    <Compile Include="2k7TestModeSelect.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6TestSimple.Designer.vb">
-      <DependentUpon>2k6TestSimple.vb</DependentUpon>
+    <Compile Include="2k7TestSimple.Designer.vb">
+      <DependentUpon>2k7TestSimple.vb</DependentUpon>
     </Compile>
-    <Compile Include="2k6TestSimple.vb">
+    <Compile Include="2k7TestSimple.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6VocInput.vb">
+    <Compile Include="2k7VocInput.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6VocStatistic.vb">
+    <Compile Include="2k7VocStatistic.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6VocTest.vb">
+    <Compile Include="2k7VocTest.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6VocabularyExplorer.Designer.vb">
-      <DependentUpon>2k6VocabularyExplorer.vb</DependentUpon>
+    <Compile Include="2k7VocabularyExplorer.Designer.vb">
+      <DependentUpon>2k7VocabularyExplorer.vb</DependentUpon>
     </Compile>
-    <Compile Include="2k6VocabularyExplorer.vb">
+    <Compile Include="2k7VocabularyExplorer.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="2k6AccessDataBaseOperation.vb" />
-    <Compile Include="2k6WordInput.Designer.vb">
-      <DependentUpon>2k6WordInput.vb</DependentUpon>
+    <Compile Include="2k7AccessDataBaseOperation.vb" />
+    <Compile Include="2k7WordInput.Designer.vb">
+      <DependentUpon>2k7WordInput.vb</DependentUpon>
     </Compile>
-    <Compile Include="2k6WordInput.vb">
+    <Compile Include="2k7WordInput.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ApplicationEvents.vb" />
-    <Compile Include="Form1.Designer.vb">
-      <DependentUpon>2k6GroupInput.vb</DependentUpon>
+    <Compile Include="2k7GroupInput.Designer.vb">
+      <DependentUpon>2k7GroupInput.vb</DependentUpon>
     </Compile>
-    <Compile Include="2k6GroupInput.vb">
+    <Compile Include="2k7GroupInput.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="xls2k6ExceptionCards.vb" />
-    <Compile Include="xls2k6Cards.vb" />
-    <Compile Include="xls2k6ExceptionInput.vb" />
+    <Compile Include="xls2k7ExceptionCards.vb" />
+    <Compile Include="xls2k7Cards.vb" />
+    <Compile Include="xls2k7ExceptionInput.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
@@ -167,112 +180,113 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Settings.vb" />
-    <Compile Include="xls2k6ExceptionEntryExists.vb" />
-    <Compile Include="xls2k6ExceptionEntryNotFound.vb" />
-    <Compile Include="xls2k6ExceptionLanguageNotFound.vb" />
-    <Compile Include="xls2k6Base.vb">
+    <Compile Include="xls2k7ExceptionEntryExists.vb" />
+    <Compile Include="xls2k7ExceptionEntryNotFound.vb" />
+    <Compile Include="xls2k7ExceptionLanguageNotFound.vb" />
+    <Compile Include="xls2k7Base.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6Collection.vb">
+    <Compile Include="xls2k7Collection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6DBBase.vb">
+    <Compile Include="xls2k7DBBase.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6DBManagement.vb">
+    <Compile Include="xls2k7DBManagement.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6Dictionary.vb" />
-    <Compile Include="xls2k6DictionaryEntry.vb" />
-    <Compile Include="xls2k6Enumerations.vb">
+    <Compile Include="xls2k7Dictionary.vb" />
+    <Compile Include="xls2k7DictionaryEntry.vb" />
+    <Compile Include="xls2k7Enumerations.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6FormCreator.vb">
+    <Compile Include="xls2k7FormCreator.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6Group.vb" />
-    <Compile Include="xls2k6GroupEntry.vb" />
-    <Compile Include="xls2k6Groups.vb" />
-    <Compile Include="xls2k6LanguageDefinition.vb">
+    <Compile Include="xls2k7Group.vb" />
+    <Compile Include="xls2k7GroupEntry.vb" />
+    <Compile Include="xls2k7Groups.vb" />
+    <Compile Include="xls2k7LanguageDefinition.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6LDFBase.vb">
+    <Compile Include="xls2k7LDFBase.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6LDFBaseEx.vb">
+    <Compile Include="xls2k7LDFBaseEx.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6LDFManagement.vb">
+    <Compile Include="xls2k7LDFManagement.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6LDFRule.vb">
+    <Compile Include="xls2k7LDFRule.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6MeaningCollection.vb">
+    <Compile Include="xls2k7MeaningCollection.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6VocBase.vb">
+    <Compile Include="xls2k7TestGroup.vb" />
+    <Compile Include="xls2k7VocBase.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6VocInput.vb">
+    <Compile Include="xls2k7VocInput.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6VocTest.vb">
+    <Compile Include="xls2k7VocTest.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6Word.vb">
+    <Compile Include="xls2k7Word.vb">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xls2k6LDF.vb" />
-    <Compile Include="xls2k6WordBase.vb" />
-    <Compile Include="xls2k6TestBase.vb" />
-    <EmbeddedResource Include="2k6DataManagement.resx">
-      <DependentUpon>2k6DataManagement.vb</DependentUpon>
+    <Compile Include="xls2k7LDF.vb" />
+    <Compile Include="xls2k7WordBase.vb" />
+    <Compile Include="xls2k7TestBase.vb" />
+    <EmbeddedResource Include="2k7DataManagement.resx">
+      <DependentUpon>2k7DataManagement.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6GroupInput.resx">
+    <EmbeddedResource Include="2k7GroupInput.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>2k6GroupInput.vb</DependentUpon>
+      <DependentUpon>2k7GroupInput.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6Info.resx">
-      <DependentUpon>2k6Info.vb</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="2k6Main.resx">
-      <DependentUpon>2k6Main.vb</DependentUpon>
+    <EmbeddedResource Include="2k7Info.resx">
+      <DependentUpon>2k7Info.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6SaveProgress.resx">
-      <DependentUpon>2k6SaveProgress.vb</DependentUpon>
+    <EmbeddedResource Include="2k7Main.resx">
+      <DependentUpon>2k7Main.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6TestModeSelect.resx">
-      <DependentUpon>2k6TestModeSelect.vb</DependentUpon>
+    <EmbeddedResource Include="2k7SaveProgress.resx">
+      <DependentUpon>2k7SaveProgress.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6TestSimple.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>2k6TestSimple.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="2k6VocInput.resx">
-      <DependentUpon>2k6VocInput.vb</DependentUpon>
+    <EmbeddedResource Include="2k7TestModeSelect.resx">
+      <DependentUpon>2k7TestModeSelect.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6VocStatistic.resx">
-      <DependentUpon>2k6VocStatistic.vb</DependentUpon>
+    <EmbeddedResource Include="2k7TestSimple.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7TestSimple.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7VocInput.resx">
+      <DependentUpon>2k7VocInput.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6VocTest.resx">
-      <DependentUpon>2k6VocTest.vb</DependentUpon>
+    <EmbeddedResource Include="2k7VocStatistic.resx">
+      <DependentUpon>2k7VocStatistic.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6VocabularyExplorer.resx">
+    <EmbeddedResource Include="2k7VocTest.resx">
+      <DependentUpon>2k7VocTest.vb</DependentUpon>
       <SubType>Designer</SubType>
-      <DependentUpon>2k6VocabularyExplorer.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="2k6WordInput.resx">
+    <EmbeddedResource Include="2k7VocabularyExplorer.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>2k6WordInput.vb</DependentUpon>
+      <DependentUpon>2k7VocabularyExplorer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7WordInput.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7WordInput.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -294,7 +308,7 @@
     </COMReference>
     <COMReference Include="stdole">
       <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>4</VersionMajor>
+      <VersionMajor>2</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
@@ -309,12 +323,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="ClassDiagram1.cd" />
     <None Include="My Project\Settings.settings">
       <CustomToolNamespace>My</CustomToolNamespace>
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>

@@ -97,7 +97,7 @@ Public Class AccessDatabaseOperation
       MsgBox("Exception")
       oleCursor = oledbCmd.ExecuteReader()
     End Try
-    Return oleCursor
+        Return (oleCursor)
   End Function
 
   Public Function ExecuteReader() As OleDbDataReader

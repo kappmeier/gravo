@@ -122,8 +122,8 @@ Public Class xlsDBBase
 	ReadOnly Property Language() As String
 		Get
 			Dim sCommand As String
-      If IsConnected() = False Then Throw New Exception("Not connected")
-      If Trim(CurrentGroupName) = "" Then Throw New Exception("Falsche Group")
+      If IsConnected() = False Then Throw New Exception("Nicht mit der Datenbank verbunden")
+      If Trim(CurrentGroupName) = "" Then Throw New Exception("Falsche Gruppenbezeichnung")
 
 			Dim sLanguage As String
 
@@ -140,7 +140,7 @@ Public Class xlsDBBase
 		Get
 			Dim sCommand As String
       If IsConnected() = False Then Throw New Exception("Nicht verbunden")
-      If Trim(CurrentGroupName) = "" Then Throw New Exception("falsche Gruppenbezeichnung")
+      If Trim(CurrentGroupName) = "" Then Throw New Exception("Falsche Gruppenbezeichnung")
 
 			Dim sLDFType As String
 

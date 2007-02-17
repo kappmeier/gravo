@@ -1,37 +1,37 @@
 Public Class Info
-    Inherits System.Windows.Forms.Form
+	Inherits System.Windows.Forms.Form
 
 #Region " Windows Form Designer generated code "
 
-    Public Sub New()
-        MyBase.New()
+	Public Sub New()
+		MyBase.New()
 
-        ' Dieser Aufruf ist für den Windows-Formular-Designer erforderlich.
-        InitializeComponent()
+		' Dieser Aufruf ist für den Windows-Formular-Designer erforderlich.
+		InitializeComponent()
 
-        ' Initialisierungen nach dem Aufruf InitializeComponent() hinzufügen
+		' Initialisierungen nach dem Aufruf InitializeComponent() hinzufügen
 
-    End Sub
+	End Sub
 
-    ' Form überschreibt den Löschvorgang zur Bereinigung der Komponentenliste.
-    Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
-        If disposing Then
-            If Not (components Is Nothing) Then
-                components.Dispose()
-            End If
-        End If
-        MyBase.Dispose(disposing)
-    End Sub
-    Friend WithEvents Label1 As System.Windows.Forms.Label
-    Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel
+	' Form überschreibt den Löschvorgang zur Bereinigung der Komponentenliste.
+	Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+		If disposing Then
+			If Not (components Is Nothing) Then
+				components.Dispose()
+			End If
+		End If
+		MyBase.Dispose(disposing)
+	End Sub
+	Friend WithEvents Label1 As System.Windows.Forms.Label
+	Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel
 
-    ' Für Windows-Formular-Designer erforderlich
-    Private components As System.ComponentModel.Container
+	' Für Windows-Formular-Designer erforderlich
+	Private components As System.ComponentModel.Container
 
-    'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
-    'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
-    'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
-    Friend WithEvents Label2 As System.Windows.Forms.Label
+	'HINWEIS: Die folgende Prozedur ist für den Windows-Formular-Designer erforderlich
+	'Sie kann mit dem Windows-Formular-Designer modifiziert werden.
+	'Verwenden Sie nicht den Code-Editor zur Bearbeitung.
+	Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents chkGermanText As System.Windows.Forms.CheckBox
     Friend WithEvents lblDisclaimer As System.Windows.Forms.Label
@@ -53,9 +53,9 @@ Public Class Info
         '
         Me.LinkLabel2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.LinkLabel2.ImageAlign = System.Drawing.ContentAlignment.TopRight
-        Me.LinkLabel2.Location = New System.Drawing.Point(184, 40)
+        Me.LinkLabel2.Location = New System.Drawing.Point(183, 40)
         Me.LinkLabel2.Name = "LinkLabel2"
-        Me.LinkLabel2.Size = New System.Drawing.Size(137, 19)
+        Me.LinkLabel2.Size = New System.Drawing.Size(137, 16)
         Me.LinkLabel2.TabIndex = 3
         Me.LinkLabel2.TabStop = True
         Me.LinkLabel2.Text = "http://www.kappmeier.de"
@@ -69,7 +69,7 @@ Public Class Info
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(74, 13)
         Me.Label1.TabIndex = 2
-        Me.Label1.Text = "© 1995 - 2006"
+        Me.Label1.Text = "© 1995 - 2007"
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.BottomLeft
         '
         'Label2
@@ -86,11 +86,11 @@ Public Class Info
         '
         Me.Label4.AutoSize = True
         Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 13.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(94, 57)
+        Me.Label4.Location = New System.Drawing.Point(99, 57)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(100, 22)
         Me.Label4.TabIndex = 6
-        Me.Label4.Text = "2k6-Edition"
+        Me.Label4.Text = "2k7-Edition"
         '
         'lblDisclaimer
         '
@@ -147,8 +147,7 @@ Public Class Info
         Me.MinimizeBox = False
         Me.Name = "Info"
         Me.ShowInTaskbar = False
-        Me.Text = "Vokabeltrainer 2k6-Edition"
-        Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
+        Me.Text = "Vokabeltrainer 2k7-Edition"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 

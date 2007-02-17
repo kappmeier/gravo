@@ -1,12 +1,13 @@
 LDF:
-Version:1.0
+Version:1.1
 LangTarg:german
 LangDesc:Deutsch
 Language:
   Name:latin
-  Desc:Latein
+  Type:std
+  Desc:Lateinisch
   DescEx:Latein – Standard
-  TestDir:mtw
+  TestDir:wtm
 LanguageEnd:
 Forms:
   noun:Substantiv

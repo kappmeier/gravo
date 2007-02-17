@@ -68,11 +68,14 @@ Public Class Main
     Me.mnuShowVocabularyExplorer = New System.Windows.Forms.MenuItem
     Me.mnuDictionaryInsert = New System.Windows.Forms.MenuItem
     Me.mnuAddGroups = New System.Windows.Forms.MenuItem
-    Me.mnuTestGroups = New System.Windows.Forms.MenuItem
-    Me.mnuVocStatistic = New System.Windows.Forms.MenuItem
     Me.MenuItem11 = New System.Windows.Forms.MenuItem
     Me.mnuVocInput = New System.Windows.Forms.MenuItem
+    Me.MenuItem13 = New System.Windows.Forms.MenuItem
+    Me.mnuTest = New System.Windows.Forms.MenuItem
+    Me.mnuTestGroups = New System.Windows.Forms.MenuItem
     Me.mnuTestVocabulary = New System.Windows.Forms.MenuItem
+    Me.MenuItem10 = New System.Windows.Forms.MenuItem
+    Me.mnuVocStatistic = New System.Windows.Forms.MenuItem
     Me.MenuItem3 = New System.Windows.Forms.MenuItem
     Me.mnuExtraManagement = New System.Windows.Forms.MenuItem
     Me.MenuItem7 = New System.Windows.Forms.MenuItem
@@ -82,9 +85,6 @@ Public Class Main
     Me.MenuItem1 = New System.Windows.Forms.MenuItem
     Me.MenuItem2 = New System.Windows.Forms.MenuItem
     Me.mnuHelpInfo = New System.Windows.Forms.MenuItem
-    Me.MenuItem13 = New System.Windows.Forms.MenuItem
-    Me.mnuTest = New System.Windows.Forms.MenuItem
-    Me.MenuItem10 = New System.Windows.Forms.MenuItem
     Me.SuspendLayout()
     '
     'MainMenu1
@@ -134,16 +134,6 @@ Public Class Main
     Me.mnuAddGroups.Index = 2
     Me.mnuAddGroups.Text = "&Gruppen hinzufügen"
     '
-    'mnuTestGroups
-    '
-    Me.mnuTestGroups.Index = 1
-    Me.mnuTestGroups.Text = "Gruppen abfragen"
-    '
-    'mnuVocStatistic
-    '
-    Me.mnuVocStatistic.Index = 4
-    Me.mnuVocStatistic.Text = "Abfrage&statistik"
-    '
     'MenuItem11
     '
     Me.MenuItem11.Index = 3
@@ -154,10 +144,36 @@ Public Class Main
     Me.mnuVocInput.Index = 4
     Me.mnuVocInput.Text = "&Testgruppen Eingeben"
     '
+    'MenuItem13
+    '
+    Me.MenuItem13.Index = 5
+    Me.MenuItem13.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuTest, Me.mnuTestGroups, Me.mnuTestVocabulary, Me.MenuItem10, Me.mnuVocStatistic})
+    Me.MenuItem13.Text = "Abfragen"
+    '
+    'mnuTest
+    '
+    Me.mnuTest.Index = 0
+    Me.mnuTest.Text = "Allgemein"
+    '
+    'mnuTestGroups
+    '
+    Me.mnuTestGroups.Index = 1
+    Me.mnuTestGroups.Text = "Gruppen abfragen"
+    '
     'mnuTestVocabulary
     '
     Me.mnuTestVocabulary.Index = 2
     Me.mnuTestVocabulary.Text = "Vokabeln &Abfragen"
+    '
+    'MenuItem10
+    '
+    Me.MenuItem10.Index = 3
+    Me.MenuItem10.Text = "-"
+    '
+    'mnuVocStatistic
+    '
+    Me.mnuVocStatistic.Index = 4
+    Me.mnuVocStatistic.Text = "Abfrage&statistik"
     '
     'MenuItem3
     '
@@ -207,22 +223,6 @@ Public Class Main
     '
     Me.mnuHelpInfo.Index = 0
     Me.mnuHelpInfo.Text = "Inf&o ..."
-    '
-    'MenuItem13
-    '
-    Me.MenuItem13.Index = 5
-    Me.MenuItem13.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuTest, Me.mnuTestGroups, Me.mnuTestVocabulary, Me.MenuItem10, Me.mnuVocStatistic})
-    Me.MenuItem13.Text = "Abfragen"
-    '
-    'mnuTest
-    '
-    Me.mnuTest.Index = 0
-    Me.mnuTest.Text = "Allgemein"
-    '
-    'MenuItem10
-    '
-    Me.MenuItem10.Index = 3
-    Me.MenuItem10.Text = "-"
     '
     'Main
     '
@@ -297,7 +297,13 @@ Public Class Main
 
   Private Sub mnuTest_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuTest.Click
     ' Abfragen von Vokabeln aus dem Programm, ohne einschränkung, evtl. Sprache
-    Dim frmTest As New TestSimple
+    Dim frmTest As New TestSimple()
+    frmTest.ShowDialog(Me)
+  End Sub
+
+  Private Sub mnuTestGroups_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuTestGroups.Click
+    Dim frmTest As New TestSimple("GroupEspresso301")
+    'frmTest.SetGroup("Espresso11")
     frmTest.ShowDialog(Me)
   End Sub
 End Class

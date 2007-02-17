@@ -118,8 +118,8 @@ Partial Class VocabularyExplorer
     Me.TreeView = New System.Windows.Forms.TreeView
     Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
     Me.ListView = New System.Windows.Forms.ListView
-    Me.rtbDescription = New System.Windows.Forms.RichTextBox
     Me.Button1 = New System.Windows.Forms.Button
+    Me.rtbDescription = New System.Windows.Forms.RichTextBox
     Me.StatusStrip.SuspendLayout()
     Me.ToolStrip.SuspendLayout()
     Me.MenuStrip.SuspendLayout()
@@ -165,7 +165,7 @@ Partial Class VocabularyExplorer
     Me.ToolStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BackToolStripButton, Me.ForwardToolStripButton, Me.ToolStripSeparator7, Me.FoldersToolStripButton, Me.ToolStripSeparator8, Me.ListViewToolStripButton})
     Me.ToolStrip.Location = New System.Drawing.Point(3, 0)
     Me.ToolStrip.Name = "ToolStrip"
-    Me.ToolStrip.Size = New System.Drawing.Size(179, 25)
+    Me.ToolStrip.Size = New System.Drawing.Size(210, 25)
     Me.ToolStrip.TabIndex = 0
     Me.ToolStrip.Text = "ToolStrip1"
     Me.ToolStrip.Visible = False
@@ -254,7 +254,7 @@ Partial Class VocabularyExplorer
     Me.MenuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.FileToolStripMenuItem, Me.EditToolStripMenuItem, Me.ViewToolStripMenuItem, Me.ToolsToolStripMenuItem})
     Me.MenuStrip.Location = New System.Drawing.Point(0, 0)
     Me.MenuStrip.Name = "MenuStrip"
-    Me.MenuStrip.Size = New System.Drawing.Size(227, 24)
+    Me.MenuStrip.Size = New System.Drawing.Size(632, 24)
     Me.MenuStrip.TabIndex = 0
     Me.MenuStrip.Text = "MenuStrip1"
     Me.MenuStrip.Visible = False
@@ -450,7 +450,7 @@ Partial Class VocabularyExplorer
     'ToolStripContainer.ContentPanel
     '
     Me.ToolStripContainer.ContentPanel.Controls.Add(Me.SplitContainer)
-    Me.ToolStripContainer.ContentPanel.Size = New System.Drawing.Size(632, 218)
+    Me.ToolStripContainer.ContentPanel.Size = New System.Drawing.Size(632, 193)
     Me.ToolStripContainer.Dock = System.Windows.Forms.DockStyle.Fill
     Me.ToolStripContainer.Location = New System.Drawing.Point(0, 0)
     Me.ToolStripContainer.Name = "ToolStripContainer"
@@ -476,7 +476,7 @@ Partial Class VocabularyExplorer
     'SplitContainer.Panel2
     '
     Me.SplitContainer.Panel2.Controls.Add(Me.SplitContainer1)
-    Me.SplitContainer.Size = New System.Drawing.Size(632, 218)
+    Me.SplitContainer.Size = New System.Drawing.Size(632, 193)
     Me.SplitContainer.SplitterDistance = 189
     Me.SplitContainer.TabIndex = 0
     Me.SplitContainer.Text = "SplitContainer1"
@@ -492,7 +492,7 @@ Partial Class VocabularyExplorer
     Me.TreeView.Name = "TreeView"
     Me.TreeView.SelectedImageIndex = 1
     Me.TreeView.ShowLines = False
-    Me.TreeView.Size = New System.Drawing.Size(189, 218)
+    Me.TreeView.Size = New System.Drawing.Size(189, 193)
     Me.TreeView.TabIndex = 0
     '
     'SplitContainer1
@@ -510,8 +510,8 @@ Partial Class VocabularyExplorer
     '
     Me.SplitContainer1.Panel2.Controls.Add(Me.Button1)
     Me.SplitContainer1.Panel2.Controls.Add(Me.rtbDescription)
-    Me.SplitContainer1.Size = New System.Drawing.Size(439, 218)
-    Me.SplitContainer1.SplitterDistance = 104
+    Me.SplitContainer1.Size = New System.Drawing.Size(439, 193)
+    Me.SplitContainer1.SplitterDistance = 92
     Me.SplitContainer1.TabIndex = 1
     '
     'ListView
@@ -519,21 +519,9 @@ Partial Class VocabularyExplorer
     Me.ListView.Dock = System.Windows.Forms.DockStyle.Fill
     Me.ListView.Location = New System.Drawing.Point(0, 0)
     Me.ListView.Name = "ListView"
-    Me.ListView.Size = New System.Drawing.Size(439, 104)
+    Me.ListView.Size = New System.Drawing.Size(439, 92)
     Me.ListView.TabIndex = 1
     Me.ListView.UseCompatibleStateImageBehavior = False
-    '
-    'rtbDescription
-    '
-    Me.rtbDescription.Dock = System.Windows.Forms.DockStyle.Fill
-    Me.rtbDescription.EnableAutoDragDrop = True
-    Me.rtbDescription.Location = New System.Drawing.Point(0, 0)
-    Me.rtbDescription.Name = "rtbDescription"
-    Me.rtbDescription.ReadOnly = True
-    Me.rtbDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical
-    Me.rtbDescription.Size = New System.Drawing.Size(439, 110)
-    Me.rtbDescription.TabIndex = 0
-    Me.rtbDescription.Text = ""
     '
     'Button1
     '
@@ -543,6 +531,18 @@ Partial Class VocabularyExplorer
     Me.Button1.TabIndex = 1
     Me.Button1.Text = "Button1"
     Me.Button1.UseVisualStyleBackColor = True
+    '
+    'rtbDescription
+    '
+    Me.rtbDescription.Dock = System.Windows.Forms.DockStyle.Fill
+    Me.rtbDescription.EnableAutoDragDrop = True
+    Me.rtbDescription.Location = New System.Drawing.Point(0, 0)
+    Me.rtbDescription.Name = "rtbDescription"
+    Me.rtbDescription.ReadOnly = True
+    Me.rtbDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical
+    Me.rtbDescription.Size = New System.Drawing.Size(439, 97)
+    Me.rtbDescription.TabIndex = 0
+    Me.rtbDescription.Text = ""
     '
     'VocabularyExplorer
     '
