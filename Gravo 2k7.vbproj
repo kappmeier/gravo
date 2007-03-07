@@ -1,0 +1,271 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0C8D3827-1528-42F7-AB86-676835D4EDE6}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Gravo2k7</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyMode>None</AssemblyOriginatorKeyMode>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>WinExe</OutputType>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionStrict>Off</OptionStrict>
+    <RootNamespace>Gravo2k7</RootNamespace>
+    <StartupObject>Gravo2k7.My.MyApplication</StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <MyType>WindowsForms</MyType>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <ManifestCertificateThumbprint>E44CC2AB97B9CCEF7D1116C539B702D705DB9FE3</ManifestCertificateThumbprint>
+    <ManifestKeyFile>Gravo 2k7-Edition_TemporaryKey.pfx</ManifestKeyFile>
+    <GenerateManifests>true</GenerateManifests>
+    <TargetZone>LocalIntranet</TargetZone>
+    <SignManifests>false</SignManifests>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <SupportUrl>http://www.kappmeier.de</SupportUrl>
+    <ProductName>Gravo</ProductName>
+    <PublisherName>Jan-Philipp Kappmeier</PublisherName>
+    <WebPage>www.kappmeier.de</WebPage>
+    <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
+    <ApplicationVersion>5.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>Gravo2k7.xml</DocumentationFile>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>
+    </DefineConstants>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>1</WarningLevel>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>Gravo2k7.xml</DocumentationFile>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>
+    </DefineConstants>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>1</WarningLevel>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+    </Reference>
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing">
+      <Name>System.Drawing</Name>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <Name>System.Windows.Forms</Name>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="2k7\2k7Management.Designer.vb">
+      <DependentUpon>2k7Management.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7Management.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7Info.Designer.vb">
+      <DependentUpon>2k7Info.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7Info.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7TestSelect.Designer.vb">
+      <DependentUpon>2k7TestSelect.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7TestSelect.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XLS\xlsImportExport.vb" />
+    <Compile Include="AssemblyInfo.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Definitions.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7Main.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7TestSimple.Designer.vb">
+      <DependentUpon>2k7TestSimple.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7TestSimple.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7VocStatistic.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="2k7\2k7VocabularyExplorer.Designer.vb">
+      <DependentUpon>2k7VocabularyExplorer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7VocabularyExplorer.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AccessDataBaseOperation.vb" />
+    <Compile Include="2k7\2k7WordInput.Designer.vb">
+      <DependentUpon>2k7WordInput.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7WordInput.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="2k7\2k7GroupInput.Designer.vb">
+      <DependentUpon>2k7GroupInput.vb</DependentUpon>
+    </Compile>
+    <Compile Include="2k7\2k7GroupInput.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XLS\Exceptions\xlsException.vb" />
+    <Compile Include="XLS\Exceptions\xlsExceptionCards.vb" />
+    <Compile Include="XLS\xlsCards.vb" />
+    <Compile Include="XLS\Exceptions\xlsExceptionInput.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.vb" />
+    <Compile Include="XLS\Exceptions\xlsExceptionEntryExists.vb" />
+    <Compile Include="XLS\Exceptions\xlsExceptionEntryNotFound.vb" />
+    <Compile Include="XLS\Exceptions\xlsExceptionLanguageNotFound.vb" />
+    <Compile Include="XLS\xlsBase.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XLS\xlsDictionary.vb" />
+    <Compile Include="XLS\xlsDictionaryEntry.vb" />
+    <Compile Include="XLS\xlsGroup.vb" />
+    <Compile Include="XLS\xlsGroupEntry.vb" />
+    <Compile Include="XLS\xlsGroups.vb" />
+    <Compile Include="XLS\xlsManagement.vb" />
+    <Compile Include="XLS\xlsTestBase.vb" />
+    <Compile Include="XLS\xlsTestGroup.vb" />
+    <EmbeddedResource Include="2k7\2k7GroupInput.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7GroupInput.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7Main.resx">
+      <DependentUpon>2k7Main.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7Management.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7Management.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7TestSelect.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7TestSelect.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7TestSimple.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7TestSimple.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7VocStatistic.resx">
+      <DependentUpon>2k7VocStatistic.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7VocabularyExplorer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7VocabularyExplorer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7WordInput.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7WordInput.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="2k7\2k7Info.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>2k7Info.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <BaseApplicationManifest Include="My Project\app.manifest" />
+    <None Include="My Project\Settings.settings">
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
