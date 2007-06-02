@@ -1,6 +1,6 @@
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class WordInput
-  Inherits System.Windows.Forms.Form
+  Inherits MyForm
 
   'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
   <System.Diagnostics.DebuggerNonUserCode()> _
@@ -23,6 +23,8 @@ Partial Class WordInput
     Me.txtMainEntry = New System.Windows.Forms.TextBox
     Me.cmdAddSubEntry = New System.Windows.Forms.Button
     Me.GroupBox1 = New System.Windows.Forms.GroupBox
+    Me.chkMarked = New System.Windows.Forms.CheckBox
+    Me.chkIrregular = New System.Windows.Forms.CheckBox
     Me.Label9 = New System.Windows.Forms.Label
     Me.Label8 = New System.Windows.Forms.Label
     Me.Label6 = New System.Windows.Forms.Label
@@ -54,26 +56,28 @@ Partial Class WordInput
     Me.txtWord.Location = New System.Drawing.Point(87, 68)
     Me.txtWord.Name = "txtWord"
     Me.txtWord.Size = New System.Drawing.Size(120, 20)
-    Me.txtWord.TabIndex = 7
+    Me.txtWord.TabIndex = 11
     '
     'txtMainEntry
     '
     Me.txtMainEntry.Location = New System.Drawing.Point(87, 16)
     Me.txtMainEntry.Name = "txtMainEntry"
     Me.txtMainEntry.Size = New System.Drawing.Size(120, 20)
-    Me.txtMainEntry.TabIndex = 5
+    Me.txtMainEntry.TabIndex = 9
     '
     'cmdAddSubEntry
     '
-    Me.cmdAddSubEntry.Location = New System.Drawing.Point(6, 244)
+    Me.cmdAddSubEntry.Location = New System.Drawing.Point(6, 272)
     Me.cmdAddSubEntry.Name = "cmdAddSubEntry"
     Me.cmdAddSubEntry.Size = New System.Drawing.Size(75, 23)
-    Me.cmdAddSubEntry.TabIndex = 13
+    Me.cmdAddSubEntry.TabIndex = 18
     Me.cmdAddSubEntry.Text = "Hinzufügen"
     Me.cmdAddSubEntry.UseVisualStyleBackColor = True
     '
     'GroupBox1
     '
+    Me.GroupBox1.Controls.Add(Me.chkMarked)
+    Me.GroupBox1.Controls.Add(Me.chkIrregular)
     Me.GroupBox1.Controls.Add(Me.Label9)
     Me.GroupBox1.Controls.Add(Me.Label8)
     Me.GroupBox1.Controls.Add(Me.Label6)
@@ -92,10 +96,30 @@ Partial Class WordInput
     Me.GroupBox1.FlatStyle = System.Windows.Forms.FlatStyle.Popup
     Me.GroupBox1.Location = New System.Drawing.Point(266, 12)
     Me.GroupBox1.Name = "GroupBox1"
-    Me.GroupBox1.Size = New System.Drawing.Size(246, 280)
-    Me.GroupBox1.TabIndex = 3
+    Me.GroupBox1.Size = New System.Drawing.Size(246, 301)
+    Me.GroupBox1.TabIndex = 9
     Me.GroupBox1.TabStop = False
     Me.GroupBox1.Text = "Eintrag hinzufügen:"
+    '
+    'chkMarked
+    '
+    Me.chkMarked.AutoSize = True
+    Me.chkMarked.Location = New System.Drawing.Point(87, 270)
+    Me.chkMarked.Name = "chkMarked"
+    Me.chkMarked.Size = New System.Drawing.Size(99, 17)
+    Me.chkMarked.TabIndex = 17
+    Me.chkMarked.Text = "Wichtiges Wort"
+    Me.chkMarked.UseVisualStyleBackColor = True
+    '
+    'chkIrregular
+    '
+    Me.chkIrregular.AutoSize = True
+    Me.chkIrregular.Location = New System.Drawing.Point(87, 247)
+    Me.chkIrregular.Name = "chkIrregular"
+    Me.chkIrregular.Size = New System.Drawing.Size(91, 17)
+    Me.chkIrregular.TabIndex = 16
+    Me.chkIrregular.Text = "Unregelmäßig"
+    Me.chkIrregular.UseVisualStyleBackColor = True
     '
     'Label9
     '
@@ -147,36 +171,36 @@ Partial Class WordInput
     Me.txtAdditionalTargetlanguageInfo.Location = New System.Drawing.Point(87, 146)
     Me.txtAdditionalTargetlanguageInfo.Name = "txtAdditionalTargetlanguageInfo"
     Me.txtAdditionalTargetlanguageInfo.Size = New System.Drawing.Size(120, 20)
-    Me.txtAdditionalTargetlanguageInfo.TabIndex = 11
+    Me.txtAdditionalTargetlanguageInfo.TabIndex = 14
     '
     'lstWordTypes
     '
     Me.lstWordTypes.FormattingEnabled = True
     Me.lstWordTypes.Location = New System.Drawing.Point(87, 172)
     Me.lstWordTypes.Name = "lstWordTypes"
-    Me.lstWordTypes.Size = New System.Drawing.Size(120, 95)
-    Me.lstWordTypes.TabIndex = 12
+    Me.lstWordTypes.Size = New System.Drawing.Size(120, 69)
+    Me.lstWordTypes.TabIndex = 15
     '
     'txtPost
     '
     Me.txtPost.Location = New System.Drawing.Point(87, 94)
     Me.txtPost.Name = "txtPost"
     Me.txtPost.Size = New System.Drawing.Size(120, 20)
-    Me.txtPost.TabIndex = 8
+    Me.txtPost.TabIndex = 12
     '
     'txtPre
     '
     Me.txtPre.Location = New System.Drawing.Point(87, 42)
     Me.txtPre.Name = "txtPre"
     Me.txtPre.Size = New System.Drawing.Size(120, 20)
-    Me.txtPre.TabIndex = 6
+    Me.txtPre.TabIndex = 10
     '
     'txtMeaning
     '
     Me.txtMeaning.Location = New System.Drawing.Point(87, 120)
     Me.txtMeaning.Name = "txtMeaning"
     Me.txtMeaning.Size = New System.Drawing.Size(120, 20)
-    Me.txtMeaning.TabIndex = 9
+    Me.txtMeaning.TabIndex = 13
     '
     'Label2
     '
@@ -199,10 +223,10 @@ Partial Class WordInput
     'cmdClose
     '
     Me.cmdClose.DialogResult = System.Windows.Forms.DialogResult.Cancel
-    Me.cmdClose.Location = New System.Drawing.Point(436, 298)
+    Me.cmdClose.Location = New System.Drawing.Point(436, 319)
     Me.cmdClose.Name = "cmdClose"
     Me.cmdClose.Size = New System.Drawing.Size(75, 23)
-    Me.cmdClose.TabIndex = 14
+    Me.cmdClose.TabIndex = 19
     Me.cmdClose.Text = "Schließen"
     Me.cmdClose.UseVisualStyleBackColor = True
     '
@@ -220,7 +244,7 @@ Partial Class WordInput
     Me.chkDirectAdd.Location = New System.Drawing.Point(12, 180)
     Me.chkDirectAdd.Name = "chkDirectAdd"
     Me.chkDirectAdd.Size = New System.Drawing.Size(219, 17)
-    Me.chkDirectAdd.TabIndex = 15
+    Me.chkDirectAdd.TabIndex = 6
     Me.chkDirectAdd.Text = "Vokabeln sofort einer Gruppe hinzufügen"
     Me.chkDirectAdd.UseVisualStyleBackColor = True
     '
@@ -230,7 +254,7 @@ Partial Class WordInput
     Me.cmbDirectAddGroup.Location = New System.Drawing.Point(12, 203)
     Me.cmbDirectAddGroup.Name = "cmbDirectAddGroup"
     Me.cmbDirectAddGroup.Size = New System.Drawing.Size(246, 21)
-    Me.cmbDirectAddGroup.TabIndex = 16
+    Me.cmbDirectAddGroup.TabIndex = 7
     '
     'Label7
     '
@@ -244,11 +268,12 @@ Partial Class WordInput
     'cmbMainLanguages
     '
     Me.cmbMainLanguages.FormattingEnabled = True
+    Me.cmbMainLanguages.ItemHeight = 13
     Me.cmbMainLanguages.Items.AddRange(New Object() {"german"})
     Me.cmbMainLanguages.Location = New System.Drawing.Point(99, 65)
     Me.cmbMainLanguages.Name = "cmbMainLanguages"
     Me.cmbMainLanguages.Size = New System.Drawing.Size(159, 21)
-    Me.cmbMainLanguages.TabIndex = 18
+    Me.cmbMainLanguages.TabIndex = 3
     '
     'Label10
     '
@@ -264,14 +289,14 @@ Partial Class WordInput
     Me.txtMainLanguage.Location = New System.Drawing.Point(99, 92)
     Me.txtMainLanguage.Name = "txtMainLanguage"
     Me.txtMainLanguage.Size = New System.Drawing.Size(159, 20)
-    Me.txtMainLanguage.TabIndex = 20
+    Me.txtMainLanguage.TabIndex = 4
     '
     'txtLanguage
     '
     Me.txtLanguage.Location = New System.Drawing.Point(99, 39)
     Me.txtLanguage.Name = "txtLanguage"
     Me.txtLanguage.Size = New System.Drawing.Size(159, 20)
-    Me.txtLanguage.TabIndex = 21
+    Me.txtLanguage.TabIndex = 2
     '
     'chkNewLanguages
     '
@@ -279,7 +304,7 @@ Partial Class WordInput
     Me.chkNewLanguages.Location = New System.Drawing.Point(12, 118)
     Me.chkNewLanguages.Name = "chkNewLanguages"
     Me.chkNewLanguages.Size = New System.Drawing.Size(142, 17)
-    Me.chkNewLanguages.TabIndex = 22
+    Me.chkNewLanguages.TabIndex = 5
     Me.chkNewLanguages.Text = "Neue Sprachen anlegen"
     Me.chkNewLanguages.UseVisualStyleBackColor = True
     '
@@ -289,7 +314,7 @@ Partial Class WordInput
     Me.cmbDirectAddSubGroup.Location = New System.Drawing.Point(12, 230)
     Me.cmbDirectAddSubGroup.Name = "cmbDirectAddSubGroup"
     Me.cmbDirectAddSubGroup.Size = New System.Drawing.Size(246, 21)
-    Me.cmbDirectAddSubGroup.TabIndex = 23
+    Me.cmbDirectAddSubGroup.TabIndex = 8
     '
     'WordInput
     '
@@ -297,7 +322,7 @@ Partial Class WordInput
     Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
     Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
     Me.CancelButton = Me.cmdClose
-    Me.ClientSize = New System.Drawing.Size(523, 329)
+    Me.ClientSize = New System.Drawing.Size(523, 354)
     Me.Controls.Add(Me.cmbDirectAddSubGroup)
     Me.Controls.Add(Me.chkNewLanguages)
     Me.Controls.Add(Me.txtLanguage)
@@ -349,4 +374,6 @@ Partial Class WordInput
   Friend WithEvents txtLanguage As System.Windows.Forms.TextBox
   Friend WithEvents chkNewLanguages As System.Windows.Forms.CheckBox
   Friend WithEvents cmbDirectAddSubGroup As System.Windows.Forms.ComboBox
+  Friend WithEvents chkIrregular As System.Windows.Forms.CheckBox
+  Friend WithEvents chkMarked As System.Windows.Forms.CheckBox
 End Class

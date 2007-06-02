@@ -36,7 +36,7 @@ Public Class GroupInput
 
     ' Sprachen in die Liste einfügen
     cmbSelectLanguage.Items.Clear()
-    Dim languages As Collection(Of String) = dic.DictionaryLanguages()
+    Dim languages As Collection(Of String) = dic.DictionaryLanguages("german")
     For Each language As String In languages
       cmbSelectLanguage.Items.Add(language)
     Next
@@ -103,19 +103,26 @@ Public Class GroupInput
     txtSearchText.Top = lblSearchDescription.Top + lblSearchDescription.Height + 3
     lblSimilarWord.Top = txtSearchText.Top + txtSearchText.Height + 3
 
-    ' Gruppenliste und Buttons
+    ' Gruppenliste und Buttons und CheckButten für 'Marked'
     lstWordsInGroup.Width = cmbSelectGroup.Width - 9 - cmdSelect.Width
     cmdSelect.Left = lstWordsInGroup.Left + lstWordsInGroup.Width + 9
-    cmdDeselect.Left = lstWordsInGroup.Left + lstWordsInGroup.Width + 9
+    cmdDeselect.Left = cmdSelect.Left 'lstWordsInGroup.Left + lstWordsInGroup.Width + 9
     lstWordsInGroup.Top = lstMeanings.Top
     lstWordsInGroup.Height = windowHeight - lstWordsInGroup.Top - 12
     cmdSelect.Top = lstWords.Top + lstWords.Height / 2 - cmdSelect.Height / 2
     cmdDeselect.Top = lstMeanings.Top + lstMeanings.Height / 2 - cmdDeselect.Height / 2
     lblCurrentWordIndex.Top = lblMeaningsDescription.Top
+    chkMarked.Left = cmdSelect.Left
+    chkMarked.Top = cmdSelect.Top + cmdSelect.Height + 6
 
     ' Exit button
     cmdExit.Top = txtSearchText.Top + txtSearchText.Height + 9
     cmdExit.Left = txtSearchText.Left + txtSearchText.Width - cmdExit.Width
+  End Sub
+
+  ' Lokalisierung
+  Public Overrides Sub LocalizationChanged()
+
   End Sub
 
   Private Sub cmbSelectGroup_GotFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles cmbSelectGroup.GotFocus
@@ -146,7 +153,9 @@ Public Class GroupInput
       MsgBox("Bitte wählen sie das Wort erneut aus!", vbInformation, "Fehler aufgetreten!")
       Exit Sub
     End Try
-    grp.Add(wtWord.WordIndex)
+
+    ' TODO example
+    grp.Add(wtWord.WordIndex, chkMarked.Checked, "")
 
     ' Anzeige aktualisieren
     UpdateWordsInGroup()

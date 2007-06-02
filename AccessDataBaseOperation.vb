@@ -40,8 +40,6 @@ Public Class AccessDatabaseOperation
     Try
       oledbCmd.ExecuteNonQuery()
     Catch e As Exception
-      'ReOpen()
-      'oledbCmd.ExecuteNonQuery()
       Throw e
     End Try
     Return True
@@ -58,7 +56,6 @@ Public Class AccessDatabaseOperation
       ReOpen()
       oledbCmd.ExecuteNonQuery()
     Catch e As Exception
-      'MsgBox(e.Message)
       Throw e
     End Try
     Return True
@@ -76,8 +73,6 @@ Public Class AccessDatabaseOperation
     Try
       oleCursor = oledbCmd.ExecuteReader()
     Catch e As Exception
-      'ReOpen()
-      'oleCursor = oledbCmd.ExecuteReader()
       Throw e
     End Try
     Return oleCursor
@@ -95,9 +90,6 @@ Public Class AccessDatabaseOperation
     Try
       oleCursor = oledbCmd.ExecuteReader()
     Catch e As Exception
-      'ReOpen()
-      'MsgBox("Exception: " & e.Message)
-      'oleCursor = oledbCmd.ExecuteReader()
       Throw e
     End Try
     Return oleCursor
@@ -130,10 +122,22 @@ Public Class AccessDatabaseOperation
     Return True
   End Function
 
+  Public Shared Function GetDBEntry(ByVal text As String) As String
+    Return "'" & AddHighColons(text) & "'"
+  End Function
+
+  Public Shared Function GetDBEntry(ByVal text As Integer) As String
+    Return "'" & text.ToString & "'"
+  End Function
+
+  Public Shared Function GetDBEntry(ByVal value As Boolean) As String
+    Return "'" & AddHighColons(value) & "'"
+  End Function
+
   Public Shared Function AddHighColons(ByVal Text As String) As String
     Dim sTemp, sTemp2 As String
     Dim i As Integer = 0
-    sTemp2 = Text
+    sTemp2 = text
     sTemp = ""
     Do
       i = InStr(1, sTemp2, "'")
@@ -148,6 +152,14 @@ Public Class AccessDatabaseOperation
     Return sTemp
   End Function
 
+  Public Shared Function AddHighColons(ByVal Value As Boolean) As String
+    Return (IIf(Value, "-1", "0"))
+  End Function
+
+  Public Shared Function SecureGetBool(ByRef dbc As OleDbDataReader, ByVal Index As Integer) As Boolean
+    If TypeOf (dbc.GetValue(Index)) Is DBNull Then Return False Else Return dbc.GetBoolean(Index)
+  End Function
+
   Public Shared Function SecureGetInt32(ByRef dbc As OleDbDataReader, ByVal Index As Integer) As Integer
     If TypeOf (dbc.GetValue(Index)) Is DBNull Then Return 0 Else Return dbc.GetInt32(Index)
   End Function
@@ -156,12 +168,24 @@ Public Class AccessDatabaseOperation
     If TypeOf (dbc.GetValue(Index)) Is DBNull Then Return "" Else Return dbc.GetString(Index)
   End Function
 
+  Public Function SecureGetDateTime(ByRef dbc As OleDbDataReader, ByVal Index As Integer) As DateTime
+    If TypeOf (dbc.GetValue(Index)) Is DBNull Then Return "" Else Return dbc.GetDateTime(Index)
+  End Function
+
+  Public Function SecureGetBool(ByVal Index As Integer) As Boolean
+    If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return False Else Return oleCursor.GetBoolean(Index)
+  End Function
+
   Public Function SecureGetInt32(ByVal Index As Integer) As Integer
     If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return 0 Else Return oleCursor.GetInt32(Index)
   End Function
 
   Public Function SecureGetString(ByVal Index As Integer) As String
     If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return "" Else Return oleCursor.GetString(Index)
+  End Function
+
+  Public Function SecureGetDateTime(ByVal Index As Integer) As DateTime
+    If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return "" Else Return oleCursor.GetDateTime(Index)
   End Function
 
   Public Function DBCursor() As OleDbDataReader

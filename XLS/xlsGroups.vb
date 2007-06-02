@@ -44,7 +44,7 @@ Public Class xlsGroups
   End Function
 
   Public Function GetGroup(ByVal group As String, ByVal subGroup As String) As xlsGroup
-    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName='" & AddHighColons(group) & "' AND GroupSubName='" & AddHighColons(subGroup) & "'"
+    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(group) & " AND GroupSubName=" & GetDBEntry(subGroup) & ";"
     DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows = False Then Return Nothing
     DBConnection.DBCursor.Read()
@@ -74,7 +74,7 @@ Public Class xlsGroups
 
   Public Sub AddGroup(ByVal groupName As String, ByVal subGroupName As String)
     ' Testen, ob bereits ein Wort unter dem Eintrag existiert
-    Dim command As String = "SELECT [Index] FROM Groups WHERE Groups.GroupName='" & AddHighColons(groupName) & "' AND Groups.GroupSubName='" & AddHighColons(subGroupName) & "';"
+    Dim command As String = "SELECT [Index] FROM Groups WHERE Groups.GroupName=" & GetDBEntry(groupName) & " AND Groups.GroupSubName=" & GetDBEntry(subGroupName) & ";"
     DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows Then
       DBConnection.DBCursor.Close()
@@ -82,7 +82,7 @@ Public Class xlsGroups
     End If
 
     ' Herausfinden, wieviele Untergruppen zu der angegebenen Gruppe vorhanden sind
-    command = "SELECT COUNT(Index) FROM Groups WHERE Groups.GroupName='" & AddHighColons(groupName) & "';"
+    command = "SELECT COUNT(Index) FROM Groups WHERE Groups.GroupName=" & GetDBEntry(groupName) & ";"
 
     DBConnection.ExecuteReader(command)
     DBConnection.DBCursor.Read()
@@ -97,12 +97,12 @@ Public Class xlsGroups
       tableName = "Group" & StripSpecialCharacters(groupName) & groupCount
     End If
 
-    ' erstelle Tabelle
-    command = "CREATE TABLE " & tableName & " ([Index] AUTOINCREMENT, [WordIndex] LONG NOT NULL, CONSTRAINT bla PRIMARY KEY ([Index]) )"
+    ' erstelle Tabelle, DB-Version 1.05: mit marked
+    command = "CREATE TABLE " & tableName & " ([Index] AUTOINCREMENT, [WordIndex] LONG NOT NULL, [Marked] BIT, [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL, CONSTRAINT prkey PRIMARY KEY ([Index]) );"
     DBConnection.ExecuteNonQuery(command)
 
     ' füge in die Gruppenliste ein
-    command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES ('" & AddHighColons(groupName) & "', '" & AddHighColons(subGroupName) & "', '" & AddHighColons(tableName) & "');"
+    command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES (" & GetDBEntry(groupName) & ", " & GetDBEntry(subGroupName) & ", " & GetDBEntry(tableName) & ");"
     DBConnection.ExecuteNonQuery(command)
   End Sub
 
@@ -117,7 +117,9 @@ Public Class xlsGroups
       Dim grpOld As xlsGroup = Me.GetGroup(groupName, subGroup.SubGroup)
       Dim grpNew As xlsGroup = Me.GetGroup(newName, subGroup.SubGroup)
       For Each index As Integer In grpOld.GetIndices()
-        grpNew.Add(index)
+        Dim marked As Boolean = grpOld.GetMarked(index)
+        ' TODO example
+        grpNew.Add(index, marked, "")
       Next index
     Next subGroup
 
@@ -126,13 +128,13 @@ Public Class xlsGroups
   End Sub
 
   Public Sub EditSubGroup(ByVal groupName As String, ByVal subGroupName As String, ByVal newSubGroupName As String)
-    Dim command As String = "UPDATE Groups SET GroupSubName='" & AddHighColons(newSubGroupName) & "' WHERE GroupName='" & AddHighColons(groupName) & "' AND GroupSubName='" & AddHighColons(subGroupName) & "';"
+    Dim command As String = "UPDATE Groups SET GroupSubName=" & GetDBEntry(newSubGroupName) & " WHERE GroupName=" & GetDBEntry(groupName) & " AND GroupSubName=" & GetDBEntry(subGroupName) & ";"
     DBConnection.ExecuteNonQuery(command)
   End Sub
 
   Public Sub DeleteGroup(ByVal groupName As String)
     ' Löschen der Tabellen
-    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName='" & AddHighColons(groupName) & "';"
+    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
     Dim tables As New Collection(Of String)
     DBConnection.ExecuteReader(command)
     While DBConnection.DBCursor.Read()
@@ -146,12 +148,12 @@ Public Class xlsGroups
     Next
 
     ' Löschen der Einträge aus der Group-Table
-    command = "DELETE FROM Groups WHERE GroupName='" & AddHighColons(groupName) & "';"
+    command = "DELETE FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
     DBConnection.ExecuteNonQuery(command)
   End Sub
 
   Public Function WordCount(ByVal groupName As String) As Integer
-    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName='" & AddHighColons(groupName) & "';"
+    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
     Dim tables As New Collection(Of String)
     DBConnection.ExecuteReader(command)
     While DBConnection.DBCursor.Read()
@@ -169,7 +171,7 @@ Public Class xlsGroups
   End Function
 
   Public Function WordCount(ByVal groupName As String, ByVal subGroupName As String) As Integer
-    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName='" & AddHighColons(groupName) & "' AND GroupSubName='" & AddHighColons(subGroupName) & "';"
+    Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & " AND GroupSubName=" & GetDBEntry(subGroupName) & ";"
     DBConnection.ExecuteReader(command)
     DBConnection.DBCursor.Read()
     Dim table As String = DBConnection.SecureGetString(0)
@@ -182,7 +184,7 @@ Public Class xlsGroups
   End Function
 
   Public Function IsGroupExisting(ByVal groupName As String) As Boolean
-    Dim command As String = "SELECT DISTINCT GroupTable FROM Groups WHERE GroupName='" & AddHighColons(groupName) & "';"
+    Dim command As String = "SELECT DISTINCT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
     DBConnection.ExecuteReader(command)
     Dim ret As Boolean
     If DBConnection.DBCursor.HasRows Then
@@ -192,5 +194,14 @@ Public Class xlsGroups
     End If
     DBConnection.CloseReader()
     Return ret
+  End Function
+
+  Public Function SubGroupCount(ByVal groupName As String) As Integer
+    Dim command As String = "SELECT COUNT([Index]) FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
+    DBConnection.ExecuteReader(command)
+    DBConnection.DBCursor.Read()
+    Dim count As Integer = DBConnection.SecureGetInt32(0)
+    DBConnection.DBCursor.Close()
+    Return count
   End Function
 End Class

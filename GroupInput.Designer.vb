@@ -1,6 +1,6 @@
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class GroupInput
-  Inherits System.Windows.Forms.Form
+  Inherits Gravo2k7.MDIChild
 
   'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
   <System.Diagnostics.DebuggerNonUserCode()> _
@@ -37,6 +37,7 @@ Partial Class GroupInput
     Me.lblWordsDescription = New System.Windows.Forms.Label
     Me.lblSearchDescription = New System.Windows.Forms.Label
     Me.lblCurrentWordIndex = New System.Windows.Forms.Label
+    Me.chkMarked = New System.Windows.Forms.CheckBox
     Me.SuspendLayout()
     '
     'cmbSelectGroup
@@ -53,14 +54,14 @@ Partial Class GroupInput
     Me.lstWordsInGroup.Location = New System.Drawing.Point(15, 63)
     Me.lstWordsInGroup.Name = "lstWordsInGroup"
     Me.lstWordsInGroup.Size = New System.Drawing.Size(135, 303)
-    Me.lstWordsInGroup.TabIndex = 2
+    Me.lstWordsInGroup.TabIndex = 4
     '
     'cmdSelect
     '
     Me.cmdSelect.Location = New System.Drawing.Point(153, 253)
     Me.cmdSelect.Name = "cmdSelect"
     Me.cmdSelect.Size = New System.Drawing.Size(75, 23)
-    Me.cmdSelect.TabIndex = 4
+    Me.cmdSelect.TabIndex = 5
     Me.cmdSelect.Text = "<<"
     Me.cmdSelect.UseVisualStyleBackColor = True
     '
@@ -79,7 +80,7 @@ Partial Class GroupInput
     Me.cmdExit.Location = New System.Drawing.Point(591, 369)
     Me.cmdExit.Name = "cmdExit"
     Me.cmdExit.Size = New System.Drawing.Size(75, 23)
-    Me.cmdExit.TabIndex = 10
+    Me.cmdExit.TabIndex = 11
     Me.cmdExit.Text = "Schließen"
     Me.cmdExit.UseVisualStyleBackColor = True
     '
@@ -90,7 +91,7 @@ Partial Class GroupInput
     Me.lstWords.MultiSelect = False
     Me.lstWords.Name = "lstWords"
     Me.lstWords.Size = New System.Drawing.Size(432, 104)
-    Me.lstWords.TabIndex = 6
+    Me.lstWords.TabIndex = 9
     Me.lstWords.UseCompatibleStateImageBehavior = False
     Me.lstWords.View = System.Windows.Forms.View.Details
     '
@@ -101,7 +102,7 @@ Partial Class GroupInput
     Me.lstMeanings.MultiSelect = False
     Me.lstMeanings.Name = "lstMeanings"
     Me.lstMeanings.Size = New System.Drawing.Size(432, 104)
-    Me.lstMeanings.TabIndex = 3
+    Me.lstMeanings.TabIndex = 8
     Me.lstMeanings.UseCompatibleStateImageBehavior = False
     Me.lstMeanings.View = System.Windows.Forms.View.Details
     '
@@ -110,7 +111,7 @@ Partial Class GroupInput
     Me.txtSearchText.Location = New System.Drawing.Point(234, 343)
     Me.txtSearchText.Name = "txtSearchText"
     Me.txtSearchText.Size = New System.Drawing.Size(432, 20)
-    Me.txtSearchText.TabIndex = 7
+    Me.txtSearchText.TabIndex = 10
     '
     'cmbSelectLanguage
     '
@@ -118,7 +119,7 @@ Partial Class GroupInput
     Me.cmbSelectLanguage.Location = New System.Drawing.Point(453, 12)
     Me.cmbSelectLanguage.Name = "cmbSelectLanguage"
     Me.cmbSelectLanguage.Size = New System.Drawing.Size(213, 21)
-    Me.cmbSelectLanguage.TabIndex = 11
+    Me.cmbSelectLanguage.TabIndex = 3
     '
     'cmbSelectSubGroup
     '
@@ -126,7 +127,7 @@ Partial Class GroupInput
     Me.cmbSelectSubGroup.Location = New System.Drawing.Point(234, 12)
     Me.cmbSelectSubGroup.Name = "cmbSelectSubGroup"
     Me.cmbSelectSubGroup.Size = New System.Drawing.Size(213, 21)
-    Me.cmbSelectSubGroup.TabIndex = 12
+    Me.cmbSelectSubGroup.TabIndex = 1
     '
     'lblWordsInGroup
     '
@@ -200,6 +201,18 @@ Partial Class GroupInput
     Me.lblCurrentWordIndex.TabIndex = 20
     Me.lblCurrentWordIndex.Text = "#"
     '
+    'chkMarked
+    '
+    Me.chkMarked.AutoSize = True
+    Me.chkMarked.Checked = True
+    Me.chkMarked.CheckState = System.Windows.Forms.CheckState.Checked
+    Me.chkMarked.Location = New System.Drawing.Point(156, 282)
+    Me.chkMarked.Name = "chkMarked"
+    Me.chkMarked.Size = New System.Drawing.Size(75, 17)
+    Me.chkMarked.TabIndex = 6
+    Me.chkMarked.Text = "Markieren"
+    Me.chkMarked.UseVisualStyleBackColor = True
+    '
     'GroupInput
     '
     Me.AcceptButton = Me.cmdSelect
@@ -207,6 +220,7 @@ Partial Class GroupInput
     Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
     Me.CancelButton = Me.cmdExit
     Me.ClientSize = New System.Drawing.Size(672, 399)
+    Me.Controls.Add(Me.chkMarked)
     Me.Controls.Add(Me.lblCurrentWordIndex)
     Me.Controls.Add(Me.lblSearchDescription)
     Me.Controls.Add(Me.lblWordsDescription)
@@ -249,4 +263,5 @@ Partial Class GroupInput
   Friend WithEvents lblWordsDescription As System.Windows.Forms.Label
   Friend WithEvents lblSearchDescription As System.Windows.Forms.Label
   Friend WithEvents lblCurrentWordIndex As System.Windows.Forms.Label
+  Friend WithEvents chkMarked As System.Windows.Forms.CheckBox
 End Class

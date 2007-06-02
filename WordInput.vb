@@ -9,15 +9,28 @@ Public Class WordInput
   Dim language As String
   Dim mainLanguage As String
 
+  ' easy-word-input Variablen
+  Dim wordEdited As Boolean = False
+
   Public Sub New()
     ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
     InitializeComponent()
 
     ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-    db.Open(Application.StartupPath() & "\voc.mdb")     ' Datenbank öffnen
+    db.Open(DBPath)
     voc.DBConnection = db
     grp.DBConnection = db
     groups.DBConnection = db
+
+    Dim prop As New xlsDBPropertys(db)
+    txtWord.MaxLength = prop.DictionaryWordsMaxLengthWord
+    txtPre.MaxLength = prop.DictionaryWordsMaxLengthPre
+    txtPost.MaxLength = prop.DictionaryWordsMaxLengthPost
+    txtMeaning.MaxLength = prop.DictionaryWordsMaxLengthMeaning
+    txtAdditionalTargetlanguageInfo.MaxLength = prop.DictionaryWordsMaxLengthAdditionalTargetLangInfo
+    txtMainEntry.MaxLength = prop.DictionaryMainMaxLengthWordEntry
+    txtLanguage.MaxLength = prop.DictionaryMainMaxLengthLanguage
+    txtMainLanguage.MaxLength = prop.DictionaryMainMaxLengthMainLanguage
   End Sub
 
   Private Sub WordInput_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -29,7 +42,7 @@ Public Class WordInput
 
     ' Sprachen in die Listen einfügen
     cmbLanguages.Items.Clear()
-    Dim languages As Collection(Of String) = voc.DictionaryLanguages()
+    Dim languages As Collection(Of String) = voc.DictionaryLanguages("german")
     For Each language As String In languages
       cmbLanguages.Items.Add(language)
     Next
@@ -52,9 +65,36 @@ Public Class WordInput
     If cmbDirectAddGroup.Items.Count > 0 Then cmbDirectAddGroup.SelectedIndex = 0 Else chkDirectAdd.Enabled = False
     chkDirectAdd.Checked = False
     cmbDirectAddGroup.Enabled = False
+    cmbDirectAddSubGroup.Enabled = False
+  End Sub
+
+  ' Lokalisierung
+  Public Overrides Sub LocalizationChanged()
+
   End Sub
 
   Private Sub AddSubEntry(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAddSubEntry.Click
+    If chkDirectAdd.Checked And grp Is Nothing Then
+      MsgBox("Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!", MsgBoxStyle.Information, "Warnung")
+      Exit Sub
+    End If
+
+    ' Falls keine Sprache in der Gruppe vorhanden ist (0 Einträgee bisher), nachfragen ob wirklich erstellt werden soll
+    If grp.LanguageCount() = 0 Or grp.MainLanguageCount() = 0 Then
+      If MsgBox("Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den Sprachen '" & language & "' und '" & mainLanguage & "' erstellt werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
+    End If
+
+    ' Falls bisher eine Sprache in der Gruppe vorhanden ist, nachfragen ob eine neue erstellt werden soll
+    If grp.LanguageCount = 1 And grp.MainLanguageCount = 1 Then
+      Dim usedLanguage As String
+      Dim usedMainLanguage As String
+      usedLanguage = grp.GetUniqueLanguage()
+      usedMainLanguage = grp.GetUniqueMainLanguage()
+      If usedLanguage <> language Or usedMainLanguage <> mainLanguage Then
+        If MsgBox("Sie beabsichtigen einen eintrag mit den zweiten Sprachen '" & language & "' und '" & mainLanguage & "' zu erstellen. Soll damit fortgefahren werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
+      End If
+    End If
+
     Dim deWord As New xlsDictionaryEntry(voc.DBConnection)
     deWord.LoadNewWord(voc.GetMaxSubEntryIndex + 1)
     deWord.Pre = txtPre.Text
@@ -63,6 +103,7 @@ Public Class WordInput
     deWord.Meaning = txtMeaning.Text
     deWord.AdditionalTargetLangInfo = txtAdditionalTargetlanguageInfo.Text
     deWord.WordType = lstWordTypes.SelectedIndex
+    deWord.Irregular = chkIrregular.Checked
 
     Try
       voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
@@ -97,34 +138,37 @@ Public Class WordInput
       'ErrorCode = -2147467259
       MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
     End Try
-    Me.txtMainEntry.SelectAll()
-    Me.txtMainEntry.Focus()
-    Me.txtAdditionalTargetlanguageInfo.SelectAll()
-    Me.txtMeaning.SelectAll()
-    Me.txtPost.SelectAll()
-    Me.txtPre.SelectAll()
-    Me.txtWord.SelectAll()
+    txtMainEntry.SelectAll()
+    txtMainEntry.Focus()
+    txtAdditionalTargetlanguageInfo.SelectAll()
+    txtMeaning.SelectAll()
+    txtPost.SelectAll()
+    txtPre.SelectAll()
+    txtWord.SelectAll()
+    wordEdited = False
   End Sub
 
   Private Sub chkDirectAdd_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkDirectAdd.CheckedChanged
     cmbDirectAddGroup.Enabled = chkDirectAdd.Checked
+    cmbDirectAddSubGroup.Enabled = chkDirectAdd.Checked
   End Sub
 
   Private Sub AddToGroup()
     ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
     Dim subIndex As Integer = voc.GetSubEntryIndex(voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage), txtWord.Text, txtMeaning.Text)
-    grp.Add(subIndex)
+    ' TODO example
+    grp.Add(subIndex, chkMarked.Checked, "")
   End Sub
 
   Private Sub cmbLanguages_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbLanguages.SelectedIndexChanged
-    ' Liste der Wortarten füllen
+    ' Liste der Wortarten füllen (immer alle unterstützen zur zeit)
     lstWordTypes.Items.Clear()
-    Dim i As Integer      ' Index
-    lstWordTypes.Items.Add("Substantiv")
-    lstWordTypes.Items.Add("Verb")
-    lstWordTypes.Items.Add("Adjektiv")
-    lstWordTypes.Items.Add("Einfach")
-    lstWordTypes.Items.Add("Redewendung")
+
+    Dim prop As New xlsDBPropertys(db)
+    For Each type As String In prop.GetSupportedWordTypes()
+      lstWordTypes.Items.Add(GetLoc.GetText(type))
+    Next type
+    lstWordTypes.SelectedIndex = 0
 
     ' Sprache bekannt machen
     UpdateLanguageSelection()
@@ -179,7 +223,26 @@ Public Class WordInput
   End Sub
 
   Private Sub cmbDirectAddSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbDirectAddSubGroup.SelectedIndexChanged
-    grp = groups.GetGroup(cmbDirectAddSubGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
+    If cmbDirectAddSubGroup.Items.Count = 0 Then grp = Nothing : Exit Sub
+    grp = groups.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
+
+    ' Wenn die verwendeten Sprachen eindeutig sind, setzen
+    Try
+      Dim language As String = grp.GetUniqueLanguage()
+      cmbLanguages.SelectedItem = language
+    Catch ex As Exception
+      ' keine eindeutige Language
+      MsgBox("Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
+    End Try
+
+    Try
+      Dim mainLanguage = grp.GetUniqueMainLanguage()
+      cmbMainLanguages.SelectedItem = mainLanguage
+    Catch ex As Exception
+      ' keine eindeutige Mainlanguage
+      MsgBox("Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
+    End Try
+
   End Sub
 
   Private Sub txtLanguage_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtLanguage.TextChanged
@@ -188,5 +251,17 @@ Public Class WordInput
 
   Private Sub txtMainLanguage_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtMainLanguage.TextChanged
     mainLanguage = txtMainLanguage.Text
+  End Sub
+
+  Private Sub txtMainEntry_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtMainEntry.TextChanged
+    If wordEdited = False Then
+      txtWord.Text = txtMainEntry.Text
+      txtWord.SelectAll()
+      wordEdited = False
+    End If
+  End Sub
+
+  Private Sub txtWord_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtWord.TextChanged
+    wordEdited = True
   End Sub
 End Class

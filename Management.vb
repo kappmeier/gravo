@@ -1,8 +1,6 @@
 Imports System.Collections.ObjectModel
 
 Public Class Management
-  Inherits System.Windows.Forms.Form
-
   ' Datenbank-Zugriff
   Dim voc As xlsBase            ' Zugriff auf Vokabel-Datenbank
   Dim grp As xlsGroups
@@ -24,6 +22,11 @@ Public Class Management
     man.DBConnection = db
     dic = New xlsDictionary
     dic.DBConnection = db
+
+    ' Anzahl der Zeichen für Textfelder
+    Dim prop As New xlsDBPropertys(db)
+    txtGroupName.MaxLength = prop.GroupsMaxLengthName
+    txtUnitName.MaxLength = prop.GroupsMaxLengthSubName
   End Sub
 
   Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -49,6 +52,11 @@ Public Class Management
     dlgExport.InitialDirectory = Application.StartupPath
     dlgImport.InitialDirectory = Application.StartupPath
     dlgSaveDb.InitialDirectory = Application.StartupPath
+  End Sub
+
+  ' Lokalisierung
+  Public Overrides Sub LocalizationChanged()
+
   End Sub
 
   Private Sub UpdateForm()
@@ -89,7 +97,7 @@ Public Class Management
 
     ' lade Sprachen in die Export-Sprachen-Liste, nur tatsächlich vorhandene! (LDF-unabhängig)
     lstExportLanguages.Items.Clear()
-    For Each language As String In dic.DictionaryLanguages()
+    For Each language As String In dic.DictionaryLanguages("german")
       lstExportLanguages.Items.Add(language)
     Next
     If lstExportLanguages.Items.Count > 0 Then lstExportLanguages.SelectedIndex = 0
@@ -132,7 +140,7 @@ Public Class Management
   End Sub
 
   Private Sub GroupEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupEdit.Click
-    If Trim(Me.txtGroupName.Text) = "" Then Exit Sub
+    If Trim(txtGroupName.Text) = "" Then Exit Sub
 
     ' Ändern der Gruppen-Informationen in der Datenbank
     grp.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
@@ -381,6 +389,7 @@ Public Class Management
   End Sub
 
   Private Sub cmdDBVersion_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDBVersion.Click
+    If man.IsUpdateComplex Then MsgBox("Der Updatevorgang kann einige Zeit dauern!", MsgBoxStyle.Information, "Hinweis")
     man.UpdateDatabaseVersion()
     UpdateDatabaseVersion()
   End Sub
@@ -394,10 +403,5 @@ Public Class Management
       cmdDBVersion.Text = "Update auf Version " & man.DatabaseVersion(man.NextVersionIndex)
       cmdDBVersion.Enabled = True
     End If
-  End Sub
-
-  Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
-    FileCopy(Application.StartupPath() & "\empty.mdb", Application.StartupPath() & "\erzeugt.mdb")
-    man.CreateNewVocabularyDatabase(Application.StartupPath() & "\erzeugt.mdb")
   End Sub
 End Class

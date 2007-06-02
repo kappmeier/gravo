@@ -1,6 +1,6 @@
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class Management
-  Inherits System.Windows.Forms.Form
+  Inherits MyForm
 
   'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
   <System.Diagnostics.DebuggerNonUserCode()> _
@@ -37,6 +37,7 @@ Partial Class Management
     Me.cmdSchließen = New System.Windows.Forms.Button
     Me.tab = New System.Windows.Forms.TabControl
     Me.tabImport = New System.Windows.Forms.TabPage
+    Me.Label1 = New System.Windows.Forms.Label
     Me.lblImportGroupCount = New System.Windows.Forms.Label
     Me.optGroupAppend = New System.Windows.Forms.RadioButton
     Me.optGroupOverwrite = New System.Windows.Forms.RadioButton
@@ -47,6 +48,7 @@ Partial Class Management
     Me.lblImportDB = New System.Windows.Forms.Label
     Me.cmdImortSelectDB = New System.Windows.Forms.Button
     Me.tabExport = New System.Windows.Forms.TabPage
+    Me.Label2 = New System.Windows.Forms.Label
     Me.cmdExportUserData = New System.Windows.Forms.Button
     Me.chkExportStats = New System.Windows.Forms.CheckBox
     Me.chkExportEmptyEntrys = New System.Windows.Forms.CheckBox
@@ -62,7 +64,6 @@ Partial Class Management
     Me.dlgExport = New System.Windows.Forms.OpenFileDialog
     Me.dlgSaveDb = New System.Windows.Forms.SaveFileDialog
     Me.dlgImport = New System.Windows.Forms.OpenFileDialog
-    Me.Button1 = New System.Windows.Forms.Button
     Me.tabUnit.SuspendLayout()
     Me.tabGroup.SuspendLayout()
     Me.tab.SuspendLayout()
@@ -76,7 +77,7 @@ Partial Class Management
     Me.cmbUnitSelectGroup.Location = New System.Drawing.Point(3, 3)
     Me.cmbUnitSelectGroup.Name = "cmbUnitSelectGroup"
     Me.cmbUnitSelectGroup.Size = New System.Drawing.Size(354, 21)
-    Me.cmbUnitSelectGroup.TabIndex = 16
+    Me.cmbUnitSelectGroup.TabIndex = 1
     Me.cmbUnitSelectGroup.Text = "#"
     '
     'lblUnitInfo
@@ -93,7 +94,7 @@ Partial Class Management
     Me.cmdUnitDelete.Location = New System.Drawing.Point(277, 116)
     Me.cmdUnitDelete.Name = "cmdUnitDelete"
     Me.cmdUnitDelete.Size = New System.Drawing.Size(80, 24)
-    Me.cmdUnitDelete.TabIndex = 14
+    Me.cmdUnitDelete.TabIndex = 6
     Me.cmdUnitDelete.Text = "Löschen"
     '
     'cmdUnitEdit
@@ -101,7 +102,7 @@ Partial Class Management
     Me.cmdUnitEdit.Location = New System.Drawing.Point(277, 86)
     Me.cmdUnitEdit.Name = "cmdUnitEdit"
     Me.cmdUnitEdit.Size = New System.Drawing.Size(80, 24)
-    Me.cmdUnitEdit.TabIndex = 11
+    Me.cmdUnitEdit.TabIndex = 5
     Me.cmdUnitEdit.Text = "Ändern"
     '
     'cmdGroupDelete
@@ -109,7 +110,7 @@ Partial Class Management
     Me.cmdGroupDelete.Location = New System.Drawing.Point(277, 92)
     Me.cmdGroupDelete.Name = "cmdGroupDelete"
     Me.cmdGroupDelete.Size = New System.Drawing.Size(80, 24)
-    Me.cmdGroupDelete.TabIndex = 6
+    Me.cmdGroupDelete.TabIndex = 5
     Me.cmdGroupDelete.Text = "Löschen"
     '
     'cmdGroupEdit
@@ -117,7 +118,7 @@ Partial Class Management
     Me.cmdGroupEdit.Location = New System.Drawing.Point(277, 62)
     Me.cmdGroupEdit.Name = "cmdGroupEdit"
     Me.cmdGroupEdit.Size = New System.Drawing.Size(80, 24)
-    Me.cmdGroupEdit.TabIndex = 3
+    Me.cmdGroupEdit.TabIndex = 4
     Me.cmdGroupEdit.Text = "Ändern"
     '
     'txtGroupName
@@ -133,7 +134,7 @@ Partial Class Management
     Me.txtUnitName.Location = New System.Drawing.Point(153, 30)
     Me.txtUnitName.Name = "txtUnitName"
     Me.txtUnitName.Size = New System.Drawing.Size(204, 20)
-    Me.txtUnitName.TabIndex = 10
+    Me.txtUnitName.TabIndex = 3
     Me.txtUnitName.Text = "#"
     '
     'lstUnitList
@@ -141,7 +142,7 @@ Partial Class Management
     Me.lstUnitList.Location = New System.Drawing.Point(3, 30)
     Me.lstUnitList.Name = "lstUnitList"
     Me.lstUnitList.Size = New System.Drawing.Size(144, 199)
-    Me.lstUnitList.TabIndex = 9
+    Me.lstUnitList.TabIndex = 2
     '
     'lblGroupInfo
     '
@@ -172,7 +173,7 @@ Partial Class Management
     Me.cmdUnitAdd.Location = New System.Drawing.Point(277, 56)
     Me.cmdUnitAdd.Name = "cmdUnitAdd"
     Me.cmdUnitAdd.Size = New System.Drawing.Size(80, 24)
-    Me.cmdUnitAdd.TabIndex = 8
+    Me.cmdUnitAdd.TabIndex = 4
     Me.cmdUnitAdd.Text = "Hinzufügen"
     '
     'lstGroupList
@@ -187,7 +188,7 @@ Partial Class Management
     Me.cmdGroupAdd.Location = New System.Drawing.Point(277, 32)
     Me.cmdGroupAdd.Name = "cmdGroupAdd"
     Me.cmdGroupAdd.Size = New System.Drawing.Size(80, 24)
-    Me.cmdGroupAdd.TabIndex = 0
+    Me.cmdGroupAdd.TabIndex = 3
     Me.cmdGroupAdd.Text = "Hinzufügen"
     '
     'tabGroup
@@ -211,7 +212,7 @@ Partial Class Management
     Me.cmdSchließen.Location = New System.Drawing.Point(297, 274)
     Me.cmdSchließen.Name = "cmdSchließen"
     Me.cmdSchließen.Size = New System.Drawing.Size(75, 23)
-    Me.cmdSchließen.TabIndex = 6
+    Me.cmdSchließen.TabIndex = 20
     Me.cmdSchließen.Text = "Schließen"
     '
     'tab
@@ -229,6 +230,7 @@ Partial Class Management
     '
     'tabImport
     '
+    Me.tabImport.Controls.Add(Me.Label1)
     Me.tabImport.Controls.Add(Me.lblImportGroupCount)
     Me.tabImport.Controls.Add(Me.optGroupAppend)
     Me.tabImport.Controls.Add(Me.optGroupOverwrite)
@@ -245,6 +247,15 @@ Partial Class Management
     Me.tabImport.Text = "Importieren"
     Me.tabImport.UseVisualStyleBackColor = True
     '
+    'Label1
+    '
+    Me.Label1.Location = New System.Drawing.Point(3, 194)
+    Me.Label1.Name = "Label1"
+    Me.Label1.Size = New System.Drawing.Size(354, 44)
+    Me.Label1.TabIndex = 30
+    Me.Label1.Text = "Das Importieren kann einige Zeit dauern, da jeder Datensatz einzeln eingelesen un" & _
+        "d dabei auf Kohärenz geprüft wird."
+    '
     'lblImportGroupCount
     '
     Me.lblImportGroupCount.AutoSize = True
@@ -259,8 +270,8 @@ Partial Class Management
     Me.optGroupAppend.AutoSize = True
     Me.optGroupAppend.Location = New System.Drawing.Point(3, 78)
     Me.optGroupAppend.Name = "optGroupAppend"
-    Me.optGroupAppend.Size = New System.Drawing.Size(121, 17)
-    Me.optGroupAppend.TabIndex = 28
+    Me.optGroupAppend.Size = New System.Drawing.Size(122, 17)
+    Me.optGroupAppend.TabIndex = 3
     Me.optGroupAppend.Text = "Gruppen hinzufügen"
     Me.optGroupAppend.UseVisualStyleBackColor = True
     '
@@ -270,8 +281,8 @@ Partial Class Management
     Me.optGroupOverwrite.Checked = True
     Me.optGroupOverwrite.Location = New System.Drawing.Point(3, 55)
     Me.optGroupOverwrite.Name = "optGroupOverwrite"
-    Me.optGroupOverwrite.Size = New System.Drawing.Size(132, 17)
-    Me.optGroupOverwrite.TabIndex = 27
+    Me.optGroupOverwrite.Size = New System.Drawing.Size(133, 17)
+    Me.optGroupOverwrite.TabIndex = 2
     Me.optGroupOverwrite.TabStop = True
     Me.optGroupOverwrite.Text = "Überschreibe Gruppen"
     Me.optGroupOverwrite.UseVisualStyleBackColor = True
@@ -290,8 +301,8 @@ Partial Class Management
     Me.chkImportStatistic.AutoSize = True
     Me.chkImportStatistic.Location = New System.Drawing.Point(3, 32)
     Me.chkImportStatistic.Name = "chkImportStatistic"
-    Me.chkImportStatistic.Size = New System.Drawing.Size(117, 17)
-    Me.chkImportStatistic.TabIndex = 25
+    Me.chkImportStatistic.Size = New System.Drawing.Size(119, 17)
+    Me.chkImportStatistic.TabIndex = 1
     Me.chkImportStatistic.Text = "Statistik importieren"
     Me.chkImportStatistic.UseVisualStyleBackColor = True
     '
@@ -300,7 +311,7 @@ Partial Class Management
     Me.cmdImportGroup.Location = New System.Drawing.Point(3, 101)
     Me.cmdImportGroup.Name = "cmdImportGroup"
     Me.cmdImportGroup.Size = New System.Drawing.Size(168, 23)
-    Me.cmdImportGroup.TabIndex = 24
+    Me.cmdImportGroup.TabIndex = 4
     Me.cmdImportGroup.Text = "Importiere Gruppe"
     Me.cmdImportGroup.UseVisualStyleBackColor = True
     '
@@ -309,7 +320,7 @@ Partial Class Management
     Me.cmdImportDictionary.Location = New System.Drawing.Point(177, 101)
     Me.cmdImportDictionary.Name = "cmdImportDictionary"
     Me.cmdImportDictionary.Size = New System.Drawing.Size(168, 23)
-    Me.cmdImportDictionary.TabIndex = 22
+    Me.cmdImportDictionary.TabIndex = 5
     Me.cmdImportDictionary.Text = "Imporiere Wörterbuch"
     Me.cmdImportDictionary.UseVisualStyleBackColor = True
     '
@@ -331,6 +342,7 @@ Partial Class Management
     '
     'tabExport
     '
+    Me.tabExport.Controls.Add(Me.Label2)
     Me.tabExport.Controls.Add(Me.cmdExportUserData)
     Me.tabExport.Controls.Add(Me.chkExportStats)
     Me.tabExport.Controls.Add(Me.chkExportEmptyEntrys)
@@ -344,12 +356,21 @@ Partial Class Management
     Me.tabExport.Text = "Exportieren"
     Me.tabExport.UseVisualStyleBackColor = True
     '
+    'Label2
+    '
+    Me.Label2.Location = New System.Drawing.Point(3, 133)
+    Me.Label2.Name = "Label2"
+    Me.Label2.Size = New System.Drawing.Size(354, 35)
+    Me.Label2.TabIndex = 31
+    Me.Label2.Text = "Das Importieren kann einige Zeit dauern, da jeder Datensatz einzeln eingelesen un" & _
+        "d dabei auf Kohärenz geprüft wird."
+    '
     'cmdExportUserData
     '
     Me.cmdExportUserData.Location = New System.Drawing.Point(189, 181)
     Me.cmdExportUserData.Name = "cmdExportUserData"
     Me.cmdExportUserData.Size = New System.Drawing.Size(168, 23)
-    Me.cmdExportUserData.TabIndex = 25
+    Me.cmdExportUserData.TabIndex = 4
     Me.cmdExportUserData.Text = "Benutzerdaten exportieren"
     Me.cmdExportUserData.UseVisualStyleBackColor = True
     '
@@ -358,8 +379,8 @@ Partial Class Management
     Me.chkExportStats.AutoSize = True
     Me.chkExportStats.Location = New System.Drawing.Point(3, 103)
     Me.chkExportStats.Name = "chkExportStats"
-    Me.chkExportStats.Size = New System.Drawing.Size(116, 17)
-    Me.chkExportStats.TabIndex = 24
+    Me.chkExportStats.Size = New System.Drawing.Size(118, 17)
+    Me.chkExportStats.TabIndex = 2
     Me.chkExportStats.Text = "Statistik mit sichern"
     Me.chkExportStats.UseVisualStyleBackColor = True
     '
@@ -368,8 +389,8 @@ Partial Class Management
     Me.chkExportEmptyEntrys.AutoSize = True
     Me.chkExportEmptyEntrys.Location = New System.Drawing.Point(183, 103)
     Me.chkExportEmptyEntrys.Name = "chkExportEmptyEntrys"
-    Me.chkExportEmptyEntrys.Size = New System.Drawing.Size(169, 17)
-    Me.chkExportEmptyEntrys.TabIndex = 23
+    Me.chkExportEmptyEntrys.Size = New System.Drawing.Size(171, 17)
+    Me.chkExportEmptyEntrys.TabIndex = 3
     Me.chkExportEmptyEntrys.Text = "leere Haupteinträge auslassen"
     Me.chkExportEmptyEntrys.UseVisualStyleBackColor = True
     '
@@ -379,7 +400,7 @@ Partial Class Management
     Me.lstExportLanguages.Location = New System.Drawing.Point(3, 3)
     Me.lstExportLanguages.Name = "lstExportLanguages"
     Me.lstExportLanguages.Size = New System.Drawing.Size(174, 94)
-    Me.lstExportLanguages.TabIndex = 22
+    Me.lstExportLanguages.TabIndex = 0
     '
     'lstExportGroups
     '
@@ -387,19 +408,18 @@ Partial Class Management
     Me.lstExportGroups.Location = New System.Drawing.Point(183, 3)
     Me.lstExportGroups.Name = "lstExportGroups"
     Me.lstExportGroups.Size = New System.Drawing.Size(174, 94)
-    Me.lstExportGroups.TabIndex = 21
+    Me.lstExportGroups.TabIndex = 1
     '
     'cmdExport
     '
     Me.cmdExport.Location = New System.Drawing.Point(189, 212)
     Me.cmdExport.Name = "cmdExport"
     Me.cmdExport.Size = New System.Drawing.Size(168, 23)
-    Me.cmdExport.TabIndex = 20
+    Me.cmdExport.TabIndex = 5
     Me.cmdExport.Text = "Exportieren"
     '
     'tapDatabase
     '
-    Me.tapDatabase.Controls.Add(Me.Button1)
     Me.tapDatabase.Controls.Add(Me.lblErrorCount)
     Me.tapDatabase.Controls.Add(Me.cmdSaveDB)
     Me.tapDatabase.Controls.Add(Me.cmdReorganizeDB)
@@ -426,7 +446,7 @@ Partial Class Management
     Me.cmdSaveDB.Location = New System.Drawing.Point(3, 212)
     Me.cmdSaveDB.Name = "cmdSaveDB"
     Me.cmdSaveDB.Size = New System.Drawing.Size(168, 23)
-    Me.cmdSaveDB.TabIndex = 30
+    Me.cmdSaveDB.TabIndex = 2
     Me.cmdSaveDB.Text = "Datenbank sichern"
     Me.cmdSaveDB.UseVisualStyleBackColor = True
     '
@@ -435,7 +455,7 @@ Partial Class Management
     Me.cmdReorganizeDB.Location = New System.Drawing.Point(6, 56)
     Me.cmdReorganizeDB.Name = "cmdReorganizeDB"
     Me.cmdReorganizeDB.Size = New System.Drawing.Size(168, 23)
-    Me.cmdReorganizeDB.TabIndex = 29
+    Me.cmdReorganizeDB.TabIndex = 1
     Me.cmdReorganizeDB.Text = "Konsistenz prüfen"
     Me.cmdReorganizeDB.UseVisualStyleBackColor = True
     '
@@ -445,7 +465,7 @@ Partial Class Management
     Me.cmdDBVersion.Location = New System.Drawing.Point(6, 27)
     Me.cmdDBVersion.Name = "cmdDBVersion"
     Me.cmdDBVersion.Size = New System.Drawing.Size(168, 23)
-    Me.cmdDBVersion.TabIndex = 27
+    Me.cmdDBVersion.TabIndex = 0
     Me.cmdDBVersion.Text = "#"
     '
     'lblDBVersion
@@ -476,15 +496,6 @@ Partial Class Management
     Me.dlgImport.FileName = "ImportDB.mdb"
     Me.dlgImport.Filter = "Datenbanken|*.mdb"
     Me.dlgImport.ShowHelp = True
-    '
-    'Button1
-    '
-    Me.Button1.Location = New System.Drawing.Point(134, 119)
-    Me.Button1.Name = "Button1"
-    Me.Button1.Size = New System.Drawing.Size(75, 23)
-    Me.Button1.TabIndex = 32
-    Me.Button1.Text = "Button1"
-    Me.Button1.UseVisualStyleBackColor = True
     '
     'Management
     '
@@ -556,5 +567,6 @@ Partial Class Management
   Friend WithEvents optGroupAppend As System.Windows.Forms.RadioButton
   Friend WithEvents optGroupOverwrite As System.Windows.Forms.RadioButton
   Friend WithEvents lblImportGroupCount As System.Windows.Forms.Label
-  Friend WithEvents Button1 As System.Windows.Forms.Button
+  Friend WithEvents Label1 As System.Windows.Forms.Label
+  Friend WithEvents Label2 As System.Windows.Forms.Label
 End Class

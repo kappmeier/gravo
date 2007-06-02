@@ -39,14 +39,14 @@ Public Class xlsImportExport
       For Each index As Integer In existingGroup.GetIndices()
         ' Lade das Wort aus der originalen Datenbank
         Dim existingEntry As New xlsDictionaryEntry(DBConnection, index)
-        Dim newEntry As String = dic.GetEntry(existingEntry.MainIndex)
+        Dim newEntry As String = dic.GetEntryName(existingEntry.MainIndex)
         Dim newEntryLanguage As String = dic.GetEntryLanguage(existingEntry.MainIndex)
 
         ' Lade das Wort aus der neuen Datenbank
         ' Main-Index
         Dim entryMainIndex As Integer
         Try
-          entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, mainlanguage)
+          entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
         Catch ex As xlsExceptionLanguageNotFound
           newdic.AddEntry(newEntry, newEntryLanguage, MainLanguage)
           entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
@@ -65,45 +65,47 @@ Public Class xlsImportExport
           newdic.AddSubEntry(existingEntry, newEntry, newEntryLanguage, MainLanguage)
           entryIndex = newdic.GetSubEntryIndex(entryMainIndex, existingEntry.Word, existingEntry.Meaning)
         End Try
-        currentGroup.Add(entryIndex)
-      Next
-    Next
+        Dim marked As Boolean = existingGroup.GetMarked(index)
+        ' TODO example
+        currentGroup.Add(entryIndex, marked, "")
+      Next index
+    Next groupEntry
   End Sub
 
   Public Sub ExportLanguage(ByVal Language As String, ByVal MainLanguage As String, ByVal dbSource As AccessDatabaseOperation)
     ' sichern der Main-Einträge
     Dim command As String
     If ExportEmptyEntrys Then
-      command = "SELECT WordEntry FROM DictionaryMain WHERE LanguageName='" & AddHighColons(Language) & "' AND MainLanguage='" & AddHighColons(MainLanguage) & "' ORDER BY WordEntry;"
+      command = "SELECT WordEntry FROM DictionaryMain WHERE LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & " ORDER BY WordEntry;"
     Else
-      command = "SELECT DISTINCT M.WordEntry FROM DictionaryMain AS M, DictionaryWords AS W WHERE LanguageName='" & AddHighColons(Language) & "' AND M.MainLanguage='" & AddHighColons(MainLanguage) & "' AND W.MainIndex=M.Index ORDER BY M.WordEntry;"
+      command = "SELECT DISTINCT M.WordEntry FROM DictionaryMain AS M, DictionaryWords AS W WHERE LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " AND W.MainIndex=M.Index ORDER BY M.WordEntry;"
     End If
     DBConnection.ExecuteReader(command)
     ' Sichern in die neue Datenbank
     While DBConnection.DBCursor.Read()
       Dim entry As String = DBConnection.SecureGetString(0)
-      command = "INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage) VALUES ('" & AddHighColons(entry) & "', '" & AddHighColons(Language) & "', '" & AddHighColons(MainLanguage) & "');"
+      command = "INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage) VALUES (" & GetDBEntry(entry) & ", " & GetDBEntry(Language) & ", " & GetDBEntry(MainLanguage) & ");"
       dbSource.ExecuteNonQuery(command)
     End While
     DBConnection.CloseReader()
 
     ' Sichern der Word-Einträge
-    command = "SELECT M.WordEntry, W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo FROM DictionaryMain AS M, DictionaryWords AS W WHERE W.MainIndex=M.Index AND M.LanguageName='" & AddHighColons(Language) & "' AND M.MainLanguage='" & AddHighColons(MainLanguage) & "' ORDER BY M.WordEntry, W.Word, W.Meaning"
+    command = "SELECT M.WordEntry, W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo FROM DictionaryMain AS M, DictionaryWords AS W WHERE W.MainIndex=M.Index AND M.LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " ORDER BY M.WordEntry, W.Word, W.Meaning"
     DBConnection.ExecuteReader(command)
     ' Speichern in neuer Datenbank
     Dim firstNewIndex As Integer = -1
     While DBConnection.DBCursor.Read()
       ' Holen des Haupteintrages der neuen Datenbank
-      command = "SELECT Index FROM DictionaryMain WHERE WordEntry='" & AddHighColons(DBConnection.SecureGetString(0)) & "' AND LanguageName='" & AddHighColons(Language) & "' AND MainLanguage='" & AddHighColons(MainLanguage) & "';"
+      command = "SELECT Index FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(DBConnection.SecureGetString(0)) & " AND LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & ";"
       dbSource.ExecuteReader(command)
       dbSource.DBCursor.Read()
       Dim newMainIndex As Integer = dbSource.SecureGetInt32(0)
       dbSource.CloseReader()
-      command = "INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo) VALUES (" & newMainIndex & ", '" & AddHighColons(DBConnection.SecureGetString(1)) & "', '" & AddHighColons(DBConnection.SecureGetString(2)) & "', '" & AddHighColons(DBConnection.SecureGetString(3)) & "', " & DBConnection.SecureGetInt32(4) & ", '" & AddHighColons(DBConnection.SecureGetString(5)) & "', '" & AddHighColons(DBConnection.SecureGetString(6)) & "');"
+      command = "INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo) VALUES (" & newMainIndex & ", " & GetDBEntry(DBConnection.SecureGetString(1)) & ", " & GetDBEntry(DBConnection.SecureGetString(2)) & ", " & GetDBEntry(DBConnection.SecureGetString(3)) & ", " & DBConnection.SecureGetInt32(4) & ", " & GetDBEntry(DBConnection.SecureGetString(5)) & ", " & GetDBEntry(DBConnection.SecureGetString(6)) & ");"
       dbSource.ExecuteNonQuery(command)
       ' Erzeugen der Cards-Einträge
       ' erzeuge für jeden Eintrag in der neuen Datenbank einen Stat-Eintrag
-      command = "SELECT Index FROM DictionaryWords WHERE MainIndex=" & newMainIndex & " AND Word='" & AddHighColons(DBConnection.SecureGetString(1)) & "' AND Meaning='" & AddHighColons(DBConnection.SecureGetString(5)) & "';"
+      command = "SELECT Index FROM DictionaryWords WHERE MainIndex=" & newMainIndex & " AND Word=" & GetDBEntry(DBConnection.SecureGetString(1)) & " AND Meaning=" & GetDBEntry(DBConnection.SecureGetString(5)) & ";"
       dbSource.ExecuteReader(command)
       dbSource.DBCursor.Read()
       Dim newWordIndex As Int32 = dbSource.SecureGetInt32(0)
@@ -145,7 +147,7 @@ Public Class xlsImportExport
     ImportedSubGroups = 0
 
     ' Füge die Haupt-Einträge ein
-    For Each language As String In dicImport.DictionaryLanguages()
+    For Each language As String In dicImport.DictionaryLanguages(mainLanguage)
       For Each word As String In dicImport.DictionaryEntrys(language, mainLanguage)
         Try
           dic.AddEntry(word, language, mainLanguage)
@@ -203,7 +205,7 @@ Public Class xlsImportExport
             Continue For ' aus irgendeinem Grund ist der Index nicht vorhanden, überspringen
           End Try
 
-          Dim entry As String = dicImport.GetEntry(word.MainIndex)
+          Dim entry As String = dicImport.GetEntryName(word.MainIndex)
           Dim language As String = dicImport.GetEntryLanguage(word.MainIndex)
 
           Dim mainIndex As Integer
@@ -228,7 +230,9 @@ Public Class xlsImportExport
             subIndex = dic.GetSubEntryIndex(mainIndex, word.Word, word.Meaning)
             ImportedSubEntrys += 1
           End Try
-          grp.Add(subIndex)
+          Dim marked As Boolean = grpImport.GetMarked(index)
+          ' TODO example
+          grp.Add(subIndex, marked, "")
           ImportedGroupEntrys += 1
         Next index
         ImportedSubGroups += 1

@@ -8,7 +8,7 @@ Public Enum TestResult
   Misspelled
 End Enum
 
-Enum xlsTestStyle
+Public Enum xlsTestStyle
   TestOnce
   TestAgain
   RandomTestOnce
@@ -19,37 +19,44 @@ End Enum
 Public Class xlsTestBase
   Inherits xlsBase
 
+  ' Wörter, die abgefragt werden sollen
   Private testWords As Collection(Of Integer)
   Private nextWords As Collection(Of Integer)
 
-  Private firstTest As Boolean = True        ' gibt an, ob _zwischen zwei NextWord()_ aufrufen das wort zum ersten mal geprüft wird,
-  Private firstRun As Boolean = True
-  Private testStyle As xlsTestStyle = xlsTestStyle.RandomTestAgain
+  ' Abfragedetails, wie oft, welches Wort usw.
+  Protected firstTest As Boolean = True        ' gibt an, ob _zwischen zwei NextWord()_ aufrufen das wort zum ersten mal geprüft wird,
+  Protected firstRun As Boolean = True
   Private deleted As Boolean
+  Private iTestIndex As Integer
+  Protected TestDictionaryEntry As xlsDictionaryEntry
+  Private iTestCurrentWord As Integer = -1
 
+  ' Zähler
   Private m_iTestWordCountDone As Integer = 0
   Private m_iTestWordCountDoneRight As Integer = 0
   Private m_iTestWordCountDoneFalse As Integer = 0
   Private m_iTestWordCountDoneFalseAllTrys As Integer = 0
 
-  Private m_bWordToMeaning As Boolean
-
-  Private iTestIndex As Integer
-  Private TestDictionaryEntry As xlsDictionaryEntry
-
-  Private iTestCurrentWord As Integer = -1
-
-  Private bUseCards As Boolean = True         ' soll das Karteikarten-System benutzt werden?
+  ' Abfrageeinstellungen
+  Private m_testStyle As xlsTestStyle = xlsTestStyle.RandomTestAgain
+  Private m_useCards As Boolean = True          ' soll das Karteikarten-System benutzt werden?
+  Private m_testSetPhrases As Boolean = True
+  Private m_testFormerLanguage As Boolean = True
 
   Public Sub New()
-
+    MyBase.New()
   End Sub
 
   ' Suche _alle_ Wörter
   Overridable Sub Start()
     If IsConnected() = False Then Throw New Exception("Database not connected.")
     Dim words As Collection(Of Integer) = New Collection(Of Integer)
-    Dim command As String = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index;"
+    Dim command As String
+    If TestSetPhrases Then
+      command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index;"
+    Else
+      command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index AND (NOT W.WordType=5);"
+    End If
     DBConnection.ExecuteReader(command)
     Do While DBConnection.DBCursor.Read
       words.Add(DBConnection.SecureGetInt32(0))
@@ -62,7 +69,12 @@ Public Class xlsTestBase
   Overridable Sub Start(ByVal Language As String)
     If IsConnected() = False Then Throw New Exception("Database not connected.")
     Dim words As Collection(Of Integer) = New Collection(Of Integer)
-    Dim command As String = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index AND M.LanguageName='" & AddHighColons(Language) & "';"
+    Dim command As String
+    If TestSetPhrases Then
+      command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index AND M.LanguageName=" & GetDBEntry(Language) & ";"
+    Else
+      command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.Index AND M.LanguageName=" & GetDBEntry(Language) & " AND (NOT W.WordType=5);"
+    End If
     DBConnection.ExecuteReader(command)
     Do While DBConnection.DBCursor.Read()
       words.Add(DBConnection.SecureGetInt32(0))
@@ -76,9 +88,6 @@ Public Class xlsTestBase
     Reset()
     Me.testWords = TestWords
     nextWords = New Collection(Of Integer)
-
-    ' Standard-Abfragerichtung aus der Datei laden
-    m_bWordToMeaning = True
   End Sub
 
   Private Sub Reset()
@@ -102,20 +111,19 @@ Public Class xlsTestBase
     deleted = False
 
     ' übernehmen, falls cards aus sind, ansonsten testen, ob es überhaupt abgefragt werden soll
-    If Me.bUseCards = False Then
+    If UseCards = False Then
       ' Ein Wort aus der liste zufällig aussuchen und auf jeden fall übernehmen
       iTestCurrentWord = CInt(Int((testWords.Count * Rnd()))) ' zufälliges wort bestimmen
       iTestIndex = testWords.Item(iTestCurrentWord)
       TestDictionaryEntry = New xlsDictionaryEntry(DBConnection, iTestIndex)
     Else
       ' das Kartensystem wird genutzt
-      Dim cards As New xlsCards
-      cards.DBConnection = DBConnection
+      Dim cards As New xlsCards(TestFormerLanguage, DBConnection)
 
       Do ' solange suchen, bis ein Wort gefunden worden ist, das genommen werden kann
         ' Index berechnen und beenden falls keine Wörter mehr da sind
         If testWords.Count = 0 Then
-          If testStyle = xlsTestStyle.RandomTestAgain Then
+          If TestStyle = xlsTestStyle.RandomTestAgain Or TestStyle = xlsTestStyle.TestAgain Then
             testWords = nextWords
             nextWords = New Collection(Of Integer)
             firstRun = False
@@ -126,10 +134,14 @@ Public Class xlsTestBase
         End If
 
         ' Wort rausfinden
-        iTestCurrentWord = CInt(Int((testWords.Count * Rnd()))) ' zufälliges wort bestimmen, von 0 bis count-1
+        If TestStyle = xlsTestStyle.RandomTestAgain Or TestStyle = xlsTestStyle.RandomTestOnce Then
+          iTestCurrentWord = CInt(Int((testWords.Count * Rnd()))) ' zufälliges Wort bestimmen, von 0 bis testWords.Count - 1
+        Else
+          iTestCurrentWord = 0
+        End If
         iTestIndex = testWords.Item(iTestCurrentWord)
 
-        ' Wenn firstRun nicht true ist, das Wort direkt übernehmen, cards ist hier an
+        ' Wenn firstRun nicht true ist, das Wort direkt übernehmen, Cards ist hier an
         If Not firstRun Then
           TestDictionaryEntry = New xlsDictionaryEntry(DBConnection, iTestIndex)
           Exit Do
@@ -151,7 +163,7 @@ Public Class xlsTestBase
           End If
         Catch ex As Exception
           ' anderer fehler
-          MsgBox("Dürfte eigentlich nicht vorkommen! Evtl. ein Fehler mit der Count-Tabelle?" & vbCrLf & "Nachricht: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
+          MsgBox("Unknon Error! Maybe an error in the Cards-Table?" & vbCrLf & "Error-Message: " & ex.Message, MsgBoxStyle.Critical, "Error")
           Throw ex
         End Try
       Loop
@@ -160,23 +172,23 @@ Public Class xlsTestBase
 
   Overridable Function TestControl(ByVal input As String) As TestResult
     ' Im einen Fall müssen pre, word und post eingegeben werden.
-    ' im anderen fall wird geprüft, ob die bedeutung die richtige ist. wenn nicht, wird getestet, ob es
+    ' eigentlich. Noch nicht implementiert...
+    ' im anderen Fall wird geprüft, ob die Bedeutung die richtige ist. wenn nicht, wird getestet, ob es
     ' diese Bedeutung auch gibt.
 
     Dim right As TestResult = TestResult.NoError
-
-    ' Test, ob richtig oder falsch
-    If m_bWordToMeaning Then
+    If TestFormerLanguage Then
       ' testen, ob die bedeutung übereinstimmt
-      If TestDictionaryEntry.Meaning <> input Then  ' wenn gleich ist, ist nichts zu tun
+      If TestDictionaryEntry.Meaning <> input Then  ' Eine Ungleichheit wurde erkannt. Spezifizieren, welche.
         ' prüfen, ob es die eingegebene bedeutung auch gibt
-        ' zunächst die sprache herausfinden
-        Dim command As String = "SELECT LanguageName FROM DictionaryMain WHERE Index=" & TestDictionaryEntry.MainIndex & ";"
+        ' zunächst die Sprache herausfinden
+        Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE Index=" & TestDictionaryEntry.MainIndex & ";"
         DBConnection.ExecuteReader(command)
         DBConnection.DBCursor.Read()
         Dim language As String = DBConnection.SecureGetString(0)
+        Dim mainLanguage As String = DBConnection.SecureGetString(1)
         DBConnection.DBCursor.Close()
-        command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.Word='" & AddHighColons(TestDictionaryEntry.Word) & "' AND W.Meaning='" & AddHighColons(input) & "' AND M.LanguageName='" & AddHighColons(language) & "' AND W.MainIndex=M.Index"
+        command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.Word=" & GetDBEntry(TestDictionaryEntry.Word) & " AND W.Meaning=" & GetDBEntry(input) & " AND M.LanguageName=" & GetDBEntry(language) & " AND M.MainLanguage=" & GetDBEntry(mainLanguage) & " AND W.MainIndex=M.Index"
         DBConnection.ExecuteReader(command)
         If DBConnection.DBCursor.HasRows = False Then
           right = TestResult.Wrong
@@ -186,14 +198,30 @@ Public Class xlsTestBase
         DBConnection.DBCursor.Close()
       End If
     Else
-      ' das Wort muß erkannt werden.
-      If input <> TestDictionaryEntry.Word Then right = TestResult.Wrong
+      ' Testen ob das italienische Wort korrekt eingegeben worden ist.
+      If input <> TestDictionaryEntry.Word Then ' Eine Ungleichheit wurde erkannt. Spezifizieren, welche.
+        ' prüfen, ob es das eingegebene Wort auch gibt
+        ' zunächst die Sprache herausfinden
+        Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE Index=" & TestDictionaryEntry.MainIndex & ";"
+        DBConnection.ExecuteReader(command)
+        DBConnection.DBCursor.Read()
+        Dim language As String = DBConnection.SecureGetString(0)
+        Dim mainLanguage As String = DBConnection.SecureGetString(1)
+        DBConnection.DBCursor.Close()
+        command = "SELECT W.Index FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.Word=" & GetDBEntry(input) & " AND W.Meaning=" & GetDBEntry(TestDictionaryEntry.Meaning) & " AND M.LanguageName=" & GetDBEntry(language) & " AND M.MainLanguage=" & GetDBEntry(mainLanguage) & " AND W.MainIndex=M.Index"
+        DBConnection.ExecuteReader(command)
+        If DBConnection.DBCursor.HasRows = False Then
+          right = TestResult.Wrong
+        Else
+          If TestDictionaryEntry.Word.ToUpper = input.ToUpper Then right = TestResult.Misspelled Else right = TestResult.OtherMeaning
+        End If
+        'right = TestResult.Wrong
+      End If
     End If
 
     ' Update des cards-systems, falls nötig
-    If bUseCards And firstTest Then
-      Dim cards As New xlsCards
-      cards.DBConnection = DBConnection
+    If UseCards And firstTest Then
+      Dim cards As New xlsCards(TestFormerLanguage, DBConnection)
       If right = TestResult.NoError Then
         cards.Update(TestDictionaryEntry.WordIndex, True)
         firstTest = False
@@ -231,6 +259,35 @@ Public Class xlsTestBase
     End If
   End Sub
 
+  ' Einstellungen
+  Public Property TestSetPhrases() As Boolean
+    Get
+      Return m_testSetPhrases
+    End Get
+    Set(ByVal value As Boolean)
+      m_testSetPhrases = value
+    End Set
+  End Property
+
+  Public Property TestFormerLanguage() As Boolean
+    Get
+      Return m_testFormerLanguage
+    End Get
+    Set(ByVal value As Boolean)
+      m_testFormerLanguage = value
+    End Set
+  End Property
+
+  Public Property TestStyle() As xlsTestStyle
+    Get
+      Return m_testStyle
+    End Get
+    Set(ByVal testStyle As xlsTestStyle)
+      m_testStyle = testStyle
+    End Set
+  End Property
+
+  ' Ausgaben für das Wort
   ReadOnly Property AdditionalInfo() As String
     Get
       Return TestDictionaryEntry.AdditionalTargetLangInfo
@@ -240,7 +297,7 @@ Public Class xlsTestBase
   ReadOnly Property TestWord() As String
     Get
       If TestDictionaryEntry Is Nothing Then Return ""
-      If m_bWordToMeaning Then
+      If TestFormerLanguage Then
         Return TestDictionaryEntry.Pre & " " & TestDictionaryEntry.Word & " " & TestDictionaryEntry.Post
       Else
         ' Ausgabe ist eine Bedeutung, es wird das dazu passende Wort gesucht
@@ -252,7 +309,7 @@ Public Class xlsTestBase
   ReadOnly Property Answer() As String
     Get
       If TestDictionaryEntry Is Nothing Then Return ""
-      If m_bWordToMeaning Then
+      If TestFormerLanguage Then
         Return TestDictionaryEntry.Meaning
       Else
         Return TestDictionaryEntry.Word
@@ -260,6 +317,7 @@ Public Class xlsTestBase
     End Get
   End Property
 
+  ' Ausgaben für die Zähler
   ReadOnly Property WordCountAllTests() As Integer
     Get
       Return WordCountDone + WordCountDoneFalseAllTrys
@@ -296,5 +354,14 @@ Public Class xlsTestBase
     Get
       If testWords.Count <> 0 Then Return testWords.Count Else Return nextWords.Count
     End Get
+  End Property
+
+  Public Property UseCards() As Boolean
+    Get
+      Return m_useCards
+    End Get
+    Set(ByVal value As Boolean)
+      m_useCards = value
+    End Set
   End Property
 End Class

@@ -20,6 +20,8 @@ Public Class xlsExceptionCards
     Select Case code
       Case 1
         Return "Counter ist 1."
+      Case 2
+        Return "Not ready. Load first."
       Case Else
         Return "Unbekannter Fehler"
     End Select
