@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k7.localization
+Imports Gravo2k8.localization
 
 Public Class TestSelect
   Dim db As New AccessDatabaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken

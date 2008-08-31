@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k7.AccessDatabaseOperation
+Imports Gravo2k8.AccessDatabaseOperation
 
 Public Class xlsGroups
   Inherits xlsBase
@@ -97,12 +97,10 @@ Public Class xlsGroups
       tableName = "Group" & StripSpecialCharacters(groupName) & groupCount
     End If
 
-    ' erstelle Tabelle, DB-Version 1.05: mit marked
-    command = "CREATE TABLE " & tableName & " ([Index] AUTOINCREMENT, [WordIndex] LONG NOT NULL, [Marked] BIT, [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL, CONSTRAINT prkey PRIMARY KEY ([Index]) );"
+        command = "CREATE TABLE [" & tableName & "] ([Index] AUTOINCREMENT, [WordIndex] LONG NOT NULL, [Marked] BIT, [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL, CONSTRAINT prkey PRIMARY KEY ([Index]) );"
     DBConnection.ExecuteNonQuery(command)
 
-    ' füge in die Gruppenliste ein
-    command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES (" & GetDBEntry(groupName) & ", " & GetDBEntry(subGroupName) & ", " & GetDBEntry(tableName) & ");"
+		command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES (" & GetDBEntry(groupName) & ", " & GetDBEntry(subGroupName) & ", " & GetDBEntry(tableName) & ");"
     DBConnection.ExecuteNonQuery(command)
   End Sub
 
@@ -203,5 +201,30 @@ Public Class xlsGroups
     Dim count As Integer = DBConnection.SecureGetInt32(0)
     DBConnection.DBCursor.Close()
     Return count
-  End Function
+	End Function
+
+	Public Function UsedLanguagesCount(ByVal groupName As String) As Integer
+		Return GetUsedLanguages(groupName).Count
+	End Function
+
+	Public Function GetUsedLanguages(ByVal groupname As String) As SortedList(Of String, String)
+		Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupname) & ";"
+		Dim tables As New Collection(Of String)
+		DBConnection.ExecuteReader(command)
+		While DBConnection.DBCursor.Read()
+			tables.Add(DBConnection.SecureGetString(0))
+		End While
+		DBConnection.DBCursor.Close()
+
+		Dim usedLanguages As SortedList(Of String, String) = New SortedList(Of String, String)
+		For Each table As String In tables
+			Dim group As New xlsGroup(table)
+			group.DBConnection = DBConnection
+			Dim groupLanguages As Collection(Of String) = group.GetLanguages
+			For Each language As String In groupLanguages
+				If Not usedLanguages.ContainsKey(language) Then usedLanguages.Add(language, language)
+			Next language
+		Next table
+		Return usedLanguages
+	End Function
 End Class

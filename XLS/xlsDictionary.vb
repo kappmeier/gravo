@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k7.AccessDatabaseOperation
+Imports Gravo2k8.AccessDatabaseOperation
 
 Public Structure xlsWordAndMainIndex
   Dim Word As String
@@ -94,14 +94,8 @@ Public Class xlsDictionary
 
   Public Function DictionarySubEntrys(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As Collection(Of String)
     Dim subWords As New Collection(Of String)
-    Dim command As String = "SELECT Index FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(Word) & " AND LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & ";"
-    DBConnection.ExecuteReader(command)
-    Dim e As New Exception("Eintrag " & Word & " nicht in DictionaryMain.")
-    If DBConnection.DBCursor.HasRows = False Then Throw e
-    DBConnection.DBCursor.Read()
-    Dim i As Integer = DBConnection.SecureGetInt32(0)
-    DBConnection.DBCursor.Close()
-    command = "SELECT DISTINCT Word FROM DictionaryWords WHERE MainIndex = " & i & " AND NOT Word=" & GetDBEntry(Word) & ";"
+		Dim i As Integer = getMainIndex(Word, Language, MainLanguage)
+		Dim command = "SELECT DISTINCT Word FROM DictionaryWords WHERE MainIndex = " & i & " AND NOT Word=" & GetDBEntry(Word) & ";"
     DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows = False Then Return subWords ' Keine Einträge unter diesem Namen!
     Do While DBConnection.DBCursor.Read
@@ -109,7 +103,40 @@ Public Class xlsDictionary
     Loop
     DBConnection.DBCursor.Close()
     Return subWords
-  End Function
+	End Function
+
+	Public Function GetMainIndex(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As Integer
+		Dim command As String = "SELECT Index FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(Word) & " AND LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & ";"
+		DBConnection.ExecuteReader(command)
+		Dim e As New Exception("Eintrag " & Word & " nicht in DictionaryMain.")
+		If DBConnection.DBCursor.HasRows = False Then Throw e
+		DBConnection.DBCursor.Read()
+		Dim i As Integer = DBConnection.SecureGetInt32(0)
+		DBConnection.DBCursor.Close()
+		Return i
+	End Function
+
+	Public Function DictionarySubEntrysExt(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As Collection(Of xlsDictionaryEntry)
+		Dim i As Integer = getMainIndex(Word, Language, MainLanguage)
+		Dim words As New Collection(Of xlsDictionaryEntry)
+		Dim command As String = "SELECT Index, MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular FROM DictionaryWords WHERE MainIndex = " & i & " ORDER BY Word;"
+		DBConnection.ExecuteReader(command)
+		If DBConnection.DBCursor.HasRows = False Then Return words ' Nichts zurückgeben, wenn kein Wort mit der angegebenen Beschreibung existiert
+		Dim currentEntry As xlsDictionaryEntry
+		Do While DBConnection.DBCursor.Read()
+			currentEntry = New xlsDictionaryEntry(DBConnection)
+			currentEntry.MainIndex = DBConnection.SecureGetInt32(1)
+			currentEntry.Word = DBConnection.SecureGetString(2)
+			currentEntry.Pre = DBConnection.SecureGetString(3)
+			currentEntry.Post = DBConnection.SecureGetString(4)
+			currentEntry.WordType = DBConnection.SecureGetInt32(5)
+			currentEntry.Meaning = DBConnection.SecureGetString(6)
+			currentEntry.AdditionalTargetLangInfo = DBConnection.SecureGetString(7)
+			currentEntry.Irregular = DBConnection.SecureGetBool(8)
+			words.Add(currentEntry)
+		Loop
+		Return words
+	End Function
 
   Function GetWordsAndSubWords(ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) As Collection(Of xlsDictionaryEntry)
     Dim words As Collection(Of xlsDictionaryEntry)
@@ -408,7 +435,7 @@ Public Class xlsDictionary
     DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows = False Then Return ""
     DBConnection.DBCursor.Read()
-    Dim word As String = DBConnection.SecureGetString(0)
+		Dim word As String = DBConnection.SecureGetString(0)
     DBConnection.DBCursor.Close()
     Return word
   End Function

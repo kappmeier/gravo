@@ -23,6 +23,7 @@ Partial Class Info
         Me.lblCopyright = New System.Windows.Forms.Label
         Me.chkGermanText = New System.Windows.Forms.CheckBox
         Me.lblDisclaimer = New System.Windows.Forms.Label
+        Me.lblCompany = New System.Windows.Forms.Label
         Me.lblProductName = New System.Windows.Forms.Label
         Me.lblCopyrightOld = New System.Windows.Forms.Label
         Me.LinkLabel2 = New System.Windows.Forms.LinkLabel
@@ -67,11 +68,21 @@ Partial Class Info
         Me.lblDisclaimer.TabIndex = 17
         Me.lblDisclaimer.Text = "#"
         '
+        'lblCompany
+        '
+        Me.lblCompany.AutoSize = True
+        Me.lblCompany.Font = New System.Drawing.Font("Microsoft Sans Serif", 17.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCompany.Location = New System.Drawing.Point(4, 6)
+        Me.lblCompany.Name = "lblCompany"
+        Me.lblCompany.Size = New System.Drawing.Size(26, 29)
+        Me.lblCompany.TabIndex = 15
+        Me.lblCompany.Text = "#"
+        '
         'lblProductName
         '
         Me.lblProductName.AutoSize = True
         Me.lblProductName.Font = New System.Drawing.Font("Microsoft Sans Serif", 17.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblProductName.Location = New System.Drawing.Point(4, 23)
+        Me.lblProductName.Location = New System.Drawing.Point(4, 38)
         Me.lblProductName.Name = "lblProductName"
         Me.lblProductName.Size = New System.Drawing.Size(26, 29)
         Me.lblProductName.TabIndex = 14
@@ -147,6 +158,7 @@ Partial Class Info
         Me.Controls.Add(Me.lblCopyright)
         Me.Controls.Add(Me.chkGermanText)
         Me.Controls.Add(Me.lblDisclaimer)
+        Me.Controls.Add(Me.lblCompany)
         Me.Controls.Add(Me.lblProductName)
         Me.Controls.Add(Me.lblCopyrightOld)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
@@ -162,6 +174,7 @@ Partial Class Info
     Friend WithEvents lblCopyright As System.Windows.Forms.Label
     Friend WithEvents chkGermanText As System.Windows.Forms.CheckBox
     Friend WithEvents lblDisclaimer As System.Windows.Forms.Label
+    Friend WithEvents lblCompany As System.Windows.Forms.Label
     Friend WithEvents lblProductName As System.Windows.Forms.Label
     Friend WithEvents lblCopyrightOld As System.Windows.Forms.Label
     Friend WithEvents LinkLabel2 As System.Windows.Forms.LinkLabel

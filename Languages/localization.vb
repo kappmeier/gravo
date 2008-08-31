@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k7.AccessDatabaseOperation
+Imports Gravo2k8.AccessDatabaseOperation
 
 Public Class localization
   Inherits localizationBase
@@ -131,6 +131,7 @@ Public Class localization
   Public Const TEST_SELECT_TEST_DIRECTION = 112
   Public Const TEST_SELECT_PHRASES = 113
   Public Const TEST_SELECT_RANDOM_ORDER = 114
+	Public Const EXPLORER_HEADLINE_GROUP_LANGUAGE_COUNT = 115
 
   Dim m_language As String = "german"
 

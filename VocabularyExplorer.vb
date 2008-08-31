@@ -1,4 +1,4 @@
-Imports Gravo2k7.localization
+Imports Gravo2k8.localization
 Imports System.Collections.ObjectModel  ' Für Collection(Of T)
 
 Public Class VocabularyExplorer
@@ -14,6 +14,7 @@ Public Class VocabularyExplorer
   End Enum
 
   Dim m_listviewstyle As ListViewStyleEnum
+	Dim ListView1Initialized As Boolean = False
 
   Enum ColumnName
     GroupsName
@@ -31,7 +32,8 @@ Public Class VocabularyExplorer
     DictMainLanguage
     DictLanguage
     DictCountMainEntry
-    DictCountEntrys
+		DictCountEntrys
+		GroupCountLanguages
   End Enum
 
   Dim range() As String
@@ -97,8 +99,7 @@ Public Class VocabularyExplorer
 
   Private Sub VocabularyExplorer_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
     'Benutzeroberfläche einrichten
-    'SetUpListViewColumns(ListViewStyleEnum.WordEntry)
-    LoadTree()
+		LoadTree()
 
     txtMainEntry.BackColor = cmdChangeWord.BackColor
 
@@ -148,7 +149,7 @@ Public Class VocabularyExplorer
     cmdChangeWord.Text = GetLoc.GetText(BUTTON_CHANGE)
     cmdMultiChange.Text = GetLoc.GetText(BUTTON_CHANGE)
 
-    PanelsMenu.Text = GetLoc.GetText(EXPLORER_MENU_PANELS)
+		PanelsMenu.Text = GetLoc.GetText(EXPLORER_MENU_PANELS)
     PanelViewDefaultMenuItem.Text = GetLoc.GetText(EXPLORER_MENU_PANELS_DEFAULT)
     PanelViewInputMenuItem.Text = GetLoc.GetText(EXPLORER_MENU_PANELS_WORD_INPUT)
     PanelViewSearchMenuItem.Text = GetLoc.GetText(EXPLORER_MENU_PANELS_SEARCH)
@@ -265,7 +266,7 @@ Public Class VocabularyExplorer
   End Sub
 
   Private Sub TreeView_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView.AfterSelect
-    ' Listview aktualisieren
+		'Listview aktualisieren
     'LoadListView()
     listUpdate = True
     SetView()
@@ -369,31 +370,37 @@ Public Class VocabularyExplorer
     ' Lade die Daten in die Textfelder
     Dim selectedNode As TreeNode = TreeView.SelectedNode
     Dim item As ListViewItem = ListView.Items.Item(ListView.SelectedIndices.Item(0))
-    If IsWordEntryNode() Then
-      ' Es handelt sich um einen Knoten, zu dem Vokabel-Informationen angezeigt werden sollen.
-      ' Der zugehörige Index des Haupteintrages kann aus der item.Tag Eigenschaft geholt werden
-      Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-      Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
-      txtMainEntry.Text = voc.GetEntryName(dicEntry.MainIndex)
-      txtPre.Text = dicEntry.Pre
-      txtWord.Text = dicEntry.Word
-      txtPost.Text = dicEntry.Post
-      txtAdditionalTargetLangInfo.Text = dicEntry.AdditionalTargetLangInfo
-      txtMeaning.Text = dicEntry.Meaning
-      chkIrregular.Checked = dicEntry.Irregular
-      lstWordType.SelectedIndex = dicEntry.WordType
-      ' Falls Group-Entry ist, muß "markiert" gesetzt werden
-      If IsSubGroupNode() Then
-        Dim groups As New xlsGroups(voc.DBConnection)
-        Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-        chkMarked.Checked = group.GetMarked(index)
-      End If
-      txtLanguage.Text = voc.GetEntryLanguage(dicEntry.MainIndex)
-      txtMainLanguage.Text = voc.GetEntryMainLanguage(dicEntry.MainIndex)
-    Else
-      Exit Sub
-    End If
-  End Sub
+		If IsWordEntryNode() Then
+			If ListView1.Visible Then
+				Me.ListView1.Visible = False
+				PanelWordInfoInner.Top = 0
+			End If
+			' Es handelt sich um einen Knoten, zu dem Vokabel-Informationen angezeigt werden sollen.
+			' Der zugehörige Index des Haupteintrages kann aus der item.Tag Eigenschaft geholt werden
+			Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
+			ShowWordInfo(index)
+		ElseIf IsLanguageNode() Then	' LanguageNode ist kein WordEntry Node!
+			If ListView1.Visible = False Then
+				Me.ListView1.Visible = True
+				PanelWordInfoInner.Top = ListView1.Height
+			End If
+			Dim words As Collection(Of xlsDictionaryEntry) = voc.DictionarySubEntrysExt(item.SubItems(0).Text, Me.GetLanguageFromNode(), Me.GetMainLanguageFromNode())
+			ListView1.Items.Clear()
+			Me.SetUpListViewColumns2(ListViewStyleEnum.WordEntry)
+			For Each word As xlsDictionaryEntry In words
+				AddDictionaryEntryToList2(word)
+			Next word
+			If ListView1.Items.Count > 0 Then
+				ListView1.SelectedIndices.Add(0)
+			End If
+		Else
+			If ListView1.Visible Then
+				Me.ListView1.Visible = False
+				PanelWordInfoInner.Top = 0
+			End If
+			Exit Sub
+		End If
+	End Sub
 
   ' Ansicht anpassen
   Private Sub SetView()
@@ -401,7 +408,7 @@ Public Class VocabularyExplorer
     LoadListView()
   End Sub
 
-  ' Liste anpassen
+	' Liste anpassen
   Private Sub LoadListView()
     ListView.Items.Clear()
 
@@ -447,12 +454,13 @@ Public Class VocabularyExplorer
         Next tvNode
         ListView.EndUpdate()
       Case NODE_LEVEL_LANGUAGE
-        ' Zeige für alle Sprachen die Anzahl der Einträge an
+				' 
         SetUpListViewColumns(ListViewStyleEnum.Language)
-        ListView.BeginUpdate()
-        For Each entry As xlsDictionaryEntry In voc.DictionaryEntrysExt(GetLanguageFromNode(), GetMainLanguageFromNode())
-          AddDictionaryEntryToList(entry)
-        Next entry
+				ListView.BeginUpdate()
+				Dim wordsa As Collection(Of String) = voc.DictionaryEntrys(GetLanguageFromNode(), GetMainLanguageFromNode()) 'voc.DictionaryEntrys(GetLanguageFromNode(tvNode), GetMainLanguageFromNode(tvNode), tvNode.Text)
+				For Each entry As String In wordsa
+					AddMainEntryToList(entry)
+				Next entry
         ListView.EndUpdate()
       Case NODE_LEVEL_LANGUAGE + 1
         ' Zeige alle Buchstaben mit dem anfangsbuchstaben an
@@ -493,7 +501,8 @@ Public Class VocabularyExplorer
         For Each groupName As String In groups.GetGroups
           SetRangeEntry(GetColumnIndex(ColumnName.GroupsName), groupName)
           SetRangeEntry(GetColumnIndex(ColumnName.GroupsSubGroup), groups.SubGroupCount(groupName))
-          SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), groups.WordCount(groupName))
+					SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), groups.WordCount(groupName))
+					SetRangeEntry(GetColumnIndex(ColumnName.GroupCountLanguages), groups.UsedLanguagesCount(groupName))
           AddRange()
         Next groupName
         ListView.EndUpdate()
@@ -521,17 +530,34 @@ Public Class VocabularyExplorer
     End Select
   End Sub
 
-  Private Sub SetUpListViewColumns(ByVal Type As ListViewStyleEnum)
-    If ListViewStyle = Type Then Exit Sub Else ListViewStyle = Type
-    ListView.Columns.Clear()
-    Dim i As Integer
-    For i = 0 To GetColumnCount(Type) - 1
-      Dim newColumn As ColumnName = GetColumn(i, Type)
-      ListView.Columns.Add(GetColumnText(newColumn))
-      ListView.Columns.Item(i).Width = GetColumnSize(newColumn)
-    Next i
-    SetRange()
-  End Sub
+	Private Sub SetUpListViewColumns2(ByVal Type As ListViewStyleEnum)
+		'If ListViewStyle = Type Then Exit Sub Else ListViewStyle = Type
+		If Not ListView1Initialized Then
+			ListView1.Columns.Clear()
+			For i As Integer = 0 To GetColumnCount(Type) - 1
+				Dim newColumn As ColumnName = GetColumn(i, Type)
+				ListView1.Columns.Add(GetColumnText(newColumn))
+				ListView1.Columns.Item(i).Width = GetColumnSize(newColumn)
+			Next i
+			ListView1Initialized = True
+		End If
+		System.Array.Resize(range, GetColumnCount(Type) - 1)
+		For i As Integer = 0 To range.Length - 1
+			range(i) = ""
+		Next
+	End Sub
+
+	Private Sub SetUpListViewColumns(ByVal Type As ListViewStyleEnum)
+		If ListViewStyle = Type Then Exit Sub Else ListViewStyle = Type
+		ListView.Columns.Clear()
+		Dim i As Integer
+		For i = 0 To GetColumnCount(Type) - 1
+			Dim newColumn As ColumnName = GetColumn(i, Type)
+			ListView.Columns.Add(GetColumnText(newColumn))
+			ListView.Columns.Item(i).Width = GetColumnSize(newColumn)
+		Next i
+		SetRange()
+	End Sub
 
   Private Sub AddEntryToList(ByVal word As xlsDictionaryEntry)
     ' fügt einen eintrag in die liste hinzu, abhängig davon, ob er gerade angezeigt werden soll
@@ -594,143 +620,148 @@ Public Class VocabularyExplorer
     SetPanelViewItemsCheck(PanelViewMultiMenuItem)
   End Sub
 
-  Private Sub LoadPanel()
-    ' Verstecken
-    PanelWordInfo.Hide()
-    PanelMultiEdit.Hide()
-
-    Select Case Me.currentPanel
-      Case PanelViews.DefaultView
-        LoadPanelDefault()
-      Case PanelViews.Input
-        LoadPanelInput()
-      Case PanelViews.Search
-        LoadPanelSearch()
-      Case PanelViews.Multi
-        LoadPanelMulti()
-      Case Else
-        Exit Sub
-    End Select
-  End Sub
+	Private Sub LoadPanel()
+		Select Case Me.currentPanel
+			Case PanelViews.DefaultView
+				LoadPanelDefault()
+			Case PanelViews.Input
+				LoadPanelInput()
+			Case PanelViews.Search
+				LoadPanelSearch()
+			Case PanelViews.Multi
+				LoadPanelMulti()
+			Case Else
+				Exit Sub
+		End Select
+	End Sub
 
   Private Sub LoadPanelDefault()
     If ListView.SelectedIndices.Count > 1 Then LoadPanelMulti() Else LoadPanelInput()
   End Sub
 
-  Private Sub LoadPanelInput()
-    If GetBaseFromNode() = GetLoc.GetText(TREE_DICTIONARY) Then
-      chkAddToGroup.Hide()
-      chkMarked.Hide()
-      Select Case TreeView.SelectedNode.Level
-        Case NODE_LEVEL_LANGUAGE
-          PanelWordInfo.Show()
-        Case NODE_LEVEL_LANGUAGE + 1
-          PanelWordInfo.Show()
-        Case NODE_LEVEL_ENTRY
-          PanelWordInfo.Show()
-        Case Else
-          PanelWordInfo.Hide()
-      End Select
-    ElseIf GetBaseFromNode() = GetLoc.GetText(TREE_GROUPS) Then
-      chkAddToGroup.Hide()
-      chkMarked.Hide()
-      Select Case TreeView.SelectedNode.Level
-        Case NODE_LEVEL_GROUP
-          PanelWordInfo.Show()
-        Case NODE_LEVEL_SUBGROUP
-          PanelWordInfo.Show()
-          chkAddToGroup.Show()
-          chkMarked.Show()
-        Case NODE_LEVEL_GROUP_ENTRY
-          PanelWordInfo.Show()
-          chkAddToGroup.Show()
-          chkMarked.Show()
-        Case Else
-          PanelWordInfo.Hide()
-      End Select
-    Else
-      PanelWordInfo.Hide()
-    End If
-  End Sub
+	Private Sub LoadPanelInput()
+		PanelMultiEdit.Hide()
+		If GetBaseFromNode() = GetLoc.GetText(TREE_DICTIONARY) Then
+			chkAddToGroup.Hide()
+			chkMarked.Hide()
+			Select Case TreeView.SelectedNode.Level
+				Case NODE_LEVEL_LANGUAGE
+					PanelWordInfo.Show()
+				Case NODE_LEVEL_LANGUAGE + 1
+					PanelWordInfo.Show()
+				Case NODE_LEVEL_ENTRY
+					PanelWordInfo.Show()
+				Case Else
+					PanelWordInfo.Hide()
+			End Select
+		ElseIf GetBaseFromNode() = GetLoc.GetText(TREE_GROUPS) Then
+			chkAddToGroup.Hide()
+			chkMarked.Hide()
+			Select Case TreeView.SelectedNode.Level
+				Case NODE_LEVEL_GROUP
+					PanelWordInfo.Show()
+				Case NODE_LEVEL_SUBGROUP
+					PanelWordInfo.Show()
+					chkAddToGroup.Show()
+					chkMarked.Show()
+				Case NODE_LEVEL_GROUP_ENTRY
+					PanelWordInfo.Show()
+					chkAddToGroup.Show()
+					chkMarked.Show()
+				Case Else
+					PanelWordInfo.Hide()
+			End Select
+		Else
+			PanelWordInfo.Hide()
+		End If
+	End Sub
 
-  Private Sub LoadPanelSearch()
-  End Sub
+	Private Sub LoadPanelSearch()
+		PanelMultiEdit.Hide()
+		PanelWordInfo.Hide()
+	End Sub
 
   Private Sub LoadPanelMulti()
-    Me.PanelMultiEdit.Show()
+		Me.PanelMultiEdit.Show()
+		PanelWordInfo.Hide()
   End Sub
 
   ' Sonstige Funktionen
-  Private Sub cmdChangeWord_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdChangeWord.Click
-    If ListView.SelectedIndices.Count > 1 Then MsgBox("Bitte nur einen Eintrag markieren!") : Exit Sub
-    If ListView.SelectedIndices.Count = 0 Then MsgBox("Sie müssen einen Eintrag markieren") : Exit Sub
-    listUpdate = True
-    ChangeWord(ListView.SelectedIndices.Item(0))
-  End Sub
+	Private Sub cmdChangeWord_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
+	End Sub
 
-  Private Sub ChangeWord(ByVal selectedIndex As Integer)
-    Dim item As ListViewItem = ListView.Items.Item(selectedIndex)
-    Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-    Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
-    Dim selectedWordIndex As Integer = dicEntry.WordIndex
+	Private Sub ChangeWord(ByVal selectedIndex As Integer)
+		Dim item As ListViewItem
+		If ListView1.Visible Then
+			item = ListView1.Items.Item(selectedIndex)
+		Else
+			item = ListView.Items.Item(selectedIndex)
+		End If
 
-    Dim t As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, selectedWordIndex)
-    ' Main-Index kann nicht geändert werden
-    ' finde den main-index heraus, das dazugehörige wort und teste, ob sie übereinstimmen
-    Dim newIndex As Integer
-    Dim mainIndexChanged As Boolean = False
-    If Trim(voc.GetEntryName(t.MainIndex)) <> Trim(txtMainEntry.Text) Then
-      mainIndexChanged = True
-      ' Erzeuge neuen MainIndex oder hole den Index eines alten
-      Try
-        newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-      Catch ex As xlsExceptionEntryNotFound
-        ' Haupteintrag erstellen und anschließend laden
-        Try
-          MsgBox("Neuer Eintrag wird erstellt")
-          voc.AddEntry(Trim(txtMainEntry.Text), voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-          newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-        Catch sex As xlsExceptionInput
-          MsgBox(sex.Message, MsgBoxStyle.Information, "Unerwarteter Fehler")
-          Exit Sub
-        End Try
-      End Try
-      t.MainIndex = newIndex
-    End If
-    t.Pre = txtPre.Text
-    t.Word = txtWord.Text
-    t.Post = txtPost.Text
-    t.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
-    t.Meaning = txtMeaning.Text
-    t.WordType = lstWordType.SelectedIndex
-    t.Irregular = chkIrregular.Checked
-    Try
-      t.SaveWord()
 
-      ' Falls ein Gruppeneintrag ist, marked setzen
-      If (IsSubGroupNode()) Then
-        Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
-        Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-        group.SetMarked(t.WordIndex, chkMarked.Checked)
-        ' Markiert dann auch updaten
-      End If
-      ' Laden in die Auswahlliste, falls der MainIndex geändert wurde, aktualisieren
-      If mainIndexChanged Then
-        item.Tag = t.MainIndex
-      End If
-      item.SubItems(GetColumnIndex(ColumnName.EntryPre)).Text = t.Pre
-      item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = t.Word
-      item.SubItems(GetColumnIndex(ColumnName.EntryPost)).Text = t.Post
-      item.SubItems(GetColumnIndex(ColumnName.EntryMeaning)).Text = t.Meaning
-      item.SubItems(GetColumnIndex(ColumnName.EntryType)).Text = TextTypeName(t.WordType)
-      item.SubItems(GetColumnIndex(ColumnName.EntryExtendedInfo)).Text = t.AdditionalTargetLangInfo
-      item.SubItems(GetColumnIndex(ColumnName.EntryIrregular)).Text = TextYesNo(t.Irregular)
-      item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked)).Text = TextYesNo(chkMarked.Checked) 'IIf(chkMarked.Checked, "Ja", "Nein")
-      'End If
-    Catch ex As xlsExceptionEntryExists
-      MsgBox("Eintrag existiert bereits.")
-    End Try
-  End Sub
+		Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
+		Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
+		Dim selectedWordIndex As Integer = dicEntry.WordIndex
+
+		Dim t As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, selectedWordIndex)
+		' Main-Index kann nicht geändert werden
+		' finde den main-index heraus, das dazugehörige wort und teste, ob sie übereinstimmen
+		Dim newIndex As Integer
+		Dim mainIndexChanged As Boolean = False
+		If Trim(voc.GetEntryName(t.MainIndex)) <> Trim(txtMainEntry.Text) Then
+			mainIndexChanged = True
+			' Erzeuge neuen MainIndex oder hole den Index eines alten
+			Try
+				newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
+			Catch ex As xlsExceptionEntryNotFound
+				' Haupteintrag erstellen und anschließend laden
+				Try
+					MsgBox("Neuer Eintrag wird erstellt")
+					voc.AddEntry(Trim(txtMainEntry.Text), voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
+					newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
+				Catch sex As xlsExceptionInput
+					MsgBox(sex.Message, MsgBoxStyle.Information, "Unerwarteter Fehler")
+					Exit Sub
+				End Try
+			End Try
+			t.MainIndex = newIndex
+		End If
+		t.Pre = txtPre.Text
+		t.Word = txtWord.Text
+		t.Post = txtPost.Text
+		t.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
+		t.Meaning = txtMeaning.Text
+		t.WordType = lstWordType.SelectedIndex
+		t.Irregular = chkIrregular.Checked
+		Try
+			t.SaveWord()
+
+			' Falls ein Gruppeneintrag ist, marked setzen
+			If (IsSubGroupNode()) Then
+				Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
+				Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+				group.SetMarked(t.WordIndex, chkMarked.Checked)
+				' Markiert dann auch updaten
+			End If
+			' Laden in die Auswahlliste, falls der MainIndex geändert wurde, aktualisieren
+			If mainIndexChanged Then
+				item.Tag = t.MainIndex
+			End If
+			Dim lvs As ListViewStyleEnum
+			If ListView1.Visible Then lvs = ListViewStyleEnum.WordEntry Else lvs = ListViewStyle
+			item.SubItems(GetColumnIndex(ColumnName.EntryPre, lvs)).Text = t.Pre
+			item.SubItems(GetColumnIndex(ColumnName.EntryWord, lvs)).Text = t.Word
+			item.SubItems(GetColumnIndex(ColumnName.EntryPost, lvs)).Text = t.Post
+			item.SubItems(GetColumnIndex(ColumnName.EntryMeaning, lvs)).Text = t.Meaning
+			item.SubItems(GetColumnIndex(ColumnName.EntryType, lvs)).Text = TextTypeName(t.WordType)
+			item.SubItems(GetColumnIndex(ColumnName.EntryExtendedInfo, lvs)).Text = t.AdditionalTargetLangInfo
+			item.SubItems(GetColumnIndex(ColumnName.EntryIrregular, lvs)).Text = TextYesNo(t.Irregular)
+			If IsGroupNode() Then item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked, lvs)).Text = TextYesNo(chkMarked.Checked) 'IIf(chkMarked.Checked, "Ja", "Nein")
+			'End If
+		Catch ex As xlsExceptionEntryExists
+			MsgBox("Eintrag existiert bereits.")
+		End Try
+	End Sub
 
   Private Sub cmdMultiChange_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdMultiChange.Click
     For Each index As Integer In ListView.SelectedIndices
@@ -805,588 +836,692 @@ Public Class VocabularyExplorer
     'End If
   End Sub
 
-  Private Sub cmdAdd_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAdd.Click
-    listUpdate = True
-    Dim deWord As New xlsDictionaryEntry(voc.DBConnection)
-    deWord.LoadNewWord(voc.GetMaxSubEntryIndex + 1)
-    deWord.Pre = txtPre.Text
-    deWord.Word = txtWord.Text
-    deWord.Post = txtPost.Text
-    deWord.Meaning = txtMeaning.Text
-    deWord.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
-    deWord.WordType = lstWordType.SelectedIndex
-    deWord.Irregular = chkIrregular.Checked
+	' Hilfsfunktionen für die Knotenbehandlung
+	Private Function GetBaseFromNode() As String
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_BASE)
+	End Function
 
-    ' Versuch, ins Wörterbuch einzufügen
-    Dim language As String
-    Dim mainLanguage As String
+	Private Function GetBaseFromNode(ByRef tvNode As TreeNode) As String
+		Return GetNodePathPart(tvNode, NODE_LEVEL_BASE)
+	End Function
 
-    Dim group As xlsGroup = Nothing
-    If IsDictionaryNode() Then
-      language = GetLanguageFromNode()
-      mainLanguage = GetMainLanguageFromNode()
-    ElseIf IsGroupNode() Then
-      group = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-      If group.LanguageCount > 1 Then
-        MsgBox("Zu viele Sprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
-        Exit Sub
-      End If
-      If group.MainLanguageCount > 1 Then ' ob das jemals vorkommen kann?
-        MsgBox("Zu viele Zielsprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
-        Exit Sub
-      End If
-      language = group.GetUniqueLanguage()
-      mainLanguage = group.GetUniqueMainLanguage()
-    Else
-      MsgBox("Eintrag kann nicht hinzugefügt werden.", MsgBoxStyle.Exclamation, "Error")
-      Exit Sub
-    End If
+	Private Function GetInitialFromNode() As String
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE + 1)
+	End Function
 
-    Try
-      voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
-    Catch ex As xlsExceptionEntryExists
-      ' Existiert schon, nix zu tun, index feststellen
-    Catch ex As xlsExceptionEntryNotFound
-      ' Haupteintrag nicht vorhanden
-      Dim res As MsgBoxResult = MsgBox("Der Haupteintrag " & txtMainEntry.Text & " ist für die gewählten Sprachen '" & mainLanguage & "' und '" & language & "' nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
-      If res = MsgBoxResult.Yes Then
-        Try
-          voc.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
-        Catch ex2 As xlsExceptionInput
-          MsgBox(ex2.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
-        End Try
-        ' Untereintrag hinzufügen
-        Try
-          voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
-        Catch ex2 As Exception
-          MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
-        End Try
-      Else
-        Exit Sub
-      End If
-    Catch ex As Exception 'System.Data.OleDb.OleDbException
-      'ErrorCode = -2147467259
-      MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
-    End Try
-    deWord.MainIndex = voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage)
-    deWord.FindCorrectWordIndex() ' aktualisieren, falls schon vorhanden war!
+	Private Function GetEntryFromNode() As String
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_ENTRY)
+	End Function
 
-    ' Müsste im Wörterbuch sein, füge nun in die Gruppe ein
-    If IsSubGroupNode() And Me.chkAddToGroup.Checked Then ' hinzufügen für subgroup und tiefer
-      ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
-      Dim subIndex As Integer = voc.GetSubEntryIndex(deWord.MainIndex, deWord.Word, deWord.Meaning)
-      ' TODO example
-      group.Add(subIndex, chkMarked.Checked, "")
-    End If
+	Private Function GetEntryFromNode(ByRef tvNode As TreeNode) As String
+		Return GetNodePathPart(tvNode, NODE_LEVEL_ENTRY)
+	End Function
 
-    If (IsGroupNode() And chkMarked.Checked) Or IsDictionaryNode() Then AddEntryToList(deWord)
+	Private Function GetGroupFromNode(ByRef tvNode As TreeNode) As String
+		Return GetNodePathPart(tvNode, NODE_LEVEL_GROUP)
+	End Function
 
-    ' Anzeige aktualisieren
-    txtMainEntry.SelectAll()
-    txtPre.Focus()
-    txtAdditionalTargetLangInfo.SelectAll()
-    txtMeaning.SelectAll()
-    txtPost.SelectAll()
-    txtPre.SelectAll()
-    txtWord.SelectAll()
-  End Sub
+	Private Function GetGroupFromNode() As String
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_GROUP)
+	End Function
 
-  ' Hilfsfunktionen für die Knotenbehandlung
-  Private Function GetBaseFromNode() As String
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_BASE)
-  End Function
+	Private Function GetLanguageFromNode(ByRef tvNode As TreeNode) As String
+		' Sprache herausfinden
+		Return GetNodePathPart(tvNode, NODE_LEVEL_LANGUAGE)
+	End Function
 
-  Private Function GetBaseFromNode(ByRef tvNode As TreeNode) As String
-    Return GetNodePathPart(tvNode, NODE_LEVEL_BASE)
-  End Function
+	Private Function GetLanguageFromNode() As String
+		' Sprache herausfinden
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE)
+	End Function
 
-  Private Function GetInitialFromNode() As String
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE + 1)
-  End Function
+	Private Function GetLanguageLetterFromNode(ByRef tvNode As TreeNode) As String
+		' Buchstabe herausfinden
+		Return GetNodePathPart(tvNode, NODE_LEVEL_LANGUAGE + 1)
+	End Function
 
-  Private Function GetEntryFromNode() As String
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_ENTRY)
-  End Function
+	Private Function GetLanguageLetterFromNode() As String
+		' Buchstabe herausfinden
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE + 1)
+	End Function
 
-  Private Function GetEntryFromNode(ByRef tvNode As TreeNode) As String
-    Return GetNodePathPart(tvNode, NODE_LEVEL_ENTRY)
-  End Function
+	Private Function GetMainLanguageFromNode() As String
+		' Sprache herausfinden
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_MAIN_LANGUAGE)
+	End Function
 
-  Private Function GetGroupFromNode(ByRef tvNode As TreeNode) As String
-    Return GetNodePathPart(tvNode, NODE_LEVEL_GROUP)
-  End Function
+	Private Function GetMainLanguageFromNode(ByRef tvNode As TreeNode) As String
+		' Sprache herausfinden
+		Return GetNodePathPart(tvNode, NODE_LEVEL_MAIN_LANGUAGE)
+	End Function
 
-  Private Function GetGroupFromNode() As String
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_GROUP)
-  End Function
+	Private Function GetSubGroupFromNode(ByRef tvNode As TreeNode) As String
+		Return GetNodePathPart(tvNode, NODE_LEVEL_SUBGROUP)
+	End Function
 
-  Private Function GetLanguageFromNode(ByRef tvNode As TreeNode) As String
-    ' Sprache herausfinden
-    Return GetNodePathPart(tvNode, NODE_LEVEL_LANGUAGE)
-  End Function
+	Private Function GetSubGroupFromNode() As String
+		Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_SUBGROUP)
+	End Function
 
-  Private Function GetLanguageFromNode() As String
-    ' Sprache herausfinden
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE)
-  End Function
+	Private Function GetNodePathPart(ByRef tvnode As TreeNode, ByVal level As Integer) As String
+		Dim text As String = tvnode.FullPath
+		Dim textArray() As String = text.Split("\")
+		If level >= textArray.Length Then Return ""
+		Return textArray(level)
+	End Function
 
-  Private Function GetLanguageLetterFromNode(ByRef tvNode As TreeNode) As String
-    ' Buchstabe herausfinden
-    Return GetNodePathPart(tvNode, NODE_LEVEL_LANGUAGE + 1)
-  End Function
+	Private Function IsDictionaryNode() As Boolean
+		Dim tvNode As TreeNode = TreeView.SelectedNode
+		If GetBaseFromNode(tvNode) = GetLoc.GetText(TREE_DICTIONARY) And tvNode.Level > NODE_LEVEL_LANGUAGE Then
+			Return True
+		End If
+		Return False
+	End Function
 
-  Private Function GetLanguageLetterFromNode() As String
-    ' Buchstabe herausfinden
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_LANGUAGE + 1)
-  End Function
+	Private Function IsGroupNode() As Boolean
+		Dim Node As TreeNode = TreeView.SelectedNode
+		If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level >= NODE_LEVEL_GROUP Then
+			Return True
+		End If
+		Return False
+	End Function
 
-  Private Function GetMainLanguageFromNode() As String
-    ' Sprache herausfinden
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_MAIN_LANGUAGE)
-  End Function
+	Private Function IsSubGroupNode() As Boolean
+		Dim Node As TreeNode = TreeView.SelectedNode
+		If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level >= NODE_LEVEL_SUBGROUP Then
+			Return True
+		End If
+		Return False
+	End Function
 
-  Private Function GetMainLanguageFromNode(ByRef tvNode As TreeNode) As String
-    ' Sprache herausfinden
-    Return GetNodePathPart(tvNode, NODE_LEVEL_MAIN_LANGUAGE)
-  End Function
+	Private Function IsStrictlySubGroupNode() As Boolean
+		Dim Node As TreeNode = TreeView.SelectedNode
+		If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level = NODE_LEVEL_SUBGROUP Then
+			Return True
+		End If
+		Return False
+	End Function
 
-  Private Function GetSubGroupFromNode(ByRef tvNode As TreeNode) As String
-    Return GetNodePathPart(tvNode, NODE_LEVEL_SUBGROUP)
-  End Function
+	Private Function IsLanguageNode() As Boolean
+		Dim Node As TreeNode = TreeView.SelectedNode
+		If GetBaseFromNode(Node) = GetLoc.GetText(TREE_DICTIONARY) And Node.Level = NODE_LEVEL_LANGUAGE Then
+			Return True
+		End If
+		Return False
+	End Function
 
-  Private Function GetSubGroupFromNode() As String
-    Return GetNodePathPart(TreeView.SelectedNode, NODE_LEVEL_SUBGROUP)
-  End Function
+	Private Function IsWordEntryNode() As Boolean
+		If IsDictionaryNode() Then Return True
+		If IsGroupNode() Then Return True
+		Return False
+	End Function
 
-  Private Function GetNodePathPart(ByRef tvnode As TreeNode, ByVal level As Integer) As String
-    Dim text As String = tvnode.FullPath
-    Dim textArray() As String = text.Split("\")
-    If level >= textArray.Length Then Return ""
-    Return textArray(level)
-  End Function
+	' Andere Hilfsfunktionen
+	Private Sub SetPanelViewItemsCheck(ByRef currentPanel As ToolStripMenuItem)
+		For Each entry As ToolStripMenuItem In Me.PanelViewItems
+			entry.Checked = False
+		Next entry
+		currentPanel.Checked = True
+		LoadPanel()
+	End Sub
 
-  Private Function IsDictionaryNode() As Boolean
-    Dim tvNode As TreeNode = TreeView.SelectedNode
-    If GetBaseFromNode(tvNode) = GetLoc.GetText(TREE_DICTIONARY) And tvNode.Level >= NODE_LEVEL_LANGUAGE Then
-      Return True
-    End If
-    Return False
-  End Function
+	Public Sub AddMainEntryToList(ByVal Word As String)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word)
+		AddRange()
+	End Sub
 
-  Private Function IsGroupNode() As Boolean
-    Dim Node As TreeNode = TreeView.SelectedNode
-    If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level >= NODE_LEVEL_GROUP Then
-      Return True
-    End If
-    Return False
-  End Function
+	Public Sub AddDictionaryEntryToList(ByVal Word As xlsDictionaryEntry)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
+		AddRange().Tag = Word.MainIndex
+	End Sub
 
-  Private Function IsSubGroupNode() As Boolean
-    Dim Node As TreeNode = TreeView.SelectedNode
-    If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level >= NODE_LEVEL_SUBGROUP Then
-      Return True
-    End If
-    Return False
-  End Function
+	Public Sub AddDictionaryEntryToList2(ByVal Word As xlsDictionaryEntry)
+		Dim listViewStyle As ListViewStyleEnum = ListViewStyleEnum.WordEntry
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPre, listViewStyle), Word.Pre)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryWord, listViewStyle), Word.Word)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPost, listViewStyle), Word.Post)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning, listViewStyle), Word.Meaning)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryType, listViewStyle), TextTypeName(Word.WordType))
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo, listViewStyle), Word.AdditionalTargetLangInfo)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular, listViewStyle), TextYesNo(Word.Irregular))
+		AddRange2().Tag = Word.MainIndex
+	End Sub
 
-  Private Function IsStrictlySubGroupNode() As Boolean
-    Dim Node As TreeNode = TreeView.SelectedNode
-    If GetBaseFromNode(Node) = GetLoc.GetText(TREE_GROUPS) And Node.Level = NODE_LEVEL_SUBGROUP Then
-      Return True
-    End If
-    Return False
-  End Function
+	Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry, ByRef group As xlsGroup)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
+		SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
+		SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
+		AddRange().Tag = Word.MainIndex
+	End Sub
 
-  Private Function IsWordEntryNode() As Boolean
-    If IsDictionaryNode() Then Return True
-    If IsGroupNode() Then Return True
-    Return False
-  End Function
+	Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry)
+		Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
+		Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
+		SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
+		SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
+		SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
+		AddRange().Tag = Word.MainIndex
+	End Sub
 
-  ' Andere Hilfsfunktionen
-  Private Sub SetPanelViewItemsCheck(ByRef currentPanel As ToolStripMenuItem)
-    For Each entry As ToolStripMenuItem In Me.PanelViewItems
-      entry.Checked = False
-    Next entry
-    currentPanel.Checked = True
-    LoadPanel()
-  End Sub
+	' Hilfsfunktion für die Spalten
+	Private Function GetColumnIndex(ByVal column As ColumnName) As Integer
+		Return GetColumnIndex(column, ListViewStyle)
+	End Function
 
-  Private Sub PanelWordInfo_Paint(ByVal sender As System.Object, ByVal e As System.Windows.Forms.PaintEventArgs) Handles PanelWordInfo.Paint
+	Private Function GetColumnIndex(ByVal column As ColumnName, ByVal currentStyle As ListViewStyleEnum) As Integer
+		Select Case currentStyle
+			Case ListViewStyleEnum.Groups
+				Select Case column
+					Case ColumnName.GroupsName
+						Return 0
+					Case ColumnName.GroupsSubGroup
+						Return 1
+					Case ColumnName.GroupsCountEntry
+						Return 2
+					Case ColumnName.GroupCountLanguages
+						Return 3
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.Language
+				Select Case column
+					Case ColumnName.EntryWord
+						Return 0
+						'Case ColumnName.EntryPre
+						'  Return 0
+						'Case ColumnName.EntryWord
+						'  Return 1
+						'Case ColumnName.EntryPost
+						'  Return 2
+						'Case ColumnName.EntryMeaning
+						'  Return 3
+						'Case ColumnName.EntryType
+						'  Return 4
+						'Case ColumnName.EntryExtendedInfo
+						'  Return 6
+						'Case ColumnName.EntryIrregular
+						'  Return 5
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.WordEntry
+				Select Case column
+					Case ColumnName.EntryPre
+						Return 0
+					Case ColumnName.EntryWord
+						Return 1
+					Case ColumnName.EntryPost
+						Return 2
+					Case ColumnName.EntryMeaning
+						Return 3
+					Case ColumnName.EntryType
+						Return 4
+					Case ColumnName.EntryExtendedInfo
+						Return 6
+					Case ColumnName.EntryIrregular
+						Return 5
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.WordEntryGroup
+				Select Case column
+					Case ColumnName.EntryPre
+						Return 0
+					Case ColumnName.EntryWord
+						Return 1
+					Case ColumnName.EntryPost
+						Return 2
+					Case ColumnName.EntryMeaning
+						Return 3
+					Case ColumnName.EntryType
+						Return 4
+					Case ColumnName.EntryExtendedInfo
+						Return 6
+					Case ColumnName.EntryIrregular
+						Return 5
+					Case ColumnName.GroupEntryMarked
+						Return 7
+					Case ColumnName.GroupEntrySubgroup
+						Return 8
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.WordEntrySubGroup
+				Select Case column
+					Case ColumnName.EntryPre
+						Return 0
+					Case ColumnName.EntryWord
+						Return 1
+					Case ColumnName.EntryPost
+						Return 2
+					Case ColumnName.EntryMeaning
+						Return 3
+					Case ColumnName.EntryType
+						Return 4
+					Case ColumnName.EntryExtendedInfo
+						Return 6
+					Case ColumnName.EntryIrregular
+						Return 5
+					Case ColumnName.GroupEntryMarked
+						Return 7
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.Dictionary
+				Select Case column
+					Case ColumnName.DictMainLanguage
+						Return 0
+					Case ColumnName.DictLanguage
+						Return 1
+					Case ColumnName.DictCountMainEntry
+						Return 2
+					Case ColumnName.DictCountEntrys
+						Return 3
+					Case Else
+						Return -1
+				End Select
+			Case ListViewStyleEnum.MainLanguage
+				Select Case column
+					Case ColumnName.DictLanguage
+						Return 0
+					Case ColumnName.DictCountMainEntry
+						Return 1
+					Case ColumnName.DictCountEntrys
+						Return 2
+					Case Else
+						Return -1
+				End Select
+		End Select
+	End Function
 
-  End Sub
+	Private Function GetColumnText(ByVal column As ColumnName) As String
+		Select Case column
+			Case ColumnName.DictCountEntrys
+				Return GetLoc.GetText(EXPLORER_HEADLINE_TOTAL_ENTRYS)
+			Case ColumnName.DictCountMainEntry
+				Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_ENTRYS)
+			Case ColumnName.DictLanguage
+				Return GetLoc.GetText(EXPLORER_HEADLINE_LANGUAGE)
+			Case ColumnName.DictMainLanguage
+				Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_LANGUAGE)
+			Case ColumnName.EntryExtendedInfo
+				Return GetLoc.GetText(EXPLORER_HEADLINE_ADDITIONAL_INFO)
+			Case ColumnName.EntryIrregular
+				Return GetLoc.GetText(EXPLORER_HEADLINE_IRREGULAR)
+			Case ColumnName.EntryMeaning
+				Return GetLoc.GetText(EXPLORER_HEADLINE_MEANING)
+			Case ColumnName.EntryPost
+				Return GetLoc.GetText(EXPLORER_HEADLINE_POST)
+			Case ColumnName.EntryPre
+				Return GetLoc.GetText(EXPLORER_HEADLINE_PRE)
+			Case ColumnName.EntryType
+				Return GetLoc.GetText(EXPLORER_HEADLINE_WORD_TYPE)
+			Case ColumnName.EntryWord
+				Return GetLoc.GetText(EXPLORER_HEADLINE_WORD)
+			Case ColumnName.GroupEntryMarked
+				Return GetLoc.GetText(EXPLORER_HEADLINE_MARKED)
+			Case ColumnName.GroupEntrySubgroup
+				Return GetLoc.GetText(EXPLORER_HEADLINE_SUBGROUP)
+			Case ColumnName.GroupsCountEntry
+				Return GetLoc.GetText(EXPLORER_HEADLINE_ENTRYS)
+			Case ColumnName.GroupsName
+				Return GetLoc.GetText(EXPLORER_HEADLINE_GROUPS)
+			Case ColumnName.GroupsSubGroup
+				Return GetLoc.GetText(EXPLORER_HEADLINE_SUBGROUPS)
+			Case ColumnName.GroupCountLanguages
+				Return GetLoc.GetText(EXPLORER_HEADLINE_GROUP_LANGUAGE_COUNT)
+			Case Else
+				Throw New Exception(GetLoc.GetText(EXCEPTION_UNKNOWN_HEADLINE))
+		End Select
+	End Function
 
-  Public Sub AddDictionaryEntryToList(ByVal Word As xlsDictionaryEntry)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-    AddRange().Tag = Word.MainIndex
-  End Sub
+	Private Function GetColumnSize(ByVal column As ColumnName) As Integer
+		Select Case column
+			Case ColumnName.DictCountEntrys
+				Return 110 '"Einträge gesamt"
+			Case ColumnName.DictCountMainEntry
+				Return 110 '"Haupteinträge"
+			Case ColumnName.DictLanguage
+				Return 110 '"Sprache"
+			Case ColumnName.DictMainLanguage
+				Return 110 '"Hauptsprache"
+			Case ColumnName.EntryExtendedInfo
+				Return 110 '"Erweiterte Info"
+			Case ColumnName.EntryIrregular
+				Return 45	'0.5
+			Case ColumnName.EntryMeaning
+				Return 110 '"Bedeutung"
+			Case ColumnName.EntryPost
+				Return 45	'0.75
+			Case ColumnName.EntryPre
+				Return 45	'0.75
+			Case ColumnName.EntryType
+				Return 65	'0.75
+			Case ColumnName.EntryWord
+				Return 110 '"Wort"
+			Case ColumnName.GroupEntryMarked
+				Return 45	'0.5
+			Case ColumnName.GroupEntrySubgroup
+				Return 110
+			Case ColumnName.GroupsCountEntry
+				Return 110 '2.0
+			Case ColumnName.GroupsName
+				Return 110 '2.0
+			Case ColumnName.GroupsSubGroup
+				Return 110 '2.0
+			Case ColumnName.GroupCountLanguages
+				Return 110 ' 1.0
+			Case Else
+				Throw New Exception("Unbekannte Überschrift in GetColumnText gefunden.")
+		End Select
+	End Function
 
-  Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry, ByRef group As xlsGroup)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-    SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
-    SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
-    AddRange().Tag = Word.MainIndex
-  End Sub
+	Private Function GetColumn(ByVal ColumnIndex As Integer, ByVal currentStyle As ListViewStyleEnum) As ColumnName
+		If GetColumnIndex(ColumnName.GroupsName, currentStyle) = ColumnIndex Then Return ColumnName.GroupsName
+		If GetColumnIndex(ColumnName.GroupsSubGroup, currentStyle) = ColumnIndex Then Return ColumnName.GroupsSubGroup
+		If GetColumnIndex(ColumnName.GroupsCountEntry, currentStyle) = ColumnIndex Then Return ColumnName.GroupsCountEntry
+		If GetColumnIndex(ColumnName.EntryPre, currentStyle) = ColumnIndex Then Return ColumnName.EntryPre
+		If GetColumnIndex(ColumnName.EntryWord, currentStyle) = ColumnIndex Then Return ColumnName.EntryWord
+		If GetColumnIndex(ColumnName.EntryPost, currentStyle) = ColumnIndex Then Return ColumnName.EntryPost
+		If GetColumnIndex(ColumnName.EntryMeaning, currentStyle) = ColumnIndex Then Return ColumnName.EntryMeaning
+		If GetColumnIndex(ColumnName.EntryType, currentStyle) = ColumnIndex Then Return ColumnName.EntryType
+		If GetColumnIndex(ColumnName.EntryExtendedInfo, currentStyle) = ColumnIndex Then Return ColumnName.EntryExtendedInfo
+		If GetColumnIndex(ColumnName.EntryIrregular, currentStyle) = ColumnIndex Then Return ColumnName.EntryIrregular
+		If GetColumnIndex(ColumnName.GroupEntryMarked, currentStyle) = ColumnIndex Then Return ColumnName.GroupEntryMarked
+		If GetColumnIndex(ColumnName.GroupEntrySubgroup, currentStyle) = ColumnIndex Then Return ColumnName.GroupEntrySubgroup
+		If GetColumnIndex(ColumnName.DictMainLanguage, currentStyle) = ColumnIndex Then Return ColumnName.DictMainLanguage
+		If GetColumnIndex(ColumnName.DictLanguage, currentStyle) = ColumnIndex Then Return ColumnName.DictLanguage
+		If GetColumnIndex(ColumnName.DictCountMainEntry, currentStyle) = ColumnIndex Then Return ColumnName.DictCountMainEntry
+		If GetColumnIndex(ColumnName.DictCountEntrys, currentStyle) = ColumnIndex Then Return ColumnName.DictCountEntrys
+		If GetColumnIndex(ColumnName.GroupCountLanguages, currentStyle) = ColumnIndex Then Return ColumnName.GroupCountLanguages
+		Throw New Exception("No Column found")
+	End Function
 
-  Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry)
-    Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
-    Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
-    SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-    SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
-    SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
-    AddRange().Tag = Word.MainIndex
-  End Sub
+	Private Function GetColumnCount(ByVal currentStyle As ListViewStyleEnum)
+		' Gibt die Anzahl der Spalten für einen bestimmten List-View-Style
+		Dim count As Integer = 0
+		While True
+			Dim newColumn As ColumnName
+			Try
+				newColumn = GetColumn(count, currentStyle)
+			Catch e As Exception
+				Exit While
+			End Try
+			count += 1
+		End While
+		Return count
+	End Function
 
-  ' Hilfsfunktion für die Spalten
-  Private Function GetColumnIndex(ByVal column As ColumnName) As Integer
-    Return GetColumnIndex(column, ListViewStyle)
-  End Function
+	Public Property ListViewStyle() As ListViewStyleEnum
+		Get
+			Return m_listviewstyle
+		End Get
+		Set(ByVal value As ListViewStyleEnum)
+			m_listviewstyle = value
+		End Set
+	End Property
 
-  Private Function GetColumnIndex(ByVal column As ColumnName, ByVal currentStyle As ListViewStyleEnum) As Integer
-    Select Case currentStyle
-      Case ListViewStyleEnum.Groups
-        Select Case column
-          Case ColumnName.GroupsName
-            Return 0
-          Case ColumnName.GroupsSubGroup
-            Return 1
-          Case ColumnName.GroupsCountEntry
-            Return 2
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.Language
-        Select Case column
-          Case ColumnName.EntryPre
-            Return 0
-          Case ColumnName.EntryWord
-            Return 1
-          Case ColumnName.EntryPost
-            Return 2
-          Case ColumnName.EntryMeaning
-            Return 3
-          Case ColumnName.EntryType
-            Return 4
-          Case ColumnName.EntryExtendedInfo
-            Return 6
-          Case ColumnName.EntryIrregular
-            Return 5
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.WordEntry
-        Select Case column
-          Case ColumnName.EntryPre
-            Return 0
-          Case ColumnName.EntryWord
-            Return 1
-          Case ColumnName.EntryPost
-            Return 2
-          Case ColumnName.EntryMeaning
-            Return 3
-          Case ColumnName.EntryType
-            Return 4
-          Case ColumnName.EntryExtendedInfo
-            Return 6
-          Case ColumnName.EntryIrregular
-            Return 5
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.WordEntryGroup
-        Select Case column
-          Case ColumnName.EntryPre
-            Return 0
-          Case ColumnName.EntryWord
-            Return 1
-          Case ColumnName.EntryPost
-            Return 2
-          Case ColumnName.EntryMeaning
-            Return 3
-          Case ColumnName.EntryType
-            Return 4
-          Case ColumnName.EntryExtendedInfo
-            Return 6
-          Case ColumnName.EntryIrregular
-            Return 5
-          Case ColumnName.GroupEntryMarked
-            Return 7
-          Case ColumnName.GroupEntrySubgroup
-            Return 8
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.WordEntrySubGroup
-        Select Case column
-          Case ColumnName.EntryPre
-            Return 0
-          Case ColumnName.EntryWord
-            Return 1
-          Case ColumnName.EntryPost
-            Return 2
-          Case ColumnName.EntryMeaning
-            Return 3
-          Case ColumnName.EntryType
-            Return 4
-          Case ColumnName.EntryExtendedInfo
-            Return 6
-          Case ColumnName.EntryIrregular
-            Return 5
-          Case ColumnName.GroupEntryMarked
-            Return 7
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.Dictionary
-        Select Case column
-          Case ColumnName.DictMainLanguage
-            Return 0
-          Case ColumnName.DictLanguage
-            Return 1
-          Case ColumnName.DictCountMainEntry
-            Return 2
-          Case ColumnName.DictCountEntrys
-            Return 3
-          Case Else
-            Return -1
-        End Select
-      Case ListViewStyleEnum.MainLanguage
-        Select Case column
-          Case ColumnName.DictLanguage
-            Return 0
-          Case ColumnName.DictCountMainEntry
-            Return 1
-          Case ColumnName.DictCountEntrys
-            Return 2
-          Case Else
-            Return -1
-        End Select
-    End Select
-  End Function
+	Private Function AddRange() As ListViewItem
+		Dim item As ListViewItem = ListView.Items.Add(rangeStart)
+		item.SubItems.AddRange(range)	'New String() {language, voc.WordCount(language, mainLanguage), voc.WordCountTotal(language, mainLanguage)})
 
-  Private Function GetColumnText(ByVal column As ColumnName) As String
-    Select Case column
-      Case ColumnName.DictCountEntrys
-        Return GetLoc.GetText(EXPLORER_HEADLINE_TOTAL_ENTRYS)
-      Case ColumnName.DictCountMainEntry
-        Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_ENTRYS)
-      Case ColumnName.DictLanguage
-        Return GetLoc.GetText(EXPLORER_HEADLINE_LANGUAGE)
-      Case ColumnName.DictMainLanguage
-        Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_LANGUAGE)
-      Case ColumnName.EntryExtendedInfo
-        Return GetLoc.GetText(EXPLORER_HEADLINE_ADDITIONAL_INFO)
-      Case ColumnName.EntryIrregular
-        Return GetLoc.GetText(EXPLORER_HEADLINE_IRREGULAR)
-      Case ColumnName.EntryMeaning
-        Return GetLoc.GetText(EXPLORER_HEADLINE_MEANING)
-      Case ColumnName.EntryPost
-        Return GetLoc.GetText(EXPLORER_HEADLINE_POST)
-      Case ColumnName.EntryPre
-        Return GetLoc.GetText(EXPLORER_HEADLINE_PRE)
-      Case ColumnName.EntryType
-        Return GetLoc.GetText(EXPLORER_HEADLINE_WORD_TYPE)
-      Case ColumnName.EntryWord
-        Return GetLoc.GetText(EXPLORER_HEADLINE_WORD)
-      Case ColumnName.GroupEntryMarked
-        Return GetLoc.GetText(EXPLORER_HEADLINE_MARKED)
-      Case ColumnName.GroupEntrySubgroup
-        Return GetLoc.GetText(EXPLORER_HEADLINE_SUBGROUP)
-      Case ColumnName.GroupsCountEntry
-        Return GetLoc.GetText(EXPLORER_HEADLINE_ENTRYS)
-      Case ColumnName.GroupsName
-        Return GetLoc.GetText(EXPLORER_HEADLINE_GROUPS)
-      Case ColumnName.GroupsSubGroup
-        Return GetLoc.GetText(EXPLORER_HEADLINE_SUBGROUPS)
-      Case Else
-        Throw New Exception(GetLoc.GetText(EXCEPTION_UNKNOWN_HEADLINE))
-    End Select
-  End Function
+		Dim i As Integer
+		For i = 0 To range.Length - 1
+			range(i) = ""
+		Next i
+		rangeStart = ""
+		Return item
+	End Function
 
-  Private Function GetColumnSize(ByVal column As ColumnName) As Integer
-    Select Case column
-      Case ColumnName.DictCountEntrys
-        Return 110 '"Einträge gesamt"
-      Case ColumnName.DictCountMainEntry
-        Return 110 '"Haupteinträge"
-      Case ColumnName.DictLanguage
-        Return 110 '"Sprache"
-      Case ColumnName.DictMainLanguage
-        Return 110 '"Hauptsprache"
-      Case ColumnName.EntryExtendedInfo
-        Return 110 '"Erweiterte Info"
-      Case ColumnName.EntryIrregular
-        Return 45 '0.5
-      Case ColumnName.EntryMeaning
-        Return 110 '"Bedeutung"
-      Case ColumnName.EntryPost
-        Return 45 '0.75
-      Case ColumnName.EntryPre
-        Return 45 '0.75
-      Case ColumnName.EntryType
-        Return 65 '0.75
-      Case ColumnName.EntryWord
-        Return 110 '"Wort"
-      Case ColumnName.GroupEntryMarked
-        Return 45 '0.5
-      Case ColumnName.GroupEntrySubgroup
-        Return 110
-      Case ColumnName.GroupsCountEntry
-        Return 110 '2.0
-      Case ColumnName.GroupsName
-        Return 110 '2.0
-      Case ColumnName.GroupsSubGroup
-        Return 110 '2.0
-      Case Else
-        Throw New Exception("Unbekannte Überschrift in GetColumnText gefunden.")
-    End Select
-  End Function
+	Private Function AddRange2() As ListViewItem
+		Dim item As ListViewItem = ListView1.Items.Add(rangeStart)
+		item.SubItems.AddRange(range)	'New String() {language, voc.WordCount(language, mainLanguage), voc.WordCountTotal(language, mainLanguage)})
 
-  Private Function GetColumn(ByVal ColumnIndex As Integer, ByVal currentStyle As ListViewStyleEnum) As ColumnName
-    If GetColumnIndex(ColumnName.GroupsName, currentStyle) = ColumnIndex Then Return ColumnName.GroupsName
-    If GetColumnIndex(ColumnName.GroupsSubGroup, currentStyle) = ColumnIndex Then Return ColumnName.GroupsSubGroup
-    If GetColumnIndex(ColumnName.GroupsCountEntry, currentStyle) = ColumnIndex Then Return ColumnName.GroupsCountEntry
-    If GetColumnIndex(ColumnName.EntryPre, currentStyle) = ColumnIndex Then Return ColumnName.EntryPre
-    If GetColumnIndex(ColumnName.EntryWord, currentStyle) = ColumnIndex Then Return ColumnName.EntryWord
-    If GetColumnIndex(ColumnName.EntryPost, currentStyle) = ColumnIndex Then Return ColumnName.EntryPost
-    If GetColumnIndex(ColumnName.EntryMeaning, currentStyle) = ColumnIndex Then Return ColumnName.EntryMeaning
-    If GetColumnIndex(ColumnName.EntryType, currentStyle) = ColumnIndex Then Return ColumnName.EntryType
-    If GetColumnIndex(ColumnName.EntryExtendedInfo, currentStyle) = ColumnIndex Then Return ColumnName.EntryExtendedInfo
-    If GetColumnIndex(ColumnName.EntryIrregular, currentStyle) = ColumnIndex Then Return ColumnName.EntryIrregular
-    If GetColumnIndex(ColumnName.GroupEntryMarked, currentStyle) = ColumnIndex Then Return ColumnName.GroupEntryMarked
-    If GetColumnIndex(ColumnName.GroupEntrySubgroup, currentStyle) = ColumnIndex Then Return ColumnName.GroupEntrySubgroup
-    If GetColumnIndex(ColumnName.DictMainLanguage, currentStyle) = ColumnIndex Then Return ColumnName.DictMainLanguage
-    If GetColumnIndex(ColumnName.DictLanguage, currentStyle) = ColumnIndex Then Return ColumnName.DictLanguage
-    If GetColumnIndex(ColumnName.DictCountMainEntry, currentStyle) = ColumnIndex Then Return ColumnName.DictCountMainEntry
-    If GetColumnIndex(ColumnName.DictCountEntrys, currentStyle) = ColumnIndex Then Return ColumnName.DictCountEntrys
-    Throw New Exception("No Column found")
-  End Function
+		Dim i As Integer
+		For i = 0 To range.Length - 1
+			range(i) = ""
+		Next i
+		rangeStart = ""
+		Return item
+	End Function
 
-  Private Function GetColumnCount(ByVal currentStyle As ListViewStyleEnum)
-    ' Gibt die Anzahl der Spalten für einen bestimmten List-View-Style
-    Dim count As Integer = 0
-    While True
-      Dim newColumn As ColumnName
-      Try
-        newColumn = GetColumn(count, currentStyle)
-      Catch e As Exception
-        Exit While
-      End Try
-      count += 1
-    End While
-    Return count
-  End Function
+	Private Function AddRange(ByVal item As ListViewItem) As ListViewItem
+		Dim i As Integer
+		For i = 0 To range.Length
+			SetRangeEntry(i, item.SubItems(i).Text)
+		Next i
+		Dim ret As ListViewItem = AddRange()
+		ret.Tag = item.Tag
+		Return ret
+	End Function
 
-  Public Property ListViewStyle() As ListViewStyleEnum
-    Get
-      Return m_listviewstyle
-    End Get
-    Set(ByVal value As ListViewStyleEnum)
-      m_listviewstyle = value
-    End Set
-  End Property
+	Private Sub SetRange()
+		System.Array.Resize(range, GetColumnCount(ListViewStyle) - 1)
+		Dim i As Integer
+		For i = 0 To range.Length - 1
+			range(i) = ""
+		Next
+	End Sub
 
-  Private Function AddRange() As ListViewItem
-    Dim item As ListViewItem = ListView.Items.Add(rangeStart)
-    item.SubItems.AddRange(range) 'New String() {language, voc.WordCount(language, mainLanguage), voc.WordCountTotal(language, mainLanguage)})
+	Private Sub SetRangeEntry(ByVal index As Integer, ByVal value As String)
+		If index < 0 Then Exit Sub ' negative einfach ignorieren. ermöglicht einfaches Hinzufügen von nicht vorhandenen Feldern über GetColumnIndex
+		If index = 0 Then
+			rangeStart = value
+		Else
+			If index > range.Length Then Throw New IndexOutOfRangeException("Nicht so viele Columns")
+			range(index - 1) = value
+		End If
+	End Sub
 
-    Dim i As Integer
-    For i = 0 To range.Length - 1
-      range(i) = ""
-    Next i
-    rangeStart = ""
-    Return item
-  End Function
+	' Sprachspezifisches
+	Private Function TextTypeName(ByVal value As Integer)
+		Return GetLoc.GetText(prop.GetWordType(value))
+	End Function
 
-  Private Function AddRange(ByVal item As ListViewItem) As ListViewItem
-    Dim i As Integer
-    For i = 0 To range.Length
-      SetRangeEntry(i, item.SubItems(i).Text)
-    Next i
-    Dim ret As ListViewItem = AddRange()
-    ret.Tag = item.Tag
-    Return ret
-  End Function
+	Private Function TextYesNo(ByVal value As Boolean) As String
+		Return IIf(value, GetLoc.GetText(YES), GetLoc.GetText(NO))
+	End Function
 
-  Private Sub SetRange()
-    System.Array.Resize(range, GetColumnCount(ListViewStyle) - 1)
-    Dim i As Integer
-    For i = 0 To range.Length - 1
-      range(i) = ""
-    Next
-  End Sub
+	' Multi-Editing, aktivieren und deaktivieren der Steuerelemente
+	Private Sub chkEnableMultiPre_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiPre.CheckedChanged
+		txtMultiPre.Enabled = chkEnableMultiPre.Checked
+	End Sub
 
-  Private Sub SetRangeEntry(ByVal index As Integer, ByVal value As String)
-    If index < 0 Then Exit Sub ' negative einfach ignorieren. ermöglicht einfaches hinzufügen von nicht vorhandenen feldern über GetColumnIndex
-    If index = 0 Then
-      rangeStart = value
-    Else
-      If index > range.Length Then Throw New IndexOutOfRangeException("Nicht so viele Columns")
-      range(index - 1) = value
-    End If
-  End Sub
+	Private Sub chkEnableMultiWord_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiWord.CheckedChanged
+		txtMultiWord.Enabled = chkEnableMultiWord.Checked
+	End Sub
 
-  ' Sprachspezifisches
-  Private Function TextTypeName(ByVal value As Integer)
-    Return GetLoc.GetText(prop.GetWordType(value))
-  End Function
+	Private Sub chkEnableMultiPost_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiPost.CheckedChanged
+		txtMultiPost.Enabled = chkEnableMultiPost.Checked
+	End Sub
 
-  Private Function TextYesNo(ByVal value As Boolean) As String
-    Return IIf(value, GetLoc.GetText(YES), GetLoc.GetText(NO))
-  End Function
+	Private Sub chkEnableMultiAdditionalTargetLangInfo_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiAdditionalTargetLangInfo.CheckedChanged
+		txtMultiAdditionaltargetLangInfo.Enabled = chkEnableMultiAdditionalTargetLangInfo.Checked
+	End Sub
 
-  ' Multi-Editing, aktivieren und deaktivieren der Steuerelemente
-  Private Sub chkEnableMultiPre_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiPre.CheckedChanged
-    txtMultiPre.Enabled = chkEnableMultiPre.Checked
-  End Sub
+	Private Sub chkEnableMultiMeaning_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMeaning.CheckedChanged
+		txtMultiMeaning.Enabled = chkEnableMultiMeaning.Checked
+	End Sub
 
-  Private Sub chkEnableMultiWord_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiWord.CheckedChanged
-    txtMultiWord.Enabled = chkEnableMultiWord.Checked
-  End Sub
+	Private Sub chkEnableMultiIrregular_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiIrregular.CheckedChanged
+		chkMultiIrregular.Enabled = chkEnableMultiIrregular.Checked
+	End Sub
 
-  Private Sub chkEnableMultiPost_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiPost.CheckedChanged
-    txtMultiPost.Enabled = chkEnableMultiPost.Checked
-  End Sub
+	Private Sub chkEnableMultiWordType_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiWordType.CheckedChanged
+		lstMultiWordType.Enabled = chkEnableMultiWordType.Checked
+	End Sub
 
-  Private Sub chkEnableMultiAdditionalTargetLangInfo_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiAdditionalTargetLangInfo.CheckedChanged
-    txtMultiAdditionaltargetLangInfo.Enabled = chkEnableMultiAdditionalTargetLangInfo.Checked
-  End Sub
+	Private Sub chkEnableMultiMainEntry_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMainEntry.CheckedChanged
+		txtMultiMainEntry.Enabled = chkEnableMultiMainEntry.Checked
+	End Sub
 
-  Private Sub chkEnableMultiMeaning_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMeaning.CheckedChanged
-    txtMultiMeaning.Enabled = chkEnableMultiMeaning.Checked
-  End Sub
+	Private Sub chkEnableMultiMarked_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMarked.CheckedChanged
+		chkMultiMarked.Enabled = chkEnableMultiMarked.Checked
+	End Sub
 
-  Private Sub chkEnableMultiIrregular_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiIrregular.CheckedChanged
-    chkMultiIrregular.Enabled = chkEnableMultiIrregular.Checked
-  End Sub
+	Private Sub txtWord_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtWord.TextChanged
+		txtMainEntry.Text = txtWord.Text
+	End Sub
 
-  Private Sub chkEnableMultiWordType_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiWordType.CheckedChanged
-    lstMultiWordType.Enabled = chkEnableMultiWordType.Checked
-  End Sub
+	Private Sub ListView_SizeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles ListView.SizeChanged
+		ListView1.Width = ListView.Width
+	End Sub
 
-  Private Sub chkEnableMultiMainEntry_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMainEntry.CheckedChanged
-    txtMultiMainEntry.Enabled = chkEnableMultiMainEntry.Checked
-  End Sub
+	Private Sub ListView1_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ListView1.SelectedIndexChanged
+		' Zeige ausgewählten Eintrag an
+		'(genauso wie in der anderen Liste)
+		If ListView1.SelectedIndices.Count = 0 Then Exit Sub
+		Dim selectedNode As TreeNode = TreeView.SelectedNode
+		Dim item As ListViewItem = ListView1.Items.Item(ListView1.SelectedIndices.Item(0))
 
-  Private Sub chkEnableMultiMarked_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkEnableMultiMarked.CheckedChanged
-    chkMultiMarked.Enabled = chkEnableMultiMarked.Checked
-  End Sub
+		' Der zugehörige Index des Haupteintrages kann aus der item.Tag Eigenschaft geholt werden
+		Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
+		ShowWordInfo(index)
+
+	End Sub
+
+	Private Sub ShowWordInfo(ByVal Index As Integer)
+		Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, Index)
+		txtMainEntry.Text = voc.GetEntryName(dicEntry.MainIndex)
+		txtPre.Text = dicEntry.Pre
+		txtWord.Text = dicEntry.Word
+		txtPost.Text = dicEntry.Post
+		txtAdditionalTargetLangInfo.Text = dicEntry.AdditionalTargetLangInfo
+		txtMeaning.Text = dicEntry.Meaning
+		chkIrregular.Checked = dicEntry.Irregular
+		lstWordType.SelectedIndex = dicEntry.WordType
+		' Falls Group-Entry ist, muß "markiert" gesetzt werden
+		If IsSubGroupNode() Then
+			Dim groups As New xlsGroups(voc.DBConnection)
+			Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+			chkMarked.Checked = group.GetMarked(Index)
+		End If
+		txtLanguage.Text = voc.GetEntryLanguage(dicEntry.MainIndex)
+		txtMainLanguage.Text = voc.GetEntryMainLanguage(dicEntry.MainIndex)
+	End Sub
+
+	Private Sub cmdChangeWord_Click_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdChangeWord.Click
+		If ListView.SelectedIndices.Count > 1 Then MsgBox("Bitte nur einen Eintrag markieren!") : Exit Sub
+		If ListView.SelectedIndices.Count = 0 Then MsgBox("Sie müssen einen Eintrag markieren") : Exit Sub
+		If ListView1.SelectedIndices.Count > 1 And ListView1.Visible Then MsgBox("Bitte nur einen Eintrag markieren!") : Exit Sub
+		If ListView1.SelectedIndices.Count = 0 And ListView1.Visible Then MsgBox("Sie müssen einen Eintrag markieren") : Exit Sub
+		listUpdate = True
+		If ListView1.Visible Then
+			ChangeWord(ListView1.SelectedIndices.Item(0))
+		Else
+			ChangeWord(ListView.SelectedIndices.Item(0))
+		End If
+	End Sub
+
+	Private Sub cmdAdd_Click_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAdd.Click
+		listUpdate = True
+		Dim deWord As New xlsDictionaryEntry(voc.DBConnection)
+		deWord.LoadNewWord(voc.GetMaxSubEntryIndex + 1)
+		deWord.Pre = txtPre.Text
+		deWord.Word = txtWord.Text
+		deWord.Post = txtPost.Text
+		deWord.Meaning = txtMeaning.Text
+		deWord.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
+		deWord.WordType = lstWordType.SelectedIndex
+		deWord.Irregular = chkIrregular.Checked
+
+		' Versuch, ins Wörterbuch einzufügen
+		Dim language As String
+		Dim mainLanguage As String
+
+		Dim group As xlsGroup = Nothing
+		If IsDictionaryNode() Then
+			language = GetLanguageFromNode()
+			mainLanguage = GetMainLanguageFromNode()
+		ElseIf IsGroupNode() Then
+			group = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+			If group.LanguageCount > 1 Then
+				MsgBox("Zu viele Sprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
+				Exit Sub
+			End If
+			If group.MainLanguageCount > 1 Then	' ob das jemals vorkommen kann?
+				MsgBox("Zu viele Zielsprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
+				Exit Sub
+			End If
+			language = group.GetUniqueLanguage()
+			mainLanguage = group.GetUniqueMainLanguage()
+			If (language = "") Then language = txtLanguage.Text
+			If (mainLanguage = "") Then mainLanguage = txtMainLanguage.Text
+		Else
+			MsgBox("Eintrag kann nicht hinzugefügt werden.", MsgBoxStyle.Exclamation, "Error")
+			Exit Sub
+		End If
+
+		If (txtMainEntry.Text = "") Then txtMainEntry.Text = txtWord.Text
+		If language = "" Or mainLanguage = "" Then
+			MsgBox("Bitte geben sie eine Sprache und eine Hauptsprache an.", MsgBoxStyle.Exclamation, "Error")
+			Exit Sub
+		End If
+		Try
+			voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+		Catch ex As xlsExceptionEntryExists
+			' Existiert schon, nix zu tun, index feststellen
+		Catch ex As xlsExceptionEntryNotFound
+			' Haupteintrag nicht vorhanden
+			Dim res As MsgBoxResult = MsgBox("Der Haupteintrag '" & txtMainEntry.Text & "' ist für die gewählten Sprachen '" & mainLanguage & "' und '" & language & "' nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
+			If res = MsgBoxResult.Yes Then
+				Try
+					voc.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
+				Catch ex2 As xlsExceptionInput
+					MsgBox(ex2.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
+				End Try
+				' Untereintrag hinzufügen
+				Try
+					voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+				Catch ex2 As Exception
+					MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
+				End Try
+			Else
+				Exit Sub
+			End If
+		Catch ex As Exception	'System.Data.OleDb.OleDbException
+			'ErrorCode = -2147467259
+			MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
+		End Try
+		deWord.MainIndex = voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage)
+		deWord.FindCorrectWordIndex()	' aktualisieren, falls schon vorhanden war!
+
+		' Müsste im Wörterbuch sein, füge nun in die Gruppe ein
+		If IsSubGroupNode() And Me.chkAddToGroup.Checked Then	' hinzufügen für subgroup und tiefer
+			' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
+			Dim subIndex As Integer = voc.GetSubEntryIndex(deWord.MainIndex, deWord.Word, deWord.Meaning)
+			' TODO example
+			group.Add(subIndex, chkMarked.Checked, "")
+		End If
+
+		If (IsGroupNode() And chkMarked.Checked) Or IsDictionaryNode() Then AddEntryToList(deWord)
+
+		' Anzeige aktualisieren
+		txtMainEntry.SelectAll()
+		txtPre.Focus()
+		txtAdditionalTargetLangInfo.SelectAll()
+		txtMeaning.SelectAll()
+		txtPost.SelectAll()
+		txtPre.SelectAll()
+		txtWord.SelectAll()
+	End Sub
 End Class
+

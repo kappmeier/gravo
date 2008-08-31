@@ -1,5 +1,5 @@
 Imports System.Windows.Forms
-Imports Gravo2k7.localization
+Imports Gravo2k8.localization
 
 Public Class Main
   Dim programSettings As Settings

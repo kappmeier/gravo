@@ -18,15 +18,15 @@ Public Class Info
         lblDBVersion.Text = "DB-Version: " & man.DatabaseVersionNeeded
     End Sub
 
-  Public Overrides Sub LocalizationChanged()
+    Public Overrides Sub LocalizationChanged()
 
-  End Sub
+    End Sub
 
-  Private Sub chkGermanText_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkGermanText.CheckedChanged
-    If chkGermanText.Checked = True Then
+    Private Sub chkGermanText_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkGermanText.CheckedChanged
+        If chkGermanText.Checked = True Then
             lblDisclaimer.Text = "Das Arbeiten mit dieser Version von " & Application.ProductName & " sollte problemlos möglich sein, dennoch können noch kleinere Fehler auftreten. Wir emfehlen nach jeder Vokabeleingabe die Datenbank zu sichern und keine Änderungen an der Datenbank manuell durchzufüren. Diese Software wird vertrieben ""wie sie ist"", wir sind nicht verantwortlich für das, was durch Benutzung dieser Software geschieht, noch kann die Funktionsfähigkeit dieser Software garantiert werden."
-            lblCopyrightOld.Text = "basiert auf Vokabeltrainer, ©opyleft 1995-" & Now.Year
-    Else
+            lblCopyrightOld.Text = "basiert auf Vokabeltrainer, ©opyleft 1995-2007"
+        Else
             lblDisclaimer.Text = "Working with this version of " & Application.ProductName & " should be possible without problems, however, some smaller errors could occur. We recommend to save your database whenever you've added some vocabulary and to not change the database manually. This software is distributed ""as is"", we are neither responisble for anything that happens using this software nor responsible for the correct function of this piece of software."
             lblCopyrightOld.Text = "based on Vokabeltrainer, ©opyleft 1995-2007"
         End If

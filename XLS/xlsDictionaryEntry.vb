@@ -1,4 +1,4 @@
-Imports Gravo2k7.AccessDatabaseOperation
+Imports Gravo2k8.AccessDatabaseOperation
 
 ' Diese Klasse enthält alle Worteigenschaften, die für das Anzeigen des Wortverzeichnisses benötigt werden.
 ' Informationen über irreguläre Formen oder Gruppen/Unit/Abfrage sind nicht enthalten.

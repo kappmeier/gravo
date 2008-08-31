@@ -41,6 +41,7 @@ Public Class Settings
         ' Versuche den Key zu laden, wenn das nicht geht setzte "insalled" auf false
         key = reg.CurrentUser.OpenSubKey("Software\Gravo")
         If key Is Nothing Then
+            ' Gravo Unterschlüssel existiert nicht. Software muß ja existieren ^^
             key = reg.CurrentUser.OpenSubKey("Software", True)
             key.CreateSubKey("Gravo")
         End If

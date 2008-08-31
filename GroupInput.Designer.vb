@@ -1,6 +1,6 @@
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class GroupInput
-  Inherits Gravo2k7.MDIChild
+    Inherits Gravo2k8.MDIChild
 
   'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
   <System.Diagnostics.DebuggerNonUserCode()> _
