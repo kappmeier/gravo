@@ -1,6 +1,6 @@
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class VocabularyExplorer
-  Inherits Gravo2k8.MDIChild
+	Inherits Gravo2k9.MDIChild
 
   'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
   <System.Diagnostics.DebuggerNonUserCode()> _
@@ -694,7 +694,7 @@ Partial Class VocabularyExplorer
 		'
 		Me.PanelsMenu.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PanelViewDefaultMenuItem, Me.PanelViewInputMenuItem, Me.PanelViewMultiMenuItem, Me.PanelViewSearchMenuItem})
 		Me.PanelsMenu.Name = "PanelsMenu"
-		Me.PanelsMenu.Size = New System.Drawing.Size(53, 20)
+		Me.PanelsMenu.Size = New System.Drawing.Size(50, 20)
 		Me.PanelsMenu.Text = "Panels"
 		'
 		'PanelViewDefaultMenuItem
@@ -704,28 +704,28 @@ Partial Class VocabularyExplorer
 		Me.PanelViewDefaultMenuItem.Name = "PanelViewDefaultMenuItem"
 		Me.PanelViewDefaultMenuItem.ShortcutKeyDisplayString = ""
 		Me.PanelViewDefaultMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.D), System.Windows.Forms.Keys)
-		Me.PanelViewDefaultMenuItem.Size = New System.Drawing.Size(196, 22)
+		Me.PanelViewDefaultMenuItem.Size = New System.Drawing.Size(192, 22)
 		Me.PanelViewDefaultMenuItem.Text = "Default"
 		'
 		'PanelViewInputMenuItem
 		'
 		Me.PanelViewInputMenuItem.Name = "PanelViewInputMenuItem"
 		Me.PanelViewInputMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.I), System.Windows.Forms.Keys)
-		Me.PanelViewInputMenuItem.Size = New System.Drawing.Size(196, 22)
+		Me.PanelViewInputMenuItem.Size = New System.Drawing.Size(192, 22)
 		Me.PanelViewInputMenuItem.Text = "Wort-Eingabe"
 		'
 		'PanelViewMultiMenuItem
 		'
 		Me.PanelViewMultiMenuItem.Name = "PanelViewMultiMenuItem"
 		Me.PanelViewMultiMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.M), System.Windows.Forms.Keys)
-		Me.PanelViewMultiMenuItem.Size = New System.Drawing.Size(196, 22)
+		Me.PanelViewMultiMenuItem.Size = New System.Drawing.Size(192, 22)
 		Me.PanelViewMultiMenuItem.Text = "Multi-Eingabe"
 		'
 		'PanelViewSearchMenuItem
 		'
 		Me.PanelViewSearchMenuItem.Name = "PanelViewSearchMenuItem"
 		Me.PanelViewSearchMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.F), System.Windows.Forms.Keys)
-		Me.PanelViewSearchMenuItem.Size = New System.Drawing.Size(196, 22)
+		Me.PanelViewSearchMenuItem.Size = New System.Drawing.Size(192, 22)
 		Me.PanelViewSearchMenuItem.Text = "Suchen"
 		'
 		'VocabularyExplorer

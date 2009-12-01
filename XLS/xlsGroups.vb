@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k8.AccessDatabaseOperation
+Imports Gravo2k9.AccessDatabaseOperation
 
 Public Class xlsGroups
   Inherits xlsBase
@@ -227,4 +227,33 @@ Public Class xlsGroups
 		Next table
 		Return usedLanguages
 	End Function
+
+	''
+	' Swaps two subgroup of a group. The groups change their position in the ordering of subgroups
+	' for the given group.
+	'
+	Public Sub SwapGroups(ByVal groupName As String, ByVal groupSubName1 As String, ByVal groupSubName2 As String)
+		Dim command As String = ""
+		Dim grp As xlsGroup
+
+		' Holen der Daten
+		grp = GetGroup(groupName, groupSubName1)
+		Dim index1 As Integer = grp.Index
+		Dim table1 As String = grp.GroupTable
+
+		grp = GetGroup(groupName, groupSubName2)
+		Dim index2 As Integer = grp.Index
+		Dim table2 As String = grp.GroupTable
+
+		' Schreiben der Daten
+		command = "UPDATE Groups SET [GroupSubName]=" & GetDBEntry(groupSubName2 & "_") & ", [GroupTable]=" & GetDBEntry(table2 & "_") & " WHERE [Index]=" & index1 & ";"
+		DBConnection.ExecuteNonQuery(command)
+
+		command = "UPDATE Groups SET [GroupSubName]=" & GetDBEntry(groupSubName1) & ", [GroupTable]=" & GetDBEntry(table1) & " WHERE [Index]=" & index2 & ";"
+		DBConnection.ExecuteNonQuery(command)
+
+		command = "UPDATE Groups SET [GroupSubName]=" & GetDBEntry(groupSubName2) & ", [GroupTable]=" & GetDBEntry(table2) & " WHERE [Index]=" & index1 & ";"
+		DBConnection.ExecuteNonQuery(command)
+	End Sub
+
 End Class

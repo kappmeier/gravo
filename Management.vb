@@ -56,6 +56,9 @@ Public Class Management
 
   ' Lokalisierung
   Public Overrides Sub LocalizationChanged()
+		Me.cmdUnitUp.Text = GetLoc().GetText(GetLoc.UP)
+
+
 
   End Sub
 
@@ -404,4 +407,20 @@ Public Class Management
       cmdDBVersion.Enabled = True
     End If
   End Sub
+
+	''
+	' Moves the selected unit one position up. If the unit is the last one, nothing happens.
+	'
+	Private Sub cmdUnitUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitUp.Click
+		If (lstUnitList.SelectedIndex = 0) Then Exit Sub
+		grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex - 1))
+	End Sub
+
+	''
+	' Moves the selected unit one position down. If the unit is the last one, nothing happens.
+	'
+	Private Sub cmdUnitDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitDown.Click
+		If (lstUnitList.SelectedIndex = lstUnitList.Items.Count - 1) Then Exit Sub
+		grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex + 1))
+	End Sub
 End Class

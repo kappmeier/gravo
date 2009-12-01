@@ -1,7 +1,7 @@
 Module _Definitions
-  Public AppVersionLong As String = "2k7-Edition"
-  Public AppVersionShort As String = "2k7"
-  Public AppTitleLong As String = Application.ProductName & " - " & Application.CompanyName & " Sprachtrainer"
+	Public AppVersionLong As String = "2k9-Edition"
+	Public AppVersionShort As String = "2k9"
+    Public AppTitleLong As String = Application.ProductName & " Sprachtrainer"
   Public AppTitleShort As String = Application.ProductName
 
   Public DBPath As String = Application.StartupPath() & "\voc.mdb"

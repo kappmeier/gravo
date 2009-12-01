@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k8.AccessDatabaseOperation
+Imports Gravo2k9.AccessDatabaseOperation
 
 Public Class xlsGroup
   Inherits xlsBase
@@ -235,5 +235,16 @@ Public Class xlsGroup
 			Dim command As String = "UPDATE Groups SET GroupSubName=" & GetDBEntry(value) & " WHERE GroupName=" & GetDBEntry(GroupName) & " AND GroupSubName=" & GetDBEntry(GroupSubName) & ";"
 			DBConnection.ExecuteNonQuery(command)
 		End Set
+	End Property
+
+	Public ReadOnly Property Index() As Integer
+		Get
+			Dim command As String = "SELECT [Index] FROM Groups WHERE GroupTable=" & GetDBEntry(GroupTable) & ";"
+			DBConnection.ExecuteReader(command)
+			DBConnection.DBCursor.Read()
+			Dim ret As Integer = DBConnection.SecureGetInt32(0)
+			DBConnection.DBCursor.Close()
+			Return ret
+		End Get
 	End Property
 End Class
