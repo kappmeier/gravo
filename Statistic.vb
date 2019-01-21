@@ -1,6 +1,6 @@
 Public Class Statistic
-  Public Overrides Sub LocalizationChanged()
+    Public Overrides Sub LocalizationChanged()
 
-  End Sub
+    End Sub
 
 End Class

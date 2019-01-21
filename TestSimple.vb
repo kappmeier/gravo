@@ -1,4 +1,4 @@
-Imports Gravo2k9.localization
+Imports Gravo.localization
 
 Public Class TestSimple
   Dim voc As xlsTestBase

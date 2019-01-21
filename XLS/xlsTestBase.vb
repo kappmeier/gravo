@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k9.AccessDatabaseOperation
+Imports Gravo.AccessDatabaseOperation
 
 Public Enum TestResult
   NoError
@@ -19,12 +19,12 @@ End Enum
 Public Class xlsTestBase
   Inherits xlsBase
 
-  ' Wörter, die abgefragt werden sollen
-  Private testWords As Collection(Of Integer)
-  Private nextWords As Collection(Of Integer)
+    ' Wörter, die abgefragt werden sollen
+    Private testWords As Collection(Of Integer) = New Collection(Of Integer)
+    Private nextWords As Collection(Of Integer) = New Collection(Of Integer)
 
-  ' Abfragedetails, wie oft, welches Wort usw.
-  Protected firstTest As Boolean = True        ' gibt an, ob _zwischen zwei NextWord()_ aufrufen das wort zum ersten mal geprüft wird,
+    ' Abfragedetails, wie oft, welches Wort usw.
+    Protected firstTest As Boolean = True        ' gibt an, ob _zwischen zwei NextWord()_ aufrufen das wort zum ersten mal geprüft wird,
   Protected firstRun As Boolean = True
   Private deleted As Boolean
   Private iTestIndex As Integer
@@ -287,14 +287,15 @@ Public Class xlsTestBase
     End Set
   End Property
 
-  ' Ausgaben für das Wort
-  ReadOnly Property AdditionalInfo() As String
-    Get
-      Return TestDictionaryEntry.AdditionalTargetLangInfo
-    End Get
-  End Property
+    ' Ausgaben für das Wort
+    ReadOnly Property AdditionalInfo() As String
+        Get
+            If TestDictionaryEntry Is Nothing Then Return ""
+            Return TestDictionaryEntry.AdditionalTargetLangInfo
+        End Get
+    End Property
 
-  ReadOnly Property TestWord() As String
+    ReadOnly Property TestWord() As String
     Get
       If TestDictionaryEntry Is Nothing Then Return ""
       If TestFormerLanguage Then

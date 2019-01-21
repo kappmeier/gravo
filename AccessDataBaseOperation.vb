@@ -87,10 +87,11 @@ Public Class AccessDatabaseOperation
     'ReOpen()
     If Not oleCursor Is Nothing Then oleCursor.Close()
     oledbCmd.CommandText = CommandText
-    Try
-      oleCursor = oledbCmd.ExecuteReader()
-    Catch e As Exception
-      Throw e
+
+        Try
+            oleCursor = oledbCmd.ExecuteReader()
+        Catch e As Exception
+            Throw e
     End Try
     Return oleCursor
   End Function

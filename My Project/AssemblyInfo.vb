@@ -8,11 +8,11 @@ Imports System.Runtime.InteropServices
 
 ' Die Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("Gravo 2k9")> 
-<Assembly: AssemblyDescription("Universeller Sprachtrainer für verschiedene Sprachen. Vokabeln und Grammatik trainieren, inklusive Wörterbuch.")> 
-<Assembly: AssemblyCompany("Jan-Philipp Kappmeier")> 
-<Assembly: AssemblyProduct("Gravo 2k9")> 
-<Assembly: AssemblyCopyright("©opyleft by Jan-Philipp Kappmeier 1995-2009")> 
+<Assembly: AssemblyTitle("Gravo")>
+<Assembly: AssemblyDescription("Universeller Sprachtrainer für verschiedene Sprachen. Vokabeln und Grammatik trainieren, inklusive Wörterbuch.")>
+<Assembly: AssemblyCompany("Kap")>
+<Assembly: AssemblyProduct("Gravo")>
+<Assembly: AssemblyCopyright("© Jan-Philipp Kappmeier 1995-2009")>
 <Assembly: AssemblyTrademark("Gravo")> 
 
 <Assembly: ComVisible(False)>

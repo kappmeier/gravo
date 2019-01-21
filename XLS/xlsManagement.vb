@@ -1,5 +1,5 @@
 Imports System.Collections.ObjectModel
-Imports Gravo2k9.AccessDatabaseOperation
+Imports Gravo.AccessDatabaseOperation
 
 Public Class xlsManagement
   Inherits xlsBase

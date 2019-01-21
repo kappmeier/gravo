@@ -1,4 +1,4 @@
-Imports Gravo2k9.AccessDatabaseOperation
+Imports Gravo.AccessDatabaseOperation
 
 Public Class xlsCard
   Inherits xlsBase
