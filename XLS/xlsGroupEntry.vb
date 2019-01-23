@@ -8,16 +8,16 @@ Public Class xlsGroupEntry
   Dim m_sSubName As String = ""
   Dim m_sTable As String = ""
 
-  Sub New(ByVal db As AccessDatabaseOperation, ByVal Index As Integer)
-    MyBase.new(db)
-    LoadGroup(Index)
-  End Sub
+    Sub New(ByVal db As DataBaseOperation, ByVal Index As Integer)
+        MyBase.New(db)
+        LoadGroup(Index)
+    End Sub
 
-  Sub New(ByVal db As AccessDatabaseOperation)
-    MyBase.New(db)
-  End Sub
+    Sub New(ByVal db As DataBaseOperation)
+        MyBase.New(db)
+    End Sub
 
-  Public Sub LoadGroup(ByVal Index As Integer)
+    Public Sub LoadGroup(ByVal Index As Integer)
     m_index = Index
     LoadGroup(False)
   End Sub

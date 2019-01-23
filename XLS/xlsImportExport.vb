@@ -16,11 +16,11 @@ Public Class xlsImportExport
     MyBase.New()
   End Sub
 
-  Sub New(ByVal db As AccessDatabaseOperation)    ' Keinen Speziellen Table auswählen
+  Sub New(ByVal db as DatabaseOperation)    ' Keinen Speziellen Table auswählen
     MyBase.New(db)
   End Sub
 
-  Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource As AccessDatabaseOperation)
+  Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource as DatabaseOperation)
     Dim grp As New xlsGroups()
     Dim newdic As New xlsDictionary()
     newdic.DBConnection = dbSource
@@ -72,7 +72,7 @@ Public Class xlsImportExport
     Next groupEntry
   End Sub
 
-  Public Sub ExportLanguage(ByVal Language As String, ByVal MainLanguage As String, ByVal dbSource As AccessDatabaseOperation)
+  Public Sub ExportLanguage(ByVal Language As String, ByVal MainLanguage As String, ByVal dbSource as DatabaseOperation)
     ' sichern der Main-Einträge
     Dim command As String
     If ExportEmptyEntrys Then
@@ -137,7 +137,7 @@ Public Class xlsImportExport
     End Set
   End Property
 
-  Public Sub ImportDictionary(ByVal mainLanguage As String, ByVal dbSource As AccessDatabaseOperation)
+  Public Sub ImportDictionary(ByVal mainLanguage As String, ByVal dbSource as DatabaseOperation)
     Dim dicImport As New xlsDictionary(dbSource)
     Dim dic As New xlsDictionary(DBConnection)
     ImportedMainEntrys = 0
@@ -173,7 +173,7 @@ Public Class xlsImportExport
     Next language
   End Sub
 
-  Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource As AccessDatabaseOperation)
+  Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource as DatabaseOperation)
     Dim dicImport As New xlsDictionary(dbSource)
     Dim dic As New xlsDictionary(DBConnection)
     Dim groupsImport As New xlsGroups(dbSource)

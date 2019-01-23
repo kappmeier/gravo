@@ -9,7 +9,7 @@ Public Class xlsGroups
     MyBase.New()
   End Sub
 
-  Sub New(ByVal db As AccessDatabaseOperation)    ' Keinen Speziellen Table auswählen
+  Sub New(ByVal db as DatabaseOperation)    ' Keinen Speziellen Table auswählen
     MyBase.New(db)
   End Sub
 

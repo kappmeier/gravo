@@ -13,7 +13,7 @@ Public Class xlsDBPropertys
     MyBase.New()
   End Sub
 
-  Public Sub New(ByRef db As AccessDatabaseOperation)
+  Public Sub New(ByRef db as DatabaseOperation)
     MyBase.New(db)
   End Sub
 

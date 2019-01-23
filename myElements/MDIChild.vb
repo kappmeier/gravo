@@ -1,4 +1,3 @@
-'Public MustInherit Class MDIChild
 Public Class MDIChild
   Dim frmParent As Main
 

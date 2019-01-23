@@ -1,6 +1,6 @@
 Public Class localizationBase
     ' Datenbank-Anbindung
-    Private m_DBConnection As AccessDatabaseOperation
+    Private m_DBConnection as DatabaseOperation
 
     ' Klassenzustände
     Private m_bConnected As Boolean = False  ' mit der Datenbank verbunden
@@ -9,16 +9,16 @@ Public Class localizationBase
         m_bConnected = False
     End Sub
 
-    Sub New(ByVal db As AccessDatabaseOperation)    ' Keinen Speziellen Table auswählen
+    Sub New(ByVal db as DatabaseOperation)    ' Keinen Speziellen Table auswählen
         m_bConnected = True
         m_DBConnection = db
     End Sub
 
-    Public Property DBConnection() As AccessDatabaseOperation
+    Public Property DBConnection() as DatabaseOperation
         Get
             Return m_DBConnection
         End Get
-        Set(ByVal DB As AccessDatabaseOperation)
+        Set(ByVal DB as DatabaseOperation)
             If m_bConnected Then m_DBConnection.Close()
             m_DBConnection = DB
             ' testen, ob die datenbank das richtige format hat

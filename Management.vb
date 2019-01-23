@@ -218,7 +218,7 @@ Public Class Management
 
     Private Sub cmdDataSelectSaveDB_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImortSelectDB.Click
         Dim res As DialogResult = dlgImport.ShowDialog(Me)
-        Dim db As AccessDatabaseOperation
+        Dim db as DatabaseOperation
         If res = Windows.Forms.DialogResult.OK Then
             db = New AccessDatabaseOperation()
             Try ' Testweise öffnen
@@ -254,7 +254,7 @@ Public Class Management
         End If
 
         Dim res As DialogResult = dlgExport.ShowDialog(Me)
-        Dim db As AccessDatabaseOperation
+        Dim db as DatabaseOperation
         If res = Windows.Forms.DialogResult.OK Then
             db = New AccessDatabaseOperation()
             Try

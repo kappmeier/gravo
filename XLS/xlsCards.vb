@@ -11,11 +11,11 @@ Public Class xlsCards
         MyBase.New()
     End Sub
 
-    Public Sub New(ByVal db As AccessDatabaseOperation)
+    Public Sub New(ByVal db as DatabaseOperation)
         MyBase.New(db)
     End Sub
 
-    Public Sub New(ByRef testFormerLanguage As Boolean, ByVal db As AccessDatabaseOperation)
+    Public Sub New(ByRef testFormerLanguage As Boolean, ByVal db as DatabaseOperation)
         MyBase.New(db)
         m_testFormerLanguage = testFormerLanguage
         If m_testFormerLanguage Then

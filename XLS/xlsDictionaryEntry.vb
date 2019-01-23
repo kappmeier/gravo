@@ -18,12 +18,12 @@ Public Class xlsDictionaryEntry
   Private m_irregular As Boolean
   'Private m_marked As Boolean                     ' Wort markiert? z.b. rezeptiver Wortschatz etc.
 
-  Sub New(ByVal db As AccessDatabaseOperation, ByVal Index As Integer)
+  Sub New(ByVal db as DatabaseOperation, ByVal Index As Integer)
     MyBase.new(db)
     LoadWord(Index)
   End Sub
 
-  Sub New(ByVal db As AccessDatabaseOperation)
+  Sub New(ByVal db as DatabaseOperation)
     MyBase.New(db)
   End Sub
 
