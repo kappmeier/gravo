@@ -67,7 +67,7 @@ Public Class AccessDatabaseOperation
         Return ExecuteNonQuery(m_command)
     End Function
 
-    Public Function ExecuteReader(ByVal DBPath As String, ByVal CommandText As String) As OleDbDataReader Implements DataBaseOperation.ExecuteReader
+    Public Function ExecuteReader(ByVal DBPath As String, ByVal CommandText As String) As OleDbDataReader
         m_command = CommandText
         If bInit Then Close()
         Open(DBPath)
@@ -110,7 +110,7 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
-    Public Sub CloseReader() Implements DataBaseOperation.CloseReader
+    Public Sub CloseReader() Implements DataBaseOperation.CloseReader 
         If Not oleCursor Is Nothing Then oleCursor.Close()
     End Sub
 
