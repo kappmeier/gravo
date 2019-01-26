@@ -405,19 +405,27 @@ Public Class Management
         End If
     End Sub
 
-    ''
-    ' Moves the selected unit one position up. If the unit is the last one, nothing happens.
-    '
+    ''' <summary>
+    ''' Moves the selected unit one position up. If the unit is the last one, nothing happens.
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub cmdUnitUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitUp.Click
         If (lstUnitList.SelectedIndex = 0) Then Exit Sub
         grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex - 1))
     End Sub
 
-    ''
-    ' Moves the selected unit one position down. If the unit is the last one, nothing happens.
-    '
+    ''' <summary>
+    ''' Moves the selected unit one position down. If the unit is the last one, nothing happens.
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
     Private Sub cmdUnitDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitDown.Click
         If (lstUnitList.SelectedIndex = lstUnitList.Items.Count - 1) Then Exit Sub
         grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex + 1))
+    End Sub
+
+    Private Sub tabGroup_Click(sender As Object, e As EventArgs) Handles tabGroup.Click
+
     End Sub
 End Class
