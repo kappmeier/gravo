@@ -1,5 +1,5 @@
+Imports System.Data.Common
 Imports System.Data.OleDb
-Imports Gravo
 
 Public Class AccessDatabaseOperation
     Implements DataBaseOperation
@@ -67,7 +67,7 @@ Public Class AccessDatabaseOperation
         Return ExecuteNonQuery(m_command)
     End Function
 
-    Public Function ExecuteReader(ByVal DBPath As String, ByVal CommandText As String) As OleDbDataReader
+    Public Function ExecuteReader(ByVal DBPath As String, ByVal CommandText As String) As DbDataReader
         m_command = CommandText
         If bInit Then Close()
         Open(DBPath)
@@ -80,7 +80,7 @@ Public Class AccessDatabaseOperation
         Return oleCursor
     End Function
 
-    Public Function ExecuteReader(ByVal CommandText As String) As OleDbDataReader Implements DataBaseOperation.ExecuteReader
+    Public Function ExecuteReader(ByVal CommandText As String) As DbDataReader Implements DataBaseOperation.ExecuteReader
         m_command = CommandText
 
         If oledbConnect.State <> ConnectionState.Open Then MsgBox("Database is not open")
@@ -98,7 +98,7 @@ Public Class AccessDatabaseOperation
         Return oleCursor
     End Function
 
-    Public Function ExecuteReader() As OleDbDataReader
+    Public Function ExecuteReader() As DbDataReader
         Return ExecuteReader(m_command)
     End Function
 
@@ -110,7 +110,7 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
-    Public Sub CloseReader() Implements DataBaseOperation.CloseReader 
+    Public Sub CloseReader() Implements DataBaseOperation.CloseReader
         If Not oleCursor Is Nothing Then oleCursor.Close()
     End Sub
 
@@ -191,8 +191,7 @@ Public Class AccessDatabaseOperation
         If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return "" Else Return oleCursor.GetDateTime(Index)
     End Function
 
-    Public Function DBCursor() As OleDbDataReader Implements DataBaseOperation.DBCursor
-
+    Public Function DBCursor() As DbDataReader Implements DataBaseOperation.DBCursor
         Return oleCursor
     End Function
 

@@ -83,7 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="data\DataBaseOperation.vb" />
+    <Compile Include="data\SQLiteDataBaseOperation.vb" />
     <Compile Include="Languages\localizationBase.vb" />
+    <Compile Include="Languages\LanguageConversion.vb" />
     <Compile Include="myElements\myMenu.vb">
       <SubType>Component</SubType>
     </Compile>

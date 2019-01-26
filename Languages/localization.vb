@@ -195,6 +195,10 @@ Public Class localization
         End Select
     End Function
 
+    ''' <summary>
+    ''' Returns a list of unique names for available language sets.
+    ''' </summary>
+    ''' <returns>The list of unique names of languages.</returns>
     Public Function GetLanguageNames() As Collection(Of String)
         Dim languages As New Collection(Of String)
         Dim command As String = "SELECT [Name] FROM [languages] ORDER BY [Name];"
@@ -208,12 +212,68 @@ Public Class localization
         Return languages
     End Function
 
-    Public Sub SwitchToLanguage(ByVal name As String)
-        Dim command As String = "SELECT [Language] FROM [languages] WHERE [Name] = " & AccessDatabaseOperation.GetDBEntry(name) & ";"
+    ''' <summary>
+    ''' Retrieves the current version of a language set from the database.
+    ''' </summary>
+    ''' <param name="LanguageName">The language identifier</param>
+    ''' <returns>The version as stored in the language database.</returns>
+    Public Function GetVersionFor(LanguageName As String) As String
+        Return GetFieldFor(LanguageName, "Version")
+    End Function
+
+    ''' <summary>
+    ''' Retrieves the date of a language set from the database.
+    ''' </summary>
+    ''' <param name="LanguageName">The language identifier</param>
+    ''' <returns>The author as stored in the language database.</returns>
+    Public Function GetDateFor(LanguageName As String) As String
+        Dim command As String = "SELECT [Date] FROM [languages] WHERE [Name] = " & AccessDatabaseOperation.GetDBEntry(LanguageName) & ";"
         DBConnection.ExecuteReader(command)
         If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
         DBConnection.DBCursor.Read()
-        Language = DBConnection.SecureGetString(0)
+        Dim value = DBConnection.SecureGetDateTime(0)
         DBConnection.DBCursor.Close()
+        Return value.ToString
+    End Function
+
+    ''' <summary>
+    ''' Retrieves the author of a language set from the database.
+    ''' </summary>
+    ''' <param name="LanguageName">The language identifier</param>
+    ''' <returns>The author as stored in the language database.</returns>
+    Public Function GetAuthorFor(LanguageName As String) As String
+        Return GetFieldFor(LanguageName, "Author")
+    End Function
+
+    ''' <summary>
+    ''' Returns the language of the given language identifier.
+    ''' </summary>
+    ''' <param name="LanguageName">The language identifier</param>
+    ''' <returns></returns>
+    Public Function GetLanguageFor(LanguageName As String) As String
+        Return GetFieldFor(LanguageName, "Language")
+    End Function
+
+    ''' <summary>
+    ''' Returns the name of the database table containing the data for a given language.
+    ''' </summary>
+    ''' <param name="LanguageName">The language identifier</param>
+    ''' <returns>The table name.</returns>
+    Public Function GetTableFor(LanguageName As String) As String
+        Return GetFieldFor(LanguageName, "Table")
+    End Function
+
+    Private Function GetFieldFor(LanguageName As String, Field As String) As String
+        Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & AccessDatabaseOperation.GetDBEntry(LanguageName) & ";"
+        DBConnection.ExecuteReader(command)
+        If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
+        DBConnection.DBCursor.Read()
+        Dim value = DBConnection.SecureGetString(0)
+        DBConnection.DBCursor.Close()
+        Return value
+    End Function
+
+    Public Sub SwitchToLanguage(ByVal name As String)
+        Language = GetTableFor(name)
     End Sub
 End Class

@@ -1,4 +1,5 @@
-﻿Imports System.Data.OleDb
+﻿Imports System.Data.Common
+Imports System.Data.OleDb
 
 ''' <summary>
 ''' A wrapper that allows to open a database, perform SQL queries and retrieve values.
@@ -36,13 +37,13 @@ Public Interface DataBaseOperation
     ''' </summary>
     ''' <param name="CommandText">the command text</param>
     ''' <returns>The cursor to the reader with the results of the query.</returns>
-    Function ExecuteReader(ByVal CommandText As String) As OleDbDataReader
+    Function ExecuteReader(ByVal CommandText As String) As DbDataReader
 
     ''' <summary>
     ''' Returns the cursor to the last query.
     ''' </summary>
     ''' <returns>The cursor.</returns>
-    Function DBCursor() As OleDbDataReader
+    Function DBCursor() As DbDataReader
 
     ''' <summary>
     ''' Closes the current reader.
