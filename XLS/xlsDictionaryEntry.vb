@@ -39,8 +39,8 @@ Public Class xlsDictionaryEntry
 
   Private Sub LoadWord(ByVal newWord As Boolean)
     If IsConnected() = False Then Throw New Exception("Datenbank nicht verbunden.")
-    Dim command As String = "SELECT MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular FROM DictionaryWords WHERE Index = " & WordIndex & ";"
-    DBConnection.ExecuteReader(command)
+        Dim command As String = "SELECT MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular FROM DictionaryWords WHERE [Index] = " & WordIndex & ";"
+        DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows = False Then
       If newWord Then
         ' neues wort, eintrag kann also nicht existieren
@@ -81,8 +81,8 @@ Public Class xlsDictionaryEntry
       DBConnection.DBCursor.Read()
       If DBConnection.SecureGetInt32(0) <> WordIndex Then Throw New xlsExceptionEntryExists("Entry '" & Word & "' exists with index " & DBConnection.SecureGetInt32(0) & ".")
     End If
-    command = "UPDATE DictionaryWords SET MainIndex=" & MainIndex & ", Word=" & GetDBEntry(Word) & ", Pre=" & GetDBEntry(Pre) & ", Post=" & GetDBEntry(Post) & ", WordType=" & WordType & ", Meaning=" & GetDBEntry(Meaning) & ", TargetLanguageInfo=" & GetDBEntry(AdditionalTargetLangInfo) & ", Irregular=" & GetDBEntry(Irregular) & " WHERE Index = " & WordIndex & ";"
-    DBConnection.ExecuteNonQuery(command)
+        command = "UPDATE DictionaryWords SET MainIndex=" & MainIndex & ", Word=" & GetDBEntry(Word) & ", Pre=" & GetDBEntry(Pre) & ", Post=" & GetDBEntry(Post) & ", WordType=" & WordType & ", Meaning=" & GetDBEntry(Meaning) & ", TargetLanguageInfo=" & GetDBEntry(AdditionalTargetLangInfo) & ", Irregular=" & GetDBEntry(Irregular) & " WHERE [Index] = " & WordIndex & ";"
+        DBConnection.ExecuteNonQuery(command)
   End Sub
 
   Public Sub FindCorrectWordIndex()

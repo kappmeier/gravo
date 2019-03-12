@@ -78,7 +78,7 @@ Public Class xlsImportExport
         If ExportEmptyEntrys Then
             command = "SELECT WordEntry FROM DictionaryMain WHERE LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & " ORDER BY WordEntry;"
         Else
-            command = "SELECT DISTINCT M.WordEntry FROM DictionaryMain AS M, DictionaryWords AS W WHERE LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " AND W.MainIndex=M.Index ORDER BY M.WordEntry;"
+            command = "SELECT DISTINCT M.WordEntry FROM DictionaryMain AS M, DictionaryWords AS W WHERE LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " AND W.MainIndex=M.[Index] ORDER BY M.WordEntry;"
         End If
         DBConnection.ExecuteReader(command)
         ' Sichern in die neue Datenbank
@@ -90,13 +90,13 @@ Public Class xlsImportExport
         DBConnection.CloseReader()
 
         ' Sichern der Word-Einträge
-        command = "SELECT M.WordEntry, W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo FROM DictionaryMain AS M, DictionaryWords AS W WHERE W.MainIndex=M.Index AND M.LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " ORDER BY M.WordEntry, W.Word, W.Meaning"
+        command = "SELECT M.WordEntry, W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo FROM DictionaryMain AS M, DictionaryWords AS W WHERE W.MainIndex=M.[Index] AND M.LanguageName=" & GetDBEntry(Language) & " AND M.MainLanguage=" & GetDBEntry(MainLanguage) & " ORDER BY M.WordEntry, W.Word, W.Meaning"
         DBConnection.ExecuteReader(command)
         ' Speichern in neuer Datenbank
         Dim firstNewIndex As Integer = -1
         While DBConnection.DBCursor.Read()
             ' Holen des Haupteintrages der neuen Datenbank
-            command = "SELECT Index FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(DBConnection.SecureGetString(0)) & " AND LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & ";"
+            command = "SELECT [Index] FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(DBConnection.SecureGetString(0)) & " AND LanguageName=" & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage) & ";"
             dbSource.ExecuteReader(command)
             dbSource.DBCursor.Read()
             Dim newMainIndex As Integer = dbSource.SecureGetInt32(0)
@@ -105,15 +105,15 @@ Public Class xlsImportExport
             dbSource.ExecuteNonQuery(command)
             ' Erzeugen der Cards-Einträge
             ' erzeuge für jeden Eintrag in der neuen Datenbank einen Stat-Eintrag
-            command = "SELECT Index FROM DictionaryWords WHERE MainIndex=" & newMainIndex & " AND Word=" & GetDBEntry(DBConnection.SecureGetString(1)) & " AND Meaning=" & GetDBEntry(DBConnection.SecureGetString(5)) & ";"
+            command = "SELECT [Index] FROM DictionaryWords WHERE MainIndex=" & newMainIndex & " AND Word=" & GetDBEntry(DBConnection.SecureGetString(1)) & " AND Meaning=" & GetDBEntry(DBConnection.SecureGetString(5)) & ";"
             dbSource.ExecuteReader(command)
             dbSource.DBCursor.Read()
             Dim newWordIndex As Int32 = dbSource.SecureGetInt32(0)
             dbSource.CloseReader()
             If ExportStats Then
-                command = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (" & newWordIndex & ", 1, 1, '01.01.1900', 1, 1);"
+                command = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (" & newWordIndex & ", 1, 1, '1900-01-01', 1, 1);"
             Else
-                command = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (" & newWordIndex & ", 1, 1, '01.01.1900', 1, 1);"
+                command = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (" & newWordIndex & ", 1, 1, '1900-01-01', 1, 1);"
             End If
             dbSource.ExecuteNonQuery(command)
         End While

@@ -31,7 +31,7 @@ Public Class xlsBase
                 Throw New Exception("Database not valid!")
             Else
                 DBConnection.DBCursor.Read()
-                Dim DBdate As DateTime = DBConnection.SecureGetDateTime(0)
+                Dim DBdate As Date = DBConnection.SecureGetDateTime(0)
                 If DBdate.Year = 2007 And DBdate.Month = 2 And DBdate.Day = 27 Then
                     m_bConnected = True
                 Else
@@ -52,9 +52,9 @@ Public Class xlsBase
   End Function
 
   Protected Function GetMaxIndex(ByVal Table As String) As Integer
-    'TODO exception
-    Dim command As String = "SELECT MAX(Index) FROM " & AddHighColons(Table) & ";"
-    DBConnection.ExecuteReader(command)
+        'TODO exception
+        Dim command As String = "SELECT MAX([Index]) FROM " & AddHighColons(Table)
+        DBConnection.ExecuteReader(command)
     DBConnection.DBCursor.Read()
     Return DBConnection.SecureGetInt32(0)
   End Function

@@ -51,7 +51,7 @@ Public Class VocabularyExplorer
     Private Const NODE_LEVEL_SUBGROUP As Integer = NODE_LEVEL_GROUP + 1
     Private Const NODE_LEVEL_GROUP_ENTRY As Integer = NODE_LEVEL_SUBGROUP + 1
 
-    Dim db As New AccessDatabaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
+    Dim db As New SQLiteDataBaseOperation()
     Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
     Dim groups As New xlsGroups()
     Dim prop As New xlsDBPropertys()
@@ -74,7 +74,7 @@ Public Class VocabularyExplorer
         InitializeComponent()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        db.Open(Application.StartupPath() & "\voc.mdb")     ' Datenbank öffnen
+        db.Open(DBPath)     ' Datenbank öffnen
         voc.DBConnection = db
         groups.DBConnection = db
         prop.DBConnection = db

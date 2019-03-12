@@ -28,13 +28,13 @@ Public Class xlsCards
     End Sub
 
     Sub AddNewEntry(ByVal index As Integer)
-        Dim command As String = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])VALUES (" & index & ", 1, 1, '01.01.1900', 1, 1);"
+        Dim command As String = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (" & index & ", 1, 1, '01.01.1900', 1, 1);"
         DBConnection.ExecuteNonQuery(command)
     End Sub
 
     Sub Update(ByVal WordNumber As Integer, ByVal TestResult As Boolean)
         ' alte daten holen
-        Dim command As String = "SELECT " & intervalName & " FROM Cards WHERE Index=" & WordNumber & ";"
+        Dim command As String = "SELECT " & intervalName & " FROM Cards WHERE [Index] = " & WordNumber & ";"
 
         DBConnection.ExecuteReader(command)
         DBConnection.DBCursor.Read()
@@ -43,19 +43,19 @@ Public Class xlsCards
         If TestResult Then
             ' richtig abgefragt, intervall erhöhen, counter neu setzen
             interval *= 2
-            command = "UPDATE Cards SET Cards." & intervalName & " = " & interval & ", Cards." & counterName & " = " & interval & ", Cards.LastDate = '" & NowDB() & "' WHERE (((Cards.Index)=" & WordNumber & "));"
+            command = "UPDATE Cards SET " & intervalName & " = " & interval & ", " & counterName & " = " & interval & ", [LastDate] = '" & NowDB() & "' WHERE (((Cards.[Index])=" & WordNumber & "))"
             DBConnection.ExecuteNonQuery(command)
         Else
             ' falsch abgefragt, intervall verringern, falls möglich und counter neu setzen
             interval = Math.Max((interval / 2), 1)
-            command = "UPDATE Cards SET Cards." & intervalName & " = " & interval & ", Cards." & counterName & " = " & interval & ", Cards.LastDate = '" & NowDB() & "' WHERE (((Cards.Index)=" & WordNumber & "));"
+            command = "UPDATE Cards SET " & intervalName & " = " & interval & ", " & counterName & " = " & interval & ", [LastDate] = '" & NowDB() & "' WHERE (((Cards.[Index])=" & WordNumber & "))"
             DBConnection.ExecuteNonQuery(command)
         End If
     End Sub
 
     Sub Update(ByVal WordNumber As Integer)
         ' Update ohne Ergebnis, d.h. es wurde zur Abfrage ausgewählt, die Abfrage wird aber übersprungen
-        Dim command As String = "SELECT " & counterName & ", " & intervalName & " FROM Cards WHERE Index=" & WordNumber & ";"
+        Dim command As String = "SELECT " & counterName & ", " & intervalName & " FROM Cards WHERE [Index]=" & WordNumber & ";"
         DBConnection.ExecuteReader(command)
         DBConnection.DBCursor.Read()
         Dim counter As Integer = DBConnection.SecureGetInt32(0)
@@ -65,7 +65,7 @@ Public Class xlsCards
         If counter <= 0 Then Throw New xlsExceptionCards(0) ' Darf nicht vorkommen, evtl. Datenbank inkonsistent!
 
         ' Counter war größer als 1. Um 1 verringert speichern.
-        command = "UPDATE Cards SET Cards." & counterName & "=" & counter - 1 & " WHERE Cards.Index=" & WordNumber & ";"
+        command = "UPDATE Cards SET " & counterName & " = " & counter - 1 & " WHERE Cards.[Index]=" & WordNumber & ";"
         DBConnection.ExecuteNonQuery(command)
     End Sub
 
@@ -80,12 +80,12 @@ Public Class xlsCards
         If TestResult Then
             ' richtig abgefragt, intervall erhöhen, counter neu setzen
             interval *= 2
-            command = "UPDATE [" & GroupTable & "] SET [" & GroupTable & "]." & intervalName & " = " & interval & ", [" & GroupTable & "]." & counterName & " = " & interval & ", [" & GroupTable & "].LastDate = '" & NowDB() & "' WHERE ((([" & GroupTable & "].WordIndex)=" & WordNumber & "));"
+            command = "UPDATE [" & GroupTable & "] SET " & intervalName & " = " & interval & ", " & counterName & " = " & interval & ", [LastDate] = '" & NowDB() & "' WHERE ((([" & GroupTable & "].WordIndex)=" & WordNumber & "));"
             DBConnection.ExecuteNonQuery(command)
         Else
             ' falsch abgefragt, intervall verringern, falls möglich und counter neu setzen
             interval = Math.Max((interval / 2), 1)
-            command = "UPDATE [" & GroupTable & "] SET [" & GroupTable & "]." & intervalName & " = " & interval & ", [" & GroupTable & "]." & counterName & " = " & interval & ", [" & GroupTable & "].LastDate = '" & NowDB() & "' WHERE ((([" & GroupTable & "].WordIndex)=" & WordNumber & "));"
+            command = "UPDATE [" & GroupTable & "] SET " & intervalName & " = " & interval & ", " & counterName & " = " & interval & ", [LastDate] = '" & NowDB() & "' WHERE ((([" & GroupTable & "].WordIndex)=" & WordNumber & "));"
             DBConnection.ExecuteNonQuery(command)
         End If
     End Sub
@@ -102,7 +102,7 @@ Public Class xlsCards
         If counter <= 0 Then Throw New xlsExceptionCards(0) ' Darf nicht vorkommen, evtl. Datenbank inkonsistent!
 
         ' Counter war größer als 1. Um 1 verringert speichern.
-        command = "UPDATE [" & GroupTable & "] SET " & GroupTable & "." & counterName & "=" & counter - 1 & " WHERE " & GroupTable & ".WordIndex=" & WordNumber & ";"
+        command = "UPDATE [" & GroupTable & "] SET " & counterName & " = " & counter - 1 & " WHERE " & GroupTable & ".WordIndex=" & WordNumber & ";"
         DBConnection.ExecuteNonQuery(command)
     End Sub
 

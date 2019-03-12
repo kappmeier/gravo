@@ -138,7 +138,8 @@ Public Class Main
         mainWindowLoaded = True
 
         ' Initialisieren
-        Dim db As New AccessDatabaseOperation(DBPath)
+        Dim db As New SQLiteDataBaseOperation()
+        db.Open(DBPath)
         Dim man As New xlsManagement(db)
         If Not man.IsVersionUpToDate Then
             MsgBox(GetLoc.GetText(DB_VERSION_OUTDATED), MsgBoxStyle.Information, GetLoc.GetText(HINT))
@@ -348,8 +349,9 @@ Public Class Main
         Dim ret As DialogResult = MsgBox("Es wird versucht, Fehler automatisch zu Beheben. Für weitere Möglichkeiten benutzen Sie bitte das Datenbank-Management. Wollen Sie den Test jetzt durchführen? Der Vorgang kann einige Minuten dauern.", MsgBoxStyle.YesNo, "Hinweis")
         If ret = Windows.Forms.DialogResult.No Then Exit Sub
 
-        Dim db As New AccessDatabaseOperation               ' Datenbankoperationen
-        db.Open(Application.StartupPath() & "\voc.mdb")     ' Datenbank öffnen
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        db.Open(DBPath)
+
         Dim man As New xlsManagement(db)
 
         man.Reorganize()

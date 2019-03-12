@@ -13,7 +13,8 @@ Public Class Info
         lblCopyrightName.Text = "Jan-Philipp Kappmeier"
         lblProductName.Text = Application.ProductName
         lblVersion.Text = "Version: " & Application.ProductVersion
-        Dim db As New AccessDatabaseOperation(DBPath)
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        db.Open(DBPathLoc)
         Dim man As New xlsManagement(db)
         lblDBVersion.Text = "DB-Version: " & man.DatabaseVersionNeeded
     End Sub

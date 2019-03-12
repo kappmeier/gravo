@@ -12,10 +12,9 @@ Public Class Management
         ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
         InitializeComponent()
 
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        Dim db As New AccessDatabaseOperation               ' Datenbankoperationen
-        db.Open(Application.StartupPath() & "\voc.mdb")     ' Datenbank öffnen
-        voc = New xlsBase(db)                               ' Datenbank zur Verfügung stellen
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        db.Open(DBPath)
+        voc = New xlsBase(db)
         grp = New xlsGroups()
         grp.DBConnection = db
         man = New xlsManagement
@@ -220,7 +219,7 @@ Public Class Management
         Dim res As DialogResult = dlgImport.ShowDialog(Me)
         Dim db as DatabaseOperation
         If res = Windows.Forms.DialogResult.OK Then
-            db = New AccessDatabaseOperation()
+            db = New SQLiteDataBaseOperation()
             Try ' Testweise öffnen
                 db.Open(dlgImport.FileName)
                 db.Close()
@@ -253,39 +252,57 @@ Public Class Management
             Exit Sub
         End If
 
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
         Dim res As DialogResult = dlgExport.ShowDialog(Me)
-        Dim db as DatabaseOperation
         If res = Windows.Forms.DialogResult.OK Then
-            db = New AccessDatabaseOperation()
-            Try
-                db.Open(dlgExport.FileName)
-                ' datei existierte schon.
-                ' überschreiben
-                db.Close()
+            If FileIO.FileSystem.FileExists(dlgExport.FileName) Then
                 Try
-                    FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
-                    man.CreateNewVocabularyDatabase(dlgExport.FileName)
+                    FileIO.FileSystem.DeleteFile(dlgExport.FileName)
                 Catch ex As Exception
                     MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
                     Exit Sub
                 End Try
-                Try
-                    db.Open(dlgExport.FileName) ' müsste funktionieren
-                Catch ex As Exception
-                    MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
-                    Exit Sub
-                End Try
-            Catch ex As System.Data.OleDb.OleDbException
-                If ex.ErrorCode = -2147467259 Then
-                    ' db existiert nicht
-                    FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
-                    man.CreateNewVocabularyDatabase(dlgExport.FileName)
-                    db.Open(dlgExport.FileName)
-                Else
-                    MsgBox("Unbekannter Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
-                    Exit Sub
-                End If
-            End Try
+            End If
+
+
+            'Try
+            man.CreateNewVocabularyDatabase(dlgExport.FileName)
+            db.Open(dlgExport.FileName)
+            'Catch ex As Exception
+            '    MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            '    Exit Sub
+            'End Try
+
+            'db = New AccessDatabaseOperation()
+            'Try
+            '    db.Open(dlgExport.FileName)
+            '    ' datei existierte schon.
+            '    ' überschreiben
+            '    db.Close()
+            '    Try
+            '        FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
+            '        man.CreateNewVocabularyDatabase(dlgExport.FileName)
+            '    Catch ex As Exception
+            '        MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            '        Exit Sub
+            '    End Try
+            '    Try
+            '        db.Open(dlgExport.FileName) ' müsste funktionieren
+            '    Catch ex As Exception
+            '        MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            '        Exit Sub
+            '    End Try
+            'Catch ex As System.Data.OleDb.OleDbException
+            '    If ex.ErrorCode = -2147467259 Then
+            '        ' db existiert nicht
+            '        FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
+            '        man.CreateNewVocabularyDatabase(dlgExport.FileName)
+            '        db.Open(dlgExport.FileName)
+            '    Else
+            '        MsgBox("Unbekannter Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
+            '        Exit Sub
+            '    End If
+            'End Try
         Else
             Exit Sub
         End If
@@ -334,7 +351,7 @@ Public Class Management
         End If
 
         ' Sichern von Gruppen
-        Dim db As New AccessDatabaseOperation
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
         Try
             db.Open(importFilename)
         Catch ex As Exception
@@ -369,7 +386,7 @@ Public Class Management
 
     Private Sub cmdImportDictionary_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImportDictionary.Click
         ' sichern
-        Dim db As New AccessDatabaseOperation()
+        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
         Try
             db.Open(importFilename)
         Catch ex As Exception

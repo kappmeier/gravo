@@ -50,11 +50,11 @@ Public Class SQLiteDataBaseOperation
     End Sub
 
     Public Function SecureGetBool(Index As Integer) As Boolean Implements DataBaseOperation.SecureGetBool
-        Throw New NotImplementedException()
+        If TypeOf (SQLreader.GetValue(Index)) Is DBNull Then Return False Else Return SQLreader.GetBoolean(Index)
     End Function
 
     Public Function SecureGetInt32(Index As Integer) As Integer Implements DataBaseOperation.SecureGetInt32
-        Throw New NotImplementedException()
+        If TypeOf (SQLreader.GetValue(Index)) Is DBNull Then Return 0 Else Return SQLreader.GetInt32(Index)
     End Function
 
     Public Function SecureGetString(Index As Integer) As String Implements DataBaseOperation.SecureGetString
@@ -62,6 +62,17 @@ Public Class SQLiteDataBaseOperation
     End Function
 
     Public Function SecureGetDateTime(Index As Integer) As Date Implements DataBaseOperation.SecureGetDateTime
-        Throw New NotImplementedException()
+        '        Try
+        If TypeOf (SQLreader.GetValue(Index)) Is DBNull Then
+            Return Nothing
+        Else
+            ' For some reason, we need to extract it first...
+            Dim d As Date = SQLreader.GetDateTime(Index)
+            Return d
+        End If
+        'Catch ex As FormatException
+        '    Dim d As String = SQLreader.GetString(Index)
+        '    Return Date.Parse(d)
+        'End Try
     End Function
 End Class

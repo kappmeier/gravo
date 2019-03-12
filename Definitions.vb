@@ -4,11 +4,11 @@
     Public AppTitleLong As String = Application.ProductName & " " & AppVersionShort & " Sprachtrainer"
     Public AppTitleShort As String = Application.ProductName
 
-    Public DBPath As String = Application.StartupPath() & "\voc.mdb"
+    Public DBPath As String = Application.StartupPath() & "\voc.s3db"
     Public DBPathLoc As String = Application.StartupPath() & "\languages.s3db"
 
     Function NowDB() As String
-        Return Format(Now, "dd.MM.yyyy")
+        Return Format(Now, "yyyy-MM-dd")
     End Function
 
     Function GetLoc() As localization

@@ -26,8 +26,8 @@ Public Class xlsGroupEntry
     ' wird immer mit false aufgerufen
     If IsConnected() = False Then Throw New Exception("Datenbank nicht verbunden.")
 
-    Dim command As String = "SELECT GroupName, GroupSubName, GroupTable FROM Groups WHERE Index = " & GroupIndex & ";"
-    DBConnection.ExecuteReader(command)
+        Dim command As String = "SELECT GroupName, GroupSubName, GroupTable FROM Groups WHERE [Index] = " & GroupIndex & ";"
+        DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows = False Then
       Throw New Exception("Eintrag mit Index " & GroupIndex & " nicht vorhanden.")
     End If
