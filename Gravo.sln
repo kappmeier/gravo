@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Gravo", "Gravo.vbproj", "{E63570E6-367B-4955-9913-0280B0D5A12F}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Gravo", "Gravo\Gravo.vbproj", "{E63570E6-367B-4955-9913-0280B0D5A12F}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GravoCmd", "GravoCmd\GravoCmd.vbproj", "{1C6E75B2-FA47-4587-851A-62712E37D14F}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GravoCore", "GravoCore\GravoCore.vbproj", "{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{E63570E6-367B-4955-9913-0280B0D5A12F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E63570E6-367B-4955-9913-0280B0D5A12F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E63570E6-367B-4955-9913-0280B0D5A12F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C6E75B2-FA47-4587-851A-62712E37D14F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C6E75B2-FA47-4587-851A-62712E37D14F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C6E75B2-FA47-4587-851A-62712E37D14F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C6E75B2-FA47-4587-851A-62712E37D14F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
