@@ -53,7 +53,11 @@ Public Class VocabularyExplorer
 
     Dim db As New SQLiteDataBaseOperation()
     Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
-    Dim groups As New xlsGroups()
+    Dim xlsGroups As New xlsGroups()
+    ''' <summary>
+    ''' Data access for groups.
+    ''' </summary>
+    Dim GroupsDao As IGroupsDao
     Dim prop As New xlsDBPropertys()
 
     Dim listUpdate As Boolean = True
@@ -76,7 +80,8 @@ Public Class VocabularyExplorer
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)     ' Datenbank öffnen
         voc.DBConnection = db
-        groups.DBConnection = db
+        xlsGroups.DBConnection = db
+        GroupsDao = New GroupsDao(db)
         prop.DBConnection = db
 
         ' Lade die Collections
@@ -196,11 +201,11 @@ Public Class VocabularyExplorer
         tvRoot = TreeView.Nodes.Add(GetLoc.GetText(TREE_GROUPS))
 
         ' Gruppen hinzufügen
-        For Each group As String In groups.GetGroups()
+        For Each group As String In GroupsDao.GetGroups()
             tvNode = tvRoot.Nodes.Add(group)
-            For Each subGroup As xlsGroupEntry In groups.GetSubGroups(group)
+            For Each subGroup As GroupEntry In GroupsDao.GetSubGroups(group)
                 Dim tv As TreeNode = tvNode.Nodes.Add(subGroup.SubGroup)
-                If groups.WordCount(group, subGroup.SubGroup) > 0 Then
+                If xlsGroups.WordCount(group, subGroup.SubGroup) > 0 Then
                     tv.Nodes.Add("temp")
                 End If
             Next subGroup
@@ -241,9 +246,9 @@ Public Class VocabularyExplorer
         ElseIf IsGroupNode() Then 'GetBaseFromNode(tvSelectedNode) = GetLoc.GetText(TREE_GROUPS) Then
             Select Case tvSelectedNode.Level
                 Case NODE_LEVEL_GROUP
-                    groups.EditGroup(oldName, newName)
+                    GroupsDao.EditGroup(oldName, newName)
                 Case NODE_LEVEL_SUBGROUP
-                    groups.EditSubGroup(GetGroupFromNode(), oldName, newName)
+                    GroupsDao.EditSubGroup(GetGroupFromNode(), oldName, newName)
                 Case NODE_LEVEL_GROUP_ENTRY
                     Dim item As ListViewItem = ListView.Items.Item(0)
                     Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
@@ -254,7 +259,7 @@ Public Class VocabularyExplorer
                     Try
                         t.SaveWord()
                         item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = t.Word
-                    Catch ex As xlsExceptionEntryExists
+                    Catch ex As EntryExistsException
                         MsgBox("Eintrag existiert bereits.")
                         e.CancelEdit = True
                     End Try
@@ -308,7 +313,7 @@ Public Class VocabularyExplorer
                 ' Laden der Gruppeneinträge
                 Dim group As String = GetGroupFromNode(tvNode)
                 Dim subGroup As String = GetSubGroupFromNode(tvNode)
-                Dim grp As xlsGroup = groups.GetGroup(group, subGroup)
+                Dim grp As xlsGroup = xlsGroups.GetGroup(group, subGroup)
                 For Each index As Integer In grp.GetIndices()
                     tvSub = tvNode.Nodes.Add(voc.GetSubEntryName(index))
                     tvSub.Tag = index
@@ -498,11 +503,11 @@ Public Class VocabularyExplorer
             Case NODE_LEVEL_GROUPS
                 SetUpListViewColumns(ListViewStyleEnum.Groups)
                 ListView.BeginUpdate()
-                For Each groupName As String In groups.GetGroups
+                For Each groupName As String In GroupsDao.GetGroups
                     SetRangeEntry(GetColumnIndex(ColumnName.GroupsName), groupName)
-                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsSubGroup), groups.SubGroupCount(groupName))
-                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), groups.WordCount(groupName))
-                    SetRangeEntry(GetColumnIndex(ColumnName.GroupCountLanguages), groups.UsedLanguagesCount(groupName))
+                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsSubGroup), GroupsDao.SubGroupCount(groupName))
+                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), xlsGroups.WordCount(groupName))
+                    SetRangeEntry(GetColumnIndex(ColumnName.GroupCountLanguages), xlsGroups.UsedLanguagesCount(groupName))
                     AddRange()
                 Next groupName
                 ListView.EndUpdate()
@@ -511,7 +516,7 @@ Public Class VocabularyExplorer
                 AddDictionaryGroupEntryToList(voc.GetSubEntry(tvSelectedNode.Tag))
             Case NODE_LEVEL_SUBGROUP
                 SetUpListViewColumns(ListViewStyleEnum.WordEntrySubGroup)
-                Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(tvSelectedNode), GetSubGroupFromNode(tvSelectedNode))
+                Dim group As xlsGroup = xlsGroups.GetGroup(GetGroupFromNode(tvSelectedNode), GetSubGroupFromNode(tvSelectedNode))
                 ListView.BeginUpdate()
                 For Each index As Integer In group.GetIndices
                     AddDictionaryGroupEntryToList(voc.GetSubEntry(index), group)
@@ -519,8 +524,8 @@ Public Class VocabularyExplorer
                 ListView.EndUpdate()
             Case NODE_LEVEL_GROUP
                 SetUpListViewColumns(ListViewStyleEnum.WordEntryGroup)
-                For Each subGroup As xlsGroupEntry In groups.GetSubGroups(GetGroupFromNode())
-                    Dim group As xlsGroup = groups.GetGroup(subGroup.Group, subGroup.SubGroup)
+                For Each subGroup As GroupEntry In GroupsDao.GetSubGroups(GetGroupFromNode())
+                    Dim group As xlsGroup = xlsGroups.GetGroup(subGroup.Name, subGroup.SubGroup)
                     ListView.BeginUpdate()
                     For Each index As Integer In group.GetIndices
                         AddDictionaryGroupEntryToList(voc.GetSubEntry(index), group)
@@ -713,7 +718,7 @@ Public Class VocabularyExplorer
             ' Erzeuge neuen MainIndex oder hole den Index eines alten
             Try
                 newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-            Catch ex As xlsExceptionEntryNotFound
+            Catch ex As EntryNotFoundException
                 ' Haupteintrag erstellen und anschließend laden
                 Try
                     MsgBox("Neuer Eintrag wird erstellt")
@@ -758,7 +763,7 @@ Public Class VocabularyExplorer
             item.SubItems(GetColumnIndex(ColumnName.EntryIrregular, lvs)).Text = TextYesNo(t.Irregular)
             If IsGroupNode() Then item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked, lvs)).Text = TextYesNo(chkMarked.Checked) 'IIf(chkMarked.Checked, "Ja", "Nein")
             'End If
-        Catch ex As xlsExceptionEntryExists
+        Catch ex As EntryExistsException
             MsgBox("Eintrag existiert bereits.")
         End Try
     End Sub
@@ -785,7 +790,7 @@ Public Class VocabularyExplorer
             Dim newIndex As Integer
             Try
                 newIndex = voc.GetEntryIndex(txtMultiMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-            Catch ex As xlsExceptionEntryNotFound
+            Catch ex As EntryNotFoundException
                 ' Haupteintrag erstellen und anschließend laden
                 Try
                     MsgBox("Neuer Eintrag wird erstellt")
@@ -1452,7 +1457,7 @@ Public Class VocabularyExplorer
             language = GetLanguageFromNode()
             mainLanguage = GetMainLanguageFromNode()
         ElseIf IsGroupNode() Then
-            group = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+            group = xlsGroups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
             If group.LanguageCount > 1 Then
                 MsgBox("Zu viele Sprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
                 Exit Sub
@@ -1477,9 +1482,9 @@ Public Class VocabularyExplorer
         End If
         Try
             voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
-        Catch ex As xlsExceptionEntryExists
+        Catch ex As EntryExistsException
             ' Existiert schon, nix zu tun, index feststellen
-        Catch ex As xlsExceptionEntryNotFound
+        Catch ex As EntryNotFoundException
             ' Haupteintrag nicht vorhanden
             Dim res As MsgBoxResult = MsgBox("Der Haupteintrag '" & txtMainEntry.Text & "' ist für die gewählten Sprachen '" & mainLanguage & "' und '" & language & "' nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
             If res = MsgBoxResult.Yes Then

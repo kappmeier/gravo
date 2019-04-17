@@ -105,10 +105,11 @@ Public Class xlsManagement
                 command = "INSERT INTO [DBVersion] ([Version], [Date], [Description]) VALUES('1.04', '2007-05-07', 'Important words marker')"
             Case "1.04"
                 ' Fehlerkorrektur wegen Markierung
-                Dim grp As New xlsGroups(Me.DBConnection)
-                Dim groups As Collection(Of xlsGroupEntry) = grp.GetAllGroups()
+                Dim xlsGrp As New xlsGroups(Me.DBConnection)
+                Dim GroupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
+                Dim Groups As Collection(Of GroupEntry) = GroupsDao.GetAllGroups()
 
-                For Each group As xlsGroupEntry In groups
+                For Each group As GroupEntry In Groups
                     ' neue spalte hinzufügen
                     command = "ALTER TABLE [" & group.Table & "] ADD COLUMN [Marked] BIT;"
                     DBConnection.ExecuteNonQuery(command)
@@ -197,9 +198,10 @@ Public Class xlsManagement
 
 
 
-                Dim grp As New xlsGroups(Me.DBConnection)
-                Dim groups As Collection(Of xlsGroupEntry) = grp.GetAllGroups()
-                For Each group As xlsGroupEntry In groups
+                Dim xlsGrp As New xlsGroups(Me.DBConnection)
+                Dim GroupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
+                Dim groups As Collection(Of GroupEntry) = GroupsDao.GetAllGroups()
+                For Each group As GroupEntry In groups
                     ' neue spalte hinzufügen
                     command = "ALTER TABLE [" & group.Table & "] ADD COLUMN [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL);"
                     DBConnection.ExecuteNonQuery(command)
@@ -343,9 +345,9 @@ Public Class xlsManagement
         Next index
 
         ' Suche in Gruppen nach Einträgen zu Wörtern die nicht existieren
-        Dim groups As New xlsGroups(DBConnection)
-        For Each group As xlsGroupEntry In groups.GetAllGroups()
-            Dim grp As New xlsGroup(group.Table)
+        Dim GroupsDao As IGroupsDao = New GroupsDao(DBConnection)
+        For Each Group As GroupEntry In GroupsDao.GetAllGroups()
+            Dim grp As New xlsGroup(Group.Table)
             grp.DBConnection = DBConnection
             For Each index As Integer In grp.GetIndices()
                 command = "SELECT MainIndex FROM DictionaryWords WHERE [Index]=" & index & ";"
@@ -359,7 +361,7 @@ Public Class xlsManagement
                     DBConnection.CloseReader()
                 End If
             Next index
-        Next group
+        Next Group
     End Sub
 
     Public Property ErrorCount() As Integer
@@ -435,10 +437,11 @@ Public Class xlsManagement
 
     Public Sub CopyGobalCardsToGroups()
         Dim command As String
-        Dim grp As New xlsGroups(Me.DBConnection)
-        Dim groups As Collection(Of xlsGroupEntry) = grp.GetAllGroups()
-        For Each group As xlsGroupEntry In groups
-            command = "SELECT [WordIndex] FROM [" & group.Table & "];"
+        Dim xlsGrp As New xlsGroups(Me.DBConnection)
+        Dim GroupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
+        Dim Groups As Collection(Of GroupEntry) = GroupsDao.GetAllGroups()
+        For Each Group As GroupEntry In Groups
+            command = "SELECT [WordIndex] FROM [" & Group.Table & "];"
             DBConnection.ExecuteReader(command)
             Dim indices As New Collection(Of Integer)
             While DBConnection.DBCursor.Read()
@@ -461,9 +464,9 @@ Public Class xlsManagement
                 DBConnection.DBCursor.Close()
 
                 'speichern
-                command = "UPDATE [" & group.Table & "] SET [TestInterval] = " & GetDBEntry(testInterval) & ", [Counter] = " & GetDBEntry(counter) & ",[LastDate] = " & GetDBEntry(lastDate) & ",[TestIntervalMain] = " & GetDBEntry(testIntervalMain) & ",[CounterMain] = " & GetDBEntry(counterMain) & " WHERE [WordIndex]=" & index & ";"
+                command = "UPDATE [" & Group.Table & "] SET [TestInterval] = " & GetDBEntry(testInterval) & ", [Counter] = " & GetDBEntry(counter) & ",[LastDate] = " & GetDBEntry(lastDate) & ",[TestIntervalMain] = " & GetDBEntry(testIntervalMain) & ",[CounterMain] = " & GetDBEntry(counterMain) & " WHERE [WordIndex]=" & index & ";"
                 DBConnection.ExecuteNonQuery(command)
             Next index
-        Next group
+        Next Group
     End Sub
 End Class

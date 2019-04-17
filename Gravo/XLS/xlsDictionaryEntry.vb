@@ -79,8 +79,8 @@ Public Class xlsDictionaryEntry
     DBConnection.ExecuteReader(command)
     If DBConnection.DBCursor.HasRows Then
       DBConnection.DBCursor.Read()
-      If DBConnection.SecureGetInt32(0) <> WordIndex Then Throw New xlsExceptionEntryExists("Entry '" & Word & "' exists with index " & DBConnection.SecureGetInt32(0) & ".")
-    End If
+            If DBConnection.SecureGetInt32(0) <> WordIndex Then Throw New EntryExistsException("Entry '" & Word & "' exists with index " & DBConnection.SecureGetInt32(0) & ".")
+        End If
         command = "UPDATE DictionaryWords SET MainIndex=" & MainIndex & ", Word=" & GetDBEntry(Word) & ", Pre=" & GetDBEntry(Pre) & ", Post=" & GetDBEntry(Post) & ", WordType=" & WordType & ", Meaning=" & GetDBEntry(Meaning) & ", TargetLanguageInfo=" & GetDBEntry(AdditionalTargetLangInfo) & ", Irregular=" & GetDBEntry(Irregular) & " WHERE [Index] = " & WordIndex & ";"
         DBConnection.ExecuteNonQuery(command)
   End Sub

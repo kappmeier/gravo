@@ -2,7 +2,7 @@ Imports Gravo.AccessDatabaseOperation
 
 Public Class xlsBase
     ' Datenbank-Anbindung
-    Private m_DBConnection As DataBaseOperation
+    Protected m_DBConnection As DataBaseOperation
 
     ' Klassenzustände
     Private m_bConnected As Boolean = False  ' mit der Datenbank verbunden
@@ -53,7 +53,7 @@ Public Class xlsBase
 
   Protected Function GetMaxIndex(ByVal Table As String) As Integer
         'TODO exception
-        Dim command As String = "SELECT MAX([Index]) FROM " & AddHighColons(Table)
+        Dim command As String = "SELECT MAX([Index]) FROM " & EscapeSingleQuotes(Table)
         DBConnection.ExecuteReader(command)
     DBConnection.DBCursor.Read()
     Return DBConnection.SecureGetInt32(0)

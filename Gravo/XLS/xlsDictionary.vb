@@ -182,7 +182,7 @@ Public Class xlsDictionary
         ' Index herausfinden
         command = "SELECT [Index] FROM DictionaryMain WHERE WordEntry=" & GetDBEntry(MainEntry) & " AND LanguageName = " & GetDBEntry(Language) & " AND MainLanguage=" & GetDBEntry(MainLanguage)
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Kein Haupteintrag " & MainEntry & " zur gewählten Sprache vorhanden.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Kein Haupteintrag " & MainEntry & " zur gewählten Sprache vorhanden.")
         DBConnection.DBCursor.Read()
         Dim ret As Int32 = DBConnection.SecureGetInt32(0)
         DBConnection.DBCursor.Close()
@@ -235,7 +235,7 @@ Public Class xlsDictionary
         If Language = "" Then Throw New xlsExceptionInput(3)
         Try
             GetEntryIndex(Word, Language, MainLanguage)
-        Catch ex As xlsExceptionEntryNotFound
+        Catch ex As EntryNotFoundException
             ' Eintrag nicht gefunden, kann also hinzugefügt werden
             Dim command As String = "INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage) VALUES(" & GetDBEntry(Word) & ", " & GetDBEntry(Language) & ", " & GetDBEntry(MainLanguage) & ");"
             DBConnection.ExecuteNonQuery(command)
@@ -250,7 +250,7 @@ Public Class xlsDictionary
             Throw ex
         End Try
         ' Nichts schiefgegangen, das heißt es gibt ein Wort mit diesem Index
-        Throw New xlsExceptionEntryExists("Es existiert bereits ein Wort unter diesem Eintrag.")
+        Throw New EntryExistsException("Es existiert bereits ein Wort unter diesem Eintrag.")
     End Sub
 
     Public Function AddSubEntry(ByRef Word As xlsDictionaryEntry, ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) As Integer
@@ -260,8 +260,8 @@ Public Class xlsDictionary
             mainIndex = GetEntryIndex(MainEntry, Language, MainLanguage)
         Catch ex As xlsExceptionLanguageNotFound
             ' Unter der Sprache ist nix vorhanden, also kann es den eintrag auch nicht geben
-            Throw New xlsExceptionEntryNotFound
-        Catch ex As xlsExceptionEntryNotFound
+            Throw New EntryNotFoundException
+        Catch ex As EntryNotFoundException
             'ex wurde nichts gefunden, weiterleiten und vom aufrufer behandeln lassen
             Throw ex
         End Try
@@ -269,7 +269,7 @@ Public Class xlsDictionary
         ' Testen, ob es schon ein Wort gibt, das so ist
         Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE MainIndex=" & mainIndex & " AND Word=" & GetDBEntry(Word.Word) & " AND Meaning=" & GetDBEntry(Word.Meaning) & ";"
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryExists("Der gewählte Subentry existiert schon unter dem MainIndex und mit der Bedeutung")
+        If DBConnection.DBCursor.HasRows Then Throw New EntryExistsException("Der gewählte Subentry existiert schon unter dem MainIndex und mit der Bedeutung")
 
         ' Wort einfügen
         command = "INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular) VALUES(" & mainIndex & ", " & GetDBEntry(Word.Word) & ", " & GetDBEntry(Word.Pre) & ", " & GetDBEntry(Word.Post) & ", " & Word.WordType & ", " & GetDBEntry(Word.Meaning) & ", " & GetDBEntry(Word.AdditionalTargetLangInfo) & " , " & GetDBEntry(Word.Irregular) & ");" ', " & GetDBEntry(Word.Marked) & ");"
@@ -378,7 +378,7 @@ Public Class xlsDictionary
     Public Function GetEntryName(ByVal Index As Integer) As String
         Dim command As String = "SELECT WordEntry FROM DictionaryMain WHERE [Index] = " & Index & ";"
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Der Eintrag existiert nicht.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Der Eintrag existiert nicht.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()
@@ -388,7 +388,7 @@ Public Class xlsDictionary
     Public Function GetSubEntryName(ByVal index As Integer) As String
         Dim command As String = "SELECT Word FROM DictionaryWords WHERE [Index] = " & index
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Der Eintrag existiert nicht.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Der Eintrag existiert nicht.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()
@@ -403,7 +403,7 @@ Public Class xlsDictionary
     Public Function GetEntryLanguage(ByVal MainIndex As Integer) As String
         Dim command As String = "SELECT LanguageName FROM DictionaryMain WHERE [Index] = " & MainIndex
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("The Entry with index " & MainIndex & " does not exist.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("The Entry with index " & MainIndex & " does not exist.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()
@@ -413,7 +413,7 @@ Public Class xlsDictionary
     Public Function GetEntryMainLanguage(ByVal Index As Integer) As String
         Dim command As String = "SELECT MainLanguage FROM DictionaryMain WHERE [Index] = " & Index
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Der Eintrag existiert nicht.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Der Eintrag existiert nicht.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()
@@ -423,7 +423,7 @@ Public Class xlsDictionary
     Public Function GetSubEntryIndex(ByVal MainIndex As Integer, ByVal Word As String, ByVal Meaning As String) As Integer
         Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE Word=" & GetDBEntry(Word) & " AND Meaning=" & GetDBEntry(Meaning) & " AND MainIndex=" & MainIndex
         DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New xlsExceptionEntryNotFound("Der Eintrag existiert nicht.")
+        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Der Eintrag existiert nicht.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetInt32(0)
         DBConnection.DBCursor.Close()

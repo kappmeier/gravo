@@ -3,7 +3,11 @@ Imports System.Collections.ObjectModel
 Public Class Management
     ' Datenbank-Zugriff
     Dim voc As xlsBase            ' Zugriff auf Vokabel-Datenbank
-    Dim grp As xlsGroups
+    Dim xlsGrp As xlsGroups
+    ''' <summary>
+    ''' Data access for groups.
+    ''' </summary>
+    Dim GroupsDao As IGroupsDao
     Dim man As xlsManagement
     Dim dic As xlsDictionary
     Dim importFilename As String = ""
@@ -15,8 +19,9 @@ Public Class Management
         Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
         voc = New xlsBase(db)
-        grp = New xlsGroups()
-        grp.DBConnection = db
+        xlsGrp = New xlsGroups()
+        xlsGrp.DBConnection = db
+        GroupsDao = New GroupsDao(db)
         man = New xlsManagement
         man.DBConnection = db
         dic = New xlsDictionary
@@ -64,7 +69,7 @@ Public Class Management
         cmbUnitSelectGroup.Items.Clear()    ' 
         lstExportGroups.Items.Clear()    ' Liste der Gruppen zum exportieren
 
-        Dim groupNames As Collection(Of String) = grp.GetGroups()
+        Dim groupNames As Collection(Of String) = GroupsDao.GetGroups()
         For Each groupName As String In groupNames
             lstGroupList.Items.Add(groupName)
             cmbUnitSelectGroup.Items.Add(groupName)
@@ -126,8 +131,8 @@ Public Class Management
         ' da eine gruppe nicht direkt hinzugefügt werden kann, wird direkt ein untereintrag erzeugt
         If Trim(txtGroupName.Text = "") Then Exit Sub
         Try
-            grp.AddGroup(txtGroupName.Text, "Untereintrag 1")
-        Catch e2 As xlsExceptionEntryExists
+            GroupsDao.AddGroup(txtGroupName.Text, "Untereintrag 1")
+        Catch e2 As EntryExistsException
             MsgBox("Gruppen können nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
             Exit Sub
         Catch es As Exception
@@ -142,7 +147,7 @@ Public Class Management
         If Trim(txtGroupName.Text) = "" Then Exit Sub
 
         ' Ändern der Gruppen-Informationen in der Datenbank
-        grp.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
+        GroupsDao.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
 
         ' Anzeige Aktualisieren
         UpdateForm()
@@ -152,22 +157,22 @@ Public Class Management
     Private Sub GroupDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupDelete.Click
         If MsgBox("Wollen sie wirklich die komplette Gruppe löschen?", MsgBoxStyle.YesNo, "Warning") = MsgBoxResult.No Then Return
 
-        grp.DeleteGroup(lstGroupList.SelectedItem)
+        GroupsDao.DeleteGroup(lstGroupList.SelectedItem)
         UpdateForm()
     End Sub
 
     Private Sub GroupSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstGroupList.SelectedIndexChanged
         If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irreguläre Werte abfangen
         txtGroupName.Text = lstGroupList.SelectedItem     ' Text aktualisieren
-        Dim count As Integer = grp.WordCount(txtGroupName.Text)
+        Dim count As Integer = xlsGrp.WordCount(txtGroupName.Text)
         lblGroupInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
     End Sub
 
     Private Sub UnitAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitAdd.Click
         If Trim(txtUnitName.Text = "") Then Exit Sub
         Try
-            grp.AddGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
-        Catch e2 As xlsExceptionEntryExists
+            GroupsDao.AddGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
+        Catch e2 As EntryExistsException
             MsgBox("Gruppen können nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
             Exit Sub
         Catch es As Exception
@@ -183,7 +188,7 @@ Public Class Management
         If Trim(txtUnitName.Text) = "" Then Exit Sub
 
         ' Ändern der Gruppen-Informationen in der Datenbank
-        grp.EditSubGroup(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, txtUnitName.Text)
+        GroupsDao.EditSubGroup(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, txtUnitName.Text)
 
         ' Anzeige Aktualisieren
         UnitSelectGroup(sender, e)
@@ -196,7 +201,7 @@ Public Class Management
 
     Private Sub UnitSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstUnitList.SelectedIndexChanged
         txtUnitName.Text = lstUnitList.SelectedItem
-        Dim group As xlsGroup = grp.GetGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
+        Dim group As xlsGroup = xlsGrp.GetGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
         Dim count As Integer = group.WordCount
         lblUnitInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
         count = group.LanguageCount
@@ -207,8 +212,8 @@ Public Class Management
         ' Lektionen anzeigen
         lstUnitList.Items.Clear()     ' Liste leeren
 
-        Dim subGroups As Collection(Of xlsGroupEntry) = grp.GetSubGroups(cmbUnitSelectGroup.SelectedItem)
-        For Each entry As xlsGroupEntry In subGroups
+        Dim subGroups As Collection(Of GroupEntry) = GroupsDao.GetSubGroups(cmbUnitSelectGroup.SelectedItem)
+        For Each entry As GroupEntry In subGroups
             lstUnitList.Items.Add(entry.SubGroup)
         Next
 
@@ -217,7 +222,7 @@ Public Class Management
 
     Private Sub cmdDataSelectSaveDB_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImortSelectDB.Click
         Dim res As DialogResult = dlgImport.ShowDialog(Me)
-        Dim db as DatabaseOperation
+        Dim db As DataBaseOperation
         If res = Windows.Forms.DialogResult.OK Then
             db = New SQLiteDataBaseOperation()
             Try ' Testweise öffnen
@@ -429,7 +434,7 @@ Public Class Management
     ''' <param name="e"></param>
     Private Sub cmdUnitUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitUp.Click
         If (lstUnitList.SelectedIndex = 0) Then Exit Sub
-        grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex - 1))
+        GroupsDao.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex - 1))
     End Sub
 
     ''' <summary>
@@ -439,7 +444,7 @@ Public Class Management
     ''' <param name="e"></param>
     Private Sub cmdUnitDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitDown.Click
         If (lstUnitList.SelectedIndex = lstUnitList.Items.Count - 1) Then Exit Sub
-        grp.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex + 1))
+        GroupsDao.SwapGroups(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, lstUnitList.Items(lstUnitList.SelectedIndex + 1))
     End Sub
 
     Private Sub tabGroup_Click(sender As Object, e As EventArgs) Handles tabGroup.Click

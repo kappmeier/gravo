@@ -4,7 +4,7 @@ Imports System.Data.SQLite
 Public Class SQLiteDataBaseOperation
     Implements DataBaseOperation
 
-    Dim connection As New SQLite.SQLiteConnection()
+    Dim connection As New SQLiteConnection()
     Dim connected As Boolean = False
     Dim SQLreader As SQLiteDataReader
 
@@ -13,11 +13,14 @@ Public Class SQLiteDataBaseOperation
         connection.ConnectionString = "Data Source=" & DBPath & ";"
         connection.Open()
         connected = True
+        Return True
     End Function
 
     Public Function Close() As Boolean Implements DataBaseOperation.Close
         connection.Close()
+        connection.Dispose()
         connected = False
+        Return True
     End Function
 
     Public Function ExecuteNonQuery(CommandText As String) As Boolean Implements DataBaseOperation.ExecuteNonQuery
@@ -31,13 +34,50 @@ Public Class SQLiteDataBaseOperation
         Return True
     End Function
 
+    ''' <summary>
+    ''' Observe that due to the limitations of SQLite it is not possible to use values for parameters in table names for ALTER TABLE
+    ''' commands.
+    ''' </summary>
+    ''' <param name="CommandText">the command text includding placeholders (?) for paramters</param>
+    ''' <param name="values">the parameter values</param>
+    ''' <returns></returns>
+    Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of String)) As Boolean Implements DataBaseOperation.ExecuteNonQuery
+        If Not connected Then Return False
+        If Not SQLreader Is Nothing Then SQLreader.Close()
+        Dim command As SQLiteCommand
+        command = connection.CreateCommand
+        command.CommandText = CommandText
+        Dim count As Integer = 0
+        For Each parameter As String In values
+            command.Parameters.AddWithValue("param" & count, parameter)
+            count += 1
+        Next parameter
+        command.ExecuteNonQuery()
+        command.Dispose()
+    End Function
+
     Public Function ExecuteReader(CommandText As String) As DbDataReader Implements DataBaseOperation.ExecuteReader
         Dim SQLcommand As SQLiteCommand
         If Not SQLreader Is Nothing Then SQLreader.Close()
         SQLcommand = connection.CreateCommand
         SQLcommand.CommandText = CommandText
-
         SQLreader = SQLcommand.ExecuteReader()
+        SQLcommand.Dispose()
+        Return SQLreader
+    End Function
+
+    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of String)) As DbDataReader Implements DataBaseOperation.ExecuteReader
+        Dim sqlCommand As SQLiteCommand
+        If Not SQLreader Is Nothing Then SQLreader.Close()
+        sqlCommand = connection.CreateCommand
+        sqlCommand.CommandText = commandText
+        Dim count As Integer = 0
+        For Each value As String In values
+            sqlCommand.Parameters.AddWithValue("param" & count, value)
+            count += 1
+        Next value
+        SQLreader = sqlCommand.ExecuteReader()
+        sqlCommand.Dispose()
         Return SQLreader
     End Function
 

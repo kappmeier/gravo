@@ -21,21 +21,22 @@ Public Class xlsImportExport
     End Sub
 
     Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource As DataBaseOperation)
-        Dim grp As New xlsGroups()
+        Dim xlsGrp As New xlsGroups()
         Dim newdic As New xlsDictionary()
         newdic.DBConnection = dbSource
         Dim dic As New xlsDictionary()
         dic.DBConnection = DBConnection
         Dim newGroups As New xlsGroups()
         newGroups.DBConnection = dbSource
-        grp.DBConnection = DBConnection
-        Dim groups As Collection(Of xlsGroupEntry)
-        groups = grp.GetSubGroups(Group)
+        xlsGrp.DBConnection = DBConnection
+        Dim GroupsDao As IGroupsDao = New GroupsDao(DBConnection)
+        Dim Groups As Collection(Of GroupEntry)
+        Groups = GroupsDao.GetSubGroups(Group)
 
-        For Each groupEntry As xlsGroupEntry In groups
-            newGroups.AddGroup(Group, groupEntry.SubGroup)
+        For Each groupEntry As GroupEntry In Groups
+            GroupsDao.AddGroup(Group, groupEntry.SubGroup)
             Dim currentGroup As xlsGroup = newGroups.GetGroup(Group, groupEntry.SubGroup)
-            Dim existingGroup As xlsGroup = grp.GetGroup(Group, groupEntry.SubGroup)
+            Dim existingGroup As xlsGroup = xlsGrp.GetGroup(Group, groupEntry.SubGroup)
             For Each index As Integer In existingGroup.GetIndices()
                 ' Lade das Wort aus der originalen Datenbank
                 Dim existingEntry As New xlsDictionaryEntry(DBConnection, index)
@@ -50,7 +51,7 @@ Public Class xlsImportExport
                 Catch ex As xlsExceptionLanguageNotFound
                     newdic.AddEntry(newEntry, newEntryLanguage, MainLanguage)
                     entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
-                Catch ex As xlsExceptionEntryNotFound
+                Catch ex As EntryNotFoundException
                     newdic.AddEntry(newEntry, newEntryLanguage, MainLanguage)
                     entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
                 End Try
@@ -59,7 +60,7 @@ Public Class xlsImportExport
                 Dim entryIndex As Integer
                 Try
                     entryIndex = newdic.GetSubEntryIndex(entryMainIndex, existingEntry.Word, existingEntry.Meaning)
-                Catch ex As xlsExceptionEntryNotFound
+                Catch ex As EntryNotFoundException
                     ' Füge das Wort nun ein
                     existingEntry.MainIndex = entryMainIndex
                     newdic.AddSubEntry(existingEntry, newEntry, newEntryLanguage, MainLanguage)
@@ -152,7 +153,7 @@ Public Class xlsImportExport
                 Try
                     dic.AddEntry(word, language, mainLanguage)
                     ImportedMainEntrys += 1
-                Catch ex As xlsExceptionEntryExists
+                Catch ex As EntryExistsException
                     Exit Try
                 Catch ex As Exception
                     Throw ex
@@ -163,7 +164,7 @@ Public Class xlsImportExport
                     subEntry.MainIndex = dic.GetEntryIndex(word, language, mainLanguage)
                     Try
                         dic.AddSubEntry(subEntry, word, language, mainLanguage)
-                    Catch ex As xlsExceptionEntryExists
+                    Catch ex As EntryExistsException
                         ' schon vorhanden gewesen
                         Continue For
                     End Try
@@ -176,8 +177,11 @@ Public Class xlsImportExport
     Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource As DataBaseOperation)
         Dim dicImport As New xlsDictionary(dbSource)
         Dim dic As New xlsDictionary(DBConnection)
-        Dim groupsImport As New xlsGroups(dbSource)
+        Dim xlsGroupsImport As New xlsGroups(dbSource)
+        Dim GroupsImportDao As IGroupsDao = New GroupsDao(dbSource)
+
         Dim groups As New xlsGroups(DBConnection)
+        Dim GroupDao As IGroupsDao = New GroupsDao(DBConnection)
         ImportedMainEntrys = 0
         ImportedSubEntrys = 0
         ImportedGroups = 0
@@ -186,15 +190,15 @@ Public Class xlsImportExport
 
         ' Alle Gruppen überschreiben!
         ' das heißt, wenn eine Gruppe unter demselben Namen vorhanden war, _alles_ löschen
-        For Each group As String In groupsImport.GetGroups
+        For Each group As String In GroupsImportDao.GetGroups
             ' Testen, ob eine solche Gruppe in der DB vorhanden ist. Wenn ja --> löschen
-            If groups.IsGroupExisting(group) Then groups.DeleteGroup(group)
+            If GroupDao.GroupExists(group) Then GroupDao.DeleteGroup(group)
 
             ' Einfügen der Gruppe
-            For Each subGroup As xlsGroupEntry In groupsImport.GetSubGroups(group)
-                groups.AddGroup(group, subGroup.SubGroup)
+            For Each subGroup As GroupEntry In GroupsImportDao.GetSubGroups(group)
+                GroupsImportDao.AddGroup(group, subGroup.SubGroup)
 
-                Dim grpImport As xlsGroup = groupsImport.GetGroup(group, subGroup.SubGroup)
+                Dim grpImport As xlsGroup = xlsGroupsImport.GetGroup(group, subGroup.SubGroup)
                 Dim grp As xlsGroup = groups.GetGroup(group, subGroup.SubGroup)
 
                 For Each index As Integer In grpImport.GetIndices()
@@ -215,7 +219,7 @@ Public Class xlsImportExport
                         dic.AddEntry(entry, language, mainLanguage)
                         mainIndex = dic.GetEntryIndex(entry, language, mainLanguage)
                         ImportedMainEntrys += 1
-                    Catch ex As xlsExceptionEntryNotFound
+                    Catch ex As EntryNotFoundException
                         dic.AddEntry(entry, language, mainLanguage)
                         mainIndex = dic.GetEntryIndex(entry, language, mainLanguage)
                         ImportedMainEntrys += 1
@@ -224,7 +228,7 @@ Public Class xlsImportExport
                     Dim subIndex As Integer
                     Try
                         subIndex = dic.GetSubEntryIndex(mainIndex, word.Word, word.Meaning)
-                    Catch ex As xlsExceptionEntryNotFound
+                    Catch ex As EntryNotFoundException
                         word.MainIndex = mainIndex
                         dic.AddSubEntry(word, entry, language, mainLanguage)
                         subIndex = dic.GetSubEntryIndex(mainIndex, word.Word, word.Meaning)

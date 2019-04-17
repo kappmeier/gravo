@@ -63,6 +63,10 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
+    Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of String)) As Boolean Implements DataBaseOperation.ExecuteNonQuery
+        Throw New NotSupportedException()
+    End Function
+
     Public Function ExecuteNonQuery() As Boolean
         Return ExecuteNonQuery(m_command)
     End Function
@@ -78,6 +82,10 @@ Public Class AccessDatabaseOperation
             Throw e
         End Try
         Return oleCursor
+    End Function
+
+    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of String)) As DbDataReader Implements DataBaseOperation.ExecuteReader
+        Throw New NotSupportedException()
     End Function
 
     Public Function ExecuteReader(ByVal CommandText As String) As DbDataReader Implements DataBaseOperation.ExecuteReader
@@ -123,40 +131,6 @@ Public Class AccessDatabaseOperation
         oledbCmd.Connection = oledbConnect
         bInit = True
         Return True
-    End Function
-
-    Public Shared Function GetDBEntry(ByVal text As String) As String
-        Return "'" & AddHighColons(text) & "'"
-    End Function
-
-    Public Shared Function GetDBEntry(ByVal text As Integer) As String
-        Return "'" & text.ToString & "'"
-    End Function
-
-    Public Shared Function GetDBEntry(ByVal value As Boolean) As String
-        Return "'" & AddHighColons(value) & "'"
-    End Function
-
-    Public Shared Function AddHighColons(ByVal Text As String) As String
-        Dim sTemp, sTemp2 As String
-        Dim i As Integer = 0
-        sTemp2 = Text
-        sTemp = ""
-        Do
-            i = InStr(1, sTemp2, "'")
-            If i > 0 Then
-                sTemp = sTemp & Mid(sTemp2, 1, i) & "'"
-                sTemp2 = Right(sTemp2, Len(sTemp2) - i)
-            Else
-                sTemp = sTemp & sTemp2
-                sTemp2 = ""
-            End If
-        Loop Until sTemp2 = ""
-        Return sTemp
-    End Function
-
-    Public Shared Function AddHighColons(ByVal Value As Boolean) As String
-        Return (IIf(Value, "-1", "0"))
     End Function
 
     Public Shared Function SecureGetBool(ByRef dbc As OleDbDataReader, ByVal Index As Integer) As Boolean

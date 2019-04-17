@@ -7,7 +7,9 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Gravo", "Gravo\Gravo.vbproj
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GravoCmd", "GravoCmd\GravoCmd.vbproj", "{1C6E75B2-FA47-4587-851A-62712E37D14F}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GravoCore", "GravoCore\GravoCore.vbproj", "{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GravoCore", "GravoCore\GravoCore.vbproj", "{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GravoCore.UnitTests", "GravoCore.UnitTests\GravoCore.UnitTests.vbproj", "{C9D7BDF2-3249-4D56-A547-BA6321614F72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BA526F3-5BB7-48C7-B1F9-1D9C81B76176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9D7BDF2-3249-4D56-A547-BA6321614F72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9D7BDF2-3249-4D56-A547-BA6321614F72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9D7BDF2-3249-4D56-A547-BA6321614F72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9D7BDF2-3249-4D56-A547-BA6321614F72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

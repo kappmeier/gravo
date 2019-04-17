@@ -4,7 +4,11 @@ Public Class WordInput
     Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
     Dim grp As New xlsGroup("")                           ' Zugriff auf eine Gruppe
     Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
-    Dim groups As New xlsGroups
+    Dim xlsGroups As New xlsGroups
+    ''' <summary>
+    ''' Data access for groups.
+    ''' </summary>
+    Dim GroupsDao As IGroupsDao
 
     Dim language As String
     Dim mainLanguage As String
@@ -20,7 +24,8 @@ Public Class WordInput
         db.Open(DBPath)
         voc.DBConnection = db
         grp.DBConnection = db
-        groups.DBConnection = db
+        xlsGroups.DBConnection = db
+        GroupsDao = New GroupsDao(db)
 
         Dim prop As New xlsDBPropertys(db)
         txtWord.MaxLength = prop.DictionaryWordsMaxLengthWord
@@ -57,7 +62,7 @@ Public Class WordInput
 
         ' Laden der Gruppen in das Auswahlfeld
         cmbDirectAddGroup.Items.Clear()
-        Dim groupNames As Collection(Of String) = groups.GetGroups()
+        Dim groupNames As Collection(Of String) = GroupsDao.GetGroups()
         For Each groupName As String In groupNames
             cmbDirectAddGroup.Items.Add(groupName)
         Next
@@ -108,10 +113,10 @@ Public Class WordInput
         Try
             voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
             If chkDirectAdd.Checked Then AddToGroup()
-        Catch ex As xlsExceptionEntryExists
+        Catch ex As EntryExistsException
             ' Eintrag existiert schon
             If chkDirectAdd.Checked Then AddToGroup()
-        Catch ex As xlsExceptionEntryNotFound
+        Catch ex As EntryNotFoundException
             ' Da der Haupteintrag nicht vorhanden ist, muß hier auch nicht auf die xlsExists-Exception geachtet werden.
             Dim res As MsgBoxResult = MsgBox("Der Haupteintrag " & txtMainEntry.Text & " ist für die gewählten Sprachen nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
             If res = MsgBoxResult.Yes Then
@@ -126,7 +131,7 @@ Public Class WordInput
                     voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
                     ' hinzufügen in die gruppe
                     If chkDirectAdd.Checked Then AddToGroup()
-                Catch sex As xlsExceptionEntryExists
+                Catch sex As EntryExistsException
                     If chkDirectAdd.Checked Then AddToGroup() ' da es schon vorhanden ist, kann es in die aktuelle Gruppe hinzugefügt werden
                 Catch sex As Exception
                     MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
@@ -215,8 +220,8 @@ Public Class WordInput
     Private Sub cmbDirectAddGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbDirectAddGroup.SelectedIndexChanged
         ' Untergruppen in die andere Liste eintragen
         cmbDirectAddSubGroup.Items.Clear()     ' Liste leeren
-        Dim subGroups As Collection(Of xlsGroupEntry) = groups.GetSubGroups(cmbDirectAddGroup.SelectedItem)
-        For Each entry As xlsGroupEntry In subGroups
+        Dim subGroups As Collection(Of GroupEntry) = GroupsDao.GetSubGroups(cmbDirectAddGroup.SelectedItem)
+        For Each entry As GroupEntry In subGroups
             cmbDirectAddSubGroup.Items.Add(entry.SubGroup)
         Next
         If cmbDirectAddSubGroup.Items.Count > 0 Then cmbDirectAddSubGroup.SelectedIndex = 0
@@ -224,7 +229,7 @@ Public Class WordInput
 
     Private Sub cmbDirectAddSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbDirectAddSubGroup.SelectedIndexChanged
         If cmbDirectAddSubGroup.Items.Count = 0 Then grp = Nothing : Exit Sub
-        grp = groups.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
+        grp = xlsGroups.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
 
         ' Wenn die verwendeten Sprachen eindeutig sind, setzen
         Try

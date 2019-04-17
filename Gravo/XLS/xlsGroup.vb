@@ -13,11 +13,11 @@ Public Class xlsGroup
 
   Public Function GetWords() As Collection(Of String)
     Dim words As New Collection(Of String)
-        Dim command As String = "SELECT D.Word, G.[Index] FROM DictionaryWords AS D, [" & AddHighColons(groupTableName) & "] AS G WHERE D.[Index]=G.[WordIndex] ORDER BY G.[Index];"
+        Dim command As String = "SELECT D.Word, G.[Index] FROM DictionaryWords AS D, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE D.[Index]=G.[WordIndex] ORDER BY G.[Index];"
         Try
 			DBConnection.ExecuteReader(command)
 		Catch
-			Dim e As xlsExceptionEntryNotFound = New Exception("Es gibt keine Tabelle """ & groupTableName & """")
+			Dim e As EntryNotFoundException = New Exception("Es gibt keine Tabelle """ & groupTableName & """")
 			Throw e
 		End Try
 		Do While DBConnection.DBCursor.Read()
@@ -73,7 +73,7 @@ Public Class xlsGroup
 	Public Function GetMarked(ByVal WordIndex As Integer) As Boolean
 		Dim command As String = "SELECT [Marked] FROM [" & groupTableName & "] WHERE [WordIndex]=" & WordIndex & ";"
 		DBConnection.ExecuteReader(command)
-		If Not DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryNotFound("No Entry with this Index in the Group.")
+		If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("No Entry with this Index in the Group.")
 		' vorhanden, also auslesen
 		DBConnection.DBCursor.Read()
 		Dim ret As Boolean = DBConnection.SecureGetBool(0)
@@ -84,7 +84,7 @@ Public Class xlsGroup
 	Public Sub SetMarked(ByVal WordIndex As Integer, ByVal Value As Boolean)
 		Dim command As String = "SELECT [Marked] FROM [" & groupTableName & "] WHERE [WordIndex]=" & WordIndex & ";"
 		DBConnection.ExecuteReader(command)
-		If Not DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryNotFound("No Entry with this Index in the Group.")
+		If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("No Entry with this Index in the Group.")
 		' vorhanden, also auslesen
 		DBConnection.DBCursor.Close()
 		command = "UPDATE [" & groupTableName & "] SET [Marked]=" & GetDBEntry(Value) & "WHERE [WordIndex]=" & WordIndex & ";"
@@ -95,7 +95,7 @@ Public Class xlsGroup
 	Public Function GetWords(ByVal word As String) As Collection(Of xlsDictionaryEntry)
 		Dim dictionaryEntrys As New Collection(Of xlsDictionaryEntry)
 
-        Dim command As String = "Select D.[Index] FROM DictionaryWords AS D, [" & AddHighColons(groupTableName) & "] AS G WHERE (((D.[Index])=G.[WordIndex]) AND ((D.Word)='" & AddHighColons(word) & "'));"
+        Dim command As String = "Select D.[Index] FROM DictionaryWords AS D, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE (((D.[Index])=G.[WordIndex]) AND ((D.Word)='" & EscapeSingleQuotes(word) & "'));"
         DBConnection.ExecuteReader(command)
 		If DBConnection.DBCursor.HasRows = False Then Return dictionaryEntrys ' kein wort entspricht den geforderten angaben
 		Dim indices As New Collection(Of Integer)
@@ -113,7 +113,7 @@ Public Class xlsGroup
 
 	Public ReadOnly Property WordCount() As Integer
 		Get
-			Dim command As String = "SELECT COUNT([Index]) FROM [" & AddHighColons(groupTableName) & "];"
+			Dim command As String = "SELECT COUNT([Index]) FROM [" & EscapeSingleQuotes(groupTableName) & "];"
 			DBConnection.ExecuteReader(command)
 			DBConnection.DBCursor.Read()
 			Dim ret As Integer = DBConnection.SecureGetInt32(0)
@@ -124,7 +124,7 @@ Public Class xlsGroup
 
 	Public ReadOnly Property LanguageCount() As Integer
 		Get
-            Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex= M.[Index];"
+            Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex= M.[Index];"
             DBConnection.ExecuteReader(command)
 			Dim count As Integer = 0
 			Do While DBConnection.DBCursor.Read
@@ -137,7 +137,7 @@ Public Class xlsGroup
 
 	Public ReadOnly Property MainLanguageCount() As Integer
 		Get
-            Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
+            Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
             DBConnection.ExecuteReader(command)
 			Dim count As Integer = 0
 			Do While DBConnection.DBCursor.Read
@@ -151,7 +151,7 @@ Public Class xlsGroup
 	Public Function GetUniqueLanguage() As String
 		Dim ret As String = ""
 		Dim once As Boolean = True
-        Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index];"
+        Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index];"
         DBConnection.ExecuteReader(command)
 		Do While DBConnection.DBCursor.Read
 			If ret <> "" Then once = False : Exit Do
@@ -165,7 +165,7 @@ Public Class xlsGroup
 
 	Public Function GetLanguages() As Collection(Of String)
 		Dim languages As Collection(Of String) = New Collection(Of String)
-        Dim command As String = "SELECT DISTINCT LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE W.MainIndex = M.[Index] AND W.[Index] = G.WordIndex"
+        Dim command As String = "SELECT DISTINCT LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE W.MainIndex = M.[Index] AND W.[Index] = G.WordIndex"
         DBConnection.ExecuteReader(command)
 		Do While DBConnection.DBCursor.Read
 			languages.Add(DBConnection.SecureGetString(0))
@@ -177,7 +177,7 @@ Public Class xlsGroup
 	Public Function GetUniqueMainLanguage() As String
 		Dim ret As String = ""
 		Dim once As Boolean = True
-        Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
+        Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
         DBConnection.ExecuteReader(command)
 		Do While DBConnection.DBCursor.Read
 			If ret <> "" Then once = False : Exit Do
@@ -190,9 +190,9 @@ Public Class xlsGroup
 	End Function
 
 	Public Function GetIndex(ByVal word As String, ByVal meaning As String) As Integer
-        Dim command As String = "SELECT G.WordIndex FROM DictionaryWords AS W, [" & AddHighColons(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.Word=" & GetDBEntry(word) & " AND W.Meaning = " & GetDBEntry(meaning)
+        Dim command As String = "SELECT G.WordIndex FROM DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.Word=" & GetDBEntry(word) & " AND W.Meaning = " & GetDBEntry(meaning)
         DBConnection.ExecuteReader(command)
-		If Not DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryNotFound("No Entry for the given word and meaning in the current group.")
+		If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("No Entry for the given word and meaning in the current group.")
 		DBConnection.DBCursor.Read()
 		Dim index As Integer = DBConnection.SecureGetInt32(0)
 		DBConnection.DBCursor.Close()
@@ -200,14 +200,14 @@ Public Class xlsGroup
 	End Function
 
 	Public Sub Delete(ByVal index As Integer)
-        Dim command As String = "DELETE FROM [" & AddHighColons(groupTableName) & "] WHERE WordIndex=" & index
+        Dim command As String = "DELETE FROM [" & EscapeSingleQuotes(groupTableName) & "] WHERE WordIndex=" & index
         DBConnection.ExecuteNonQuery(command)
 	End Sub
 
 	Public Function GetIndices() As Collection(Of Integer)
 		If DBConnection Is Nothing Then Throw New xlsException("Datenbank ist nicht verbunden")
 		Dim indices As New Collection(Of Integer)
-		Dim command As String = "SELECT WordIndex FROM [" & AddHighColons(groupTableName) & "];"
+		Dim command As String = "SELECT WordIndex FROM [" & EscapeSingleQuotes(groupTableName) & "];"
 		DBConnection.ExecuteReader(command)
 		While DBConnection.DBCursor.Read()
 			indices.Add(DBConnection.SecureGetInt32(0))

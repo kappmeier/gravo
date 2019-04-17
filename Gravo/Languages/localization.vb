@@ -227,7 +227,7 @@ Public Class localization
     ''' <param name="LanguageName">The language identifier</param>
     ''' <returns>The author as stored in the language database.</returns>
     Public Function GetDateFor(LanguageName As String) As String
-        Dim command As String = "SELECT [Date] FROM [languages] WHERE [Name] = " & AccessDatabaseOperation.GetDBEntry(LanguageName) & ";"
+        Dim command As String = "SELECT [Date] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
         DBConnection.ExecuteReader(command)
         If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
         DBConnection.DBCursor.Read()
@@ -264,7 +264,7 @@ Public Class localization
     End Function
 
     Private Function GetFieldFor(LanguageName As String, Field As String) As String
-        Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & AccessDatabaseOperation.GetDBEntry(LanguageName) & ";"
+        Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
         DBConnection.ExecuteReader(command)
         If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
         DBConnection.DBCursor.Read()

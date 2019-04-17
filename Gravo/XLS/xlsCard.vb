@@ -23,7 +23,7 @@ Public Class xlsCard
   Public Sub Load(ByVal wordNumber As Integer)
     Dim command As String = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index]=" & wordNumber & ";"
     DBConnection.ExecuteReader(command)
-    If Not DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryNotFound("Entry " & wordNumber & " not found in global cards-system. If you Expect to have it, try to reorganize the database.")
+    If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("Entry " & wordNumber & " not found in global cards-system. If you Expect to have it, try to reorganize the database.")
 
     m_wordNumber = wordNumber
     DBConnection.DBCursor.Read()

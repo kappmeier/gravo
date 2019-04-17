@@ -17,13 +17,13 @@ Public Class xlsTestGroup
         Dim words As Collection(Of Integer) = New Collection(Of Integer)
         Dim command As String = ""
         If TestSetPhrases And TestMarked Then ' nur markierte und Phrasen einschlieﬂen
-            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & AddHighColons(Group) & "] AS G WHERE(((W.[Index]) = G.[WordIndex]) AND ((G.Marked) = True))"
+            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & EscapeSingleQuotes(Group) & "] AS G WHERE(((W.[Index]) = G.[WordIndex]) AND ((G.Marked) = True))"
         ElseIf Not TestSetPhrases And TestMarked Then ' nur markierte und Phrasen ausschlieﬂen
-            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & AddHighColons(Group) & "] AS G WHERE W.[Index] = G.WordIndex AND G.Marked = True AND (NOT W.WordType=5);"
+            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & EscapeSingleQuotes(Group) & "] AS G WHERE W.[Index] = G.WordIndex AND G.Marked = True AND (NOT W.WordType=5);"
         ElseIf TestSetPhrases And Not TestMarked Then ' alle ausw‰hlen und Phrasen einschlieﬂen
-            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & AddHighColons(Group) & "] AS G WHERE W.[Index] = G.WordIndex;"
+            command = "SELECT W.[Index] FROM DictionaryWords AS W, [" & EscapeSingleQuotes(Group) & "] AS G WHERE W.[Index] = G.WordIndex;"
         Else  ' alle ausw‰hlen und Phrasen ausschlieﬂen
-            command = "SELECT W.[Index] FROM [DictionaryWords] AS W, [" & AddHighColons(Group) & "] AS G WHERE W.[Index] = G.WordIndex AND  W.WordType <> 5"
+            command = "SELECT W.[Index] FROM [DictionaryWords] AS W, [" & EscapeSingleQuotes(Group) & "] AS G WHERE W.[Index] = G.WordIndex AND  W.WordType <> 5"
         End If
         DBConnection.ExecuteReader(command)
         Do While DBConnection.DBCursor.Read

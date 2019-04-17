@@ -141,7 +141,7 @@ Public Class xlsDBPropertys
     Public Function GetWordType(ByVal number As Integer) As String
         Dim command As String = "SELECT [Type] FROM [SupportedWordTypes] WHERE [Index] = " & number & ";"
         DBConnection.ExecuteReader(command)
-        If Not DBConnection.DBCursor.HasRows Then Throw New xlsExceptionEntryNotFound("Type " & number & " not supported")
+        If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("Type " & number & " not supported")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()

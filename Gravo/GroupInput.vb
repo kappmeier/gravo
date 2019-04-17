@@ -5,7 +5,11 @@ Public Class GroupInput
     Dim voc As New xlsGroups                              ' Zugriff auf die Gruppen der Datenbank
     Dim dic As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
     Dim grp As xlsGroup                                   ' Zugriff auf eine Gruppe
-    Dim groups As New xlsGroups
+    Dim xlsGroups As New xlsGroups
+    ''' <summary>
+    ''' Data access for groups.
+    ''' </summary>
+    Dim GroupsDao As IGroupsDao
 
     Dim meanings As Collection(Of xlsDictionaryEntry)     ' Eine Sammlung der Wörter in der Bedeutungsauswahl
 
@@ -18,7 +22,8 @@ Public Class GroupInput
         db.Open(DBPath)
         voc.DBConnection = db
         dic.DBConnection = db
-        groups.DBConnection = db
+        xlsGroups.DBConnection = db
+        GroupsDao = New GroupsDao(db)
     End Sub
 
     Private Sub GroupInput_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -27,7 +32,7 @@ Public Class GroupInput
 
         ' Gruppen in die Liste einfügen
         cmbSelectGroup.Items.Clear()
-        Dim groupNames As Collection(Of String) = groups.GetGroups()
+        Dim groupNames As Collection(Of String) = GroupsDao.GetGroups()
         For Each groupName As String In groupNames
             cmbSelectGroup.Items.Add(groupName)
         Next
@@ -131,8 +136,8 @@ Public Class GroupInput
     Private Sub cmbSelectGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbSelectGroup.SelectedIndexChanged
         ' Untergruppen in die andere Liste eintragen
         cmbSelectSubGroup.Items.Clear()     ' Liste leeren
-        Dim subGroups As Collection(Of xlsGroupEntry) = groups.GetSubGroups(cmbSelectGroup.SelectedItem)
-        For Each entry As xlsGroupEntry In subGroups
+        Dim subGroups As Collection(Of GroupEntry) = GroupsDao.GetSubGroups(cmbSelectGroup.SelectedItem)
+        For Each entry As GroupEntry In subGroups
             cmbSelectSubGroup.Items.Add(entry.SubGroup)
         Next
         If cmbSelectSubGroup.Items.Count > 0 Then cmbSelectSubGroup.SelectedIndex = 0
@@ -303,7 +308,7 @@ Public Class GroupInput
         End If
         lblWordsInSubGroup.Text = t1 & " in der Gruppe," & vbCrLf & t & "."
         ' Anzeige der Vokabeln aktualisieren
-        t = groups.WordCount(cmbSelectGroup.SelectedItem) & IIf(groups.WordCount(cmbSelectGroup.SelectedItem) = 1, " Eintrag", " Einträge")
+        t = xlsGroups.WordCount(cmbSelectGroup.SelectedItem) & IIf(xlsGroups.WordCount(cmbSelectGroup.SelectedItem) = 1, " Eintrag", " Einträge")
         lblWordsInGroup.Text = t & " in der Gruppe insgesamt."
     End Sub
 
@@ -313,7 +318,7 @@ Public Class GroupInput
         ' Neue Gruppe ausgewählt. Zeige die enthaltenen Vokabeln in der liste an
         lstWordsInGroup.BeginUpdate()
         lstWordsInGroup.Items.Clear()
-        grp = groups.GetGroup(cmbSelectGroup.SelectedItem, cmbSelectSubGroup.SelectedItem)
+        grp = xlsGroups.GetGroup(cmbSelectGroup.SelectedItem, cmbSelectSubGroup.SelectedItem)
 
         Dim wordstrings As Collection(Of String) = grp.GetWords()
         For Each sWord As String In wordstrings

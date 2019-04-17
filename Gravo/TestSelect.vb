@@ -3,7 +3,11 @@ Imports Gravo.localization
 
 Public Class TestSelect
     Dim db As New SQLiteDataBaseOperation
-    Dim groups As New xlsGroups
+    Dim xlsGroups As New xlsGroups
+    ''' <summary>
+    ''' Data access for groups.
+    ''' </summary>
+    Dim GroupsDao As IGroupsDao
     Dim group As xlsGroup = Nothing
 
     Public Sub New()
@@ -12,11 +16,12 @@ Public Class TestSelect
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)     ' Datenbank öffnen
-        groups.DBConnection = db
+        xlsGroups.DBConnection = db
+        GroupsDao = New GroupsDao(db)
 
         ' Gruppen in die Liste einfügen
         cmbGroup.Items.Clear()
-        Dim groupNames As Collection(Of String) = groups.GetGroups()
+        Dim groupNames As Collection(Of String) = GroupsDao.GetGroups()
         For Each groupName As String In groupNames
             cmbGroup.Items.Add(groupName)
         Next
@@ -48,8 +53,8 @@ Public Class TestSelect
     Private Sub cmbGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbGroup.SelectedIndexChanged
         ' Untergruppen in die andere Liste eintragen
         cmbSubGroup.Items.Clear()     ' Liste leeren
-        Dim subGroups As Collection(Of xlsGroupEntry) = groups.GetSubGroups(cmbGroup.SelectedItem)
-        For Each entry As xlsGroupEntry In subGroups
+        Dim subGroups As Collection(Of GroupEntry) = GroupsDao.GetSubGroups(cmbGroup.SelectedItem)
+        For Each entry As GroupEntry In subGroups
             cmbSubGroup.Items.Add(entry.SubGroup)
         Next
         If cmbSubGroup.Items.Count > 0 Then cmbSubGroup.SelectedIndex = 0
@@ -62,7 +67,7 @@ Public Class TestSelect
     End Property
 
     Private Sub cmbSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbSubGroup.SelectedIndexChanged
-        group = groups.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
+        group = xlsGroups.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
         Dim t As String = group.WordCount & IIf(group.WordCount = 1, " Vokabel abzufragen.", " Vokabeln abzufragen.")
         lblWordCount.Text = t
     End Sub

@@ -65,7 +65,7 @@ Module LanguageConversion
             End Try
             If Not text Is Nothing Then
                 Dim Command = "INSERT INTO [" & languageTable & "] ([Field], [Text]) " &
-                    "VALUES (" & i & ", '" & AccessDatabaseOperation.AddHighColons(text) & "')"
+                    "VALUES (" & i & ", '" & EscapeSingleQuotes(text) & "')"
                 NewDB.ExecuteNonQuery(Command)
             End If
         Loop While Not text Is Nothing
