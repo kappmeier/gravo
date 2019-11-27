@@ -32,46 +32,7 @@ Public Class xlsGroup
         Return words
     End Function
 
-    ' Storing card data here is unneccessary data duplication
-    Sub Add(ByVal wordIndex As Integer, ByVal marked As Boolean, ByVal example As String)
-        ' TODO Exception, falls GroupTable nicht existiert, evtl. update von marked falls schon vorhanden...?
-
-        ' nur hinzufügen, wenn noch nicht vorhanden
-        Dim command As String = "SELECT [WordIndex] FROM [" & groupTableName & "] WHERE [WordIndex]=" & wordIndex & ";"
-        DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows Then DBConnection.DBCursor.Close() : Exit Sub Else DBConnection.DBCursor.Close() ' schon ein eintrag vorhanden!
-
-        ' Lade alten Wert für Cards aus globaler Karten-Tabelle
-        Dim card As xlsCard = New xlsCard(DBConnection, wordIndex)
-
-        ' einfügen
-        Dim month As String
-        If card.LastDate.Month < 10 Then
-            month = "0" & card.LastDate.Month
-        Else
-            month = card.LastDate.Month
-        End If
-        Dim day As String
-        If card.LastDate.Day < 10 Then
-            day = "0" & card.LastDate.Day
-        Else
-            day = card.LastDate.Day
-        End If
-
-        Dim dateString As String = card.LastDate.Year & "-" & month & "-" & day
-        command = "INSERT INTO [" & groupTableName & "] ([WordIndex], [Marked], [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES(" & wordIndex & ", " & GetDBEntry(marked) & ", " & GetDBEntry(example) & ", " & GetDBEntry(card.TestInterval) & ", " & GetDBEntry(card.Counter) & ", " & GetDBEntry(dateString) & ", " & GetDBEntry(card.TestIntervalMain) & ", " & GetDBEntry(card.CounterMain) & ");"
-        DBConnection.ExecuteReader(command)
-    End Sub
-
-    Public Property GroupTable() As String
-        Get
-            Return groupTableName
-        End Get
-        Set(ByVal value As String)
-            groupTableName = value
-        End Set
-    End Property
-
+    ' Use ismarked from groupdto
     Public Function GetMarked(ByVal WordIndex As Integer) As Boolean
         Dim command As String = "SELECT [Marked] FROM [" & groupTableName & "] WHERE [WordIndex]=" & WordIndex & ";"
         DBConnection.ExecuteReader(command)
@@ -83,6 +44,7 @@ Public Class xlsGroup
         Return ret
     End Function
 
+    ' as UpdateMarked in groupdao
     Public Sub SetMarked(ByVal WordIndex As Integer, ByVal Value As Boolean)
         Dim command As String = "SELECT [Marked] FROM [" & groupTableName & "] WHERE [WordIndex]=" & WordIndex & ";"
         DBConnection.ExecuteReader(command)
@@ -94,24 +56,25 @@ Public Class xlsGroup
     End Sub
 
     ' Hohlt alle wörter, bei denen word = word gilt, die auch in der gruppe sind, als komplette dictionaryentrys
-    Public Function GetWords(ByVal word As String) As Collection(Of xlsDictionaryEntry)
-        Dim dictionaryEntrys As New Collection(Of xlsDictionaryEntry)
+    ' not required any more, implemented as filter on group
+    'Public Function GetWords(ByVal word As String) As Collection(Of xlsDictionaryEntry)
+    '    Dim dictionaryEntrys As New Collection(Of xlsDictionaryEntry)
 
-        Dim command As String = "Select D.[Index] FROM DictionaryWords AS D, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE (((D.[Index])=G.[WordIndex]) AND ((D.Word)='" & EscapeSingleQuotes(word) & "'));"
-        DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Return dictionaryEntrys ' kein wort entspricht den geforderten angaben
-        Dim indices As New Collection(Of Integer)
-        Do While DBConnection.DBCursor.Read
-            indices.Add(DBConnection.SecureGetInt32(0))
-        Loop
-        DBConnection.DBCursor.Close()
-        Dim wCurrent As xlsDictionaryEntry
-        For Each index As Integer In indices
-            wCurrent = New xlsDictionaryEntry(DBConnection, index)
-            dictionaryEntrys.Add(wCurrent)
-        Next
-        Return dictionaryEntrys
-    End Function
+    '    Dim command As String = "Select D.[Index] FROM DictionaryWords AS D, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE (((D.[Index])=G.[WordIndex]) AND ((D.Word)='" & EscapeSingleQuotes(word) & "'));"
+    '    DBConnection.ExecuteReader(command)
+    '    If DBConnection.DBCursor.HasRows = False Then Return dictionaryEntrys ' kein wort entspricht den geforderten angaben
+    '    Dim indices As New Collection(Of Integer)
+    '    Do While DBConnection.DBCursor.Read
+    '        indices.Add(DBConnection.SecureGetInt32(0))
+    '    Loop
+    '    DBConnection.DBCursor.Close()
+    '    Dim wCurrent As xlsDictionaryEntry
+    '    For Each index As Integer In indices
+    '        wCurrent = New xlsDictionaryEntry(DBConnection, index)
+    '        dictionaryEntrys.Add(wCurrent)
+    '    Next
+    '    Return dictionaryEntrys
+    'End Function
 
     Public ReadOnly Property WordCount() As Integer
         Get
@@ -150,21 +113,7 @@ Public Class xlsGroup
         End Get
     End Property
 
-    Public Function GetUniqueLanguage() As String
-        Dim ret As String = ""
-        Dim once As Boolean = True
-        Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index];"
-        DBConnection.ExecuteReader(command)
-        Do While DBConnection.DBCursor.Read
-            If ret <> "" Then once = False : Exit Do
-            ret = DBConnection.SecureGetString(0)
-            If ret = "" Then Throw New xlsException("Illegal language found.")
-        Loop
-        DBConnection.DBCursor.Close()
-        If Not once Then Throw New xlsException("More than one language.")
-        Return ret
-    End Function
-
+    ' Moved to GroupDao
     Public Function GetLanguages() As Collection(Of String)
         Dim languages As Collection(Of String) = New Collection(Of String)
         Dim command As String = "SELECT DISTINCT LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE W.MainIndex = M.[Index] AND W.[Index] = G.WordIndex"
@@ -176,6 +125,7 @@ Public Class xlsGroup
         Return languages
     End Function
 
+    ' Moved to groupdao
     Public Function GetUniqueMainLanguage() As String
         Dim ret As String = ""
         Dim once As Boolean = True
@@ -191,21 +141,6 @@ Public Class xlsGroup
         Return ret
     End Function
 
-    Public Function GetIndex(ByVal word As String, ByVal meaning As String) As Integer
-        Dim command As String = "SELECT G.WordIndex FROM DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.Word=" & GetDBEntry(word) & " AND W.Meaning = " & GetDBEntry(meaning)
-        DBConnection.ExecuteReader(command)
-        If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("No Entry for the given word and meaning in the current group.")
-        DBConnection.DBCursor.Read()
-        Dim index As Integer = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
-        Return index
-    End Function
-
-    Public Sub Delete(ByVal index As Integer)
-        Dim command As String = "DELETE FROM [" & EscapeSingleQuotes(groupTableName) & "] WHERE WordIndex=" & index
-        DBConnection.ExecuteNonQuery(command)
-    End Sub
-
     Public Function GetIndices() As Collection(Of Integer)
         If DBConnection Is Nothing Then Throw New xlsException("Datenbank ist nicht verbunden")
         Dim indices As New Collection(Of Integer)
@@ -217,16 +152,4 @@ Public Class xlsGroup
         DBConnection.CloseReader()
         Return indices
     End Function
-
-    Public ReadOnly Property GroupSubName() As String
-        Get
-            Dim command As String
-            command = "SELECT [GroupSubName] FROM Groups WHERE GroupTable=" & GetDBEntry(GroupTable)
-            DBConnection.ExecuteReader(command)
-            DBConnection.DBCursor.Read()
-            Dim ret As String = DBConnection.SecureGetString(0)
-            DBConnection.DBCursor.Close()
-            Return ret
-        End Get
-    End Property
 End Class

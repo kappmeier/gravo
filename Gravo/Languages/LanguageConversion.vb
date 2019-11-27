@@ -3,7 +3,7 @@
 ''' Provides helper methods to copy language databases.
 ''' </summary>
 Module LanguageConversion
-    Sub ConvertDatabase(OldDB As DataBaseOperation, NewDB As DataBaseOperation)
+    Sub ConvertDatabase(OldDB As IDataBaseOperation, NewDB As IDataBaseOperation)
         Dim Loc As localization = New localization(OldDB)
 
         CreateDictionaryTable(Loc, NewDB)
@@ -16,7 +16,7 @@ Module LanguageConversion
         NewDB.Close()
     End Sub
 
-    Private Sub CreateDictionaryTable(OldLoc As localization, NewDB As DataBaseOperation)
+    Private Sub CreateDictionaryTable(OldLoc As localization, NewDB As IDataBaseOperation)
         Dim Command = "CREATE TABLE [languages] ([Language] Text(16) NOT NULL, " &
             "[Name] Text(32) NOT NULL, [Author] Text(64) NOT NULL, [Table] Text(32) NOT NULL, " &
             "[Date] DateTime NOT NULL, [Version] Text(5));"
@@ -31,7 +31,7 @@ Module LanguageConversion
         Next
     End Sub
 
-    Private Sub CopyLanguages(Loc As localization, NewDB As DataBaseOperation)
+    Private Sub CopyLanguages(Loc As localization, NewDB As IDataBaseOperation)
         Dim max As Int16 = 0
         For Each language As String In Loc.GetLanguageNames
             max = Math.Max(max, CopyLanguage(language, Loc, NewDB))
@@ -46,7 +46,7 @@ Module LanguageConversion
     End Sub
 
     Private Function CopyLanguage(language As String, Loc As localization,
-                                  NewDB As DataBaseOperation) As SByte
+                                  NewDB As IDataBaseOperation) As SByte
         Loc.SwitchToLanguage(language)
 
         Dim languageTable = Loc.GetTableFor(language)

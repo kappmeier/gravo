@@ -3,45 +3,57 @@ Imports NUnit.Framework
 
 Public Class DaoToolsTests
     <Test>
-    Public Sub AddHighColons_WithoutSingleQuote_RemainsUnchanged()
+    Public Sub EscapeSingleQuotes_WithoutSingleQuote_RemainsUnchanged()
         Dim result As String = DaoTools.EscapeSingleQuotes("test")
         Assert.AreEqual("test", result)
     End Sub
 
     <Test>
-    Public Sub AddHighColons_WithSingleQuote_IsEscaped()
+    Public Sub EscapeSingleQuotes_WithSingleQuote_IsEscaped()
         Dim result As String = DaoTools.EscapeSingleQuotes("can't")
         Assert.AreEqual("can''t", result)
     End Sub
 
     <Test>
-    Public Sub AddHighColons_DoubledQuotes_AreEscaped()
+    Public Sub EscapeSingleQuotes_DoubledQuotes_AreEscaped()
         Dim result As String = DaoTools.EscapeSingleQuotes("What''?")
         Assert.AreEqual("What''''?", result)
     End Sub
 
     <Test>
-    Public Sub AddHighColons_QuotesAtEnd_AreEscaped()
+    Public Sub EscapeSingleQuotes_QuotesAtEnd_AreEscaped()
         Dim result As String = DaoTools.EscapeSingleQuotes("Alex'")
         Assert.AreEqual("Alex''", result)
     End Sub
 
     <Test>
-    Public Sub AddHighColons_OnlyQuotes_AreEscaped()
+    Public Sub EscapeSingleQuotes_OnlyQuotes_AreEscaped()
         Dim result As String = DaoTools.EscapeSingleQuotes("'")
         Assert.AreEqual("''", result)
     End Sub
 
     <Test>
-    Public Sub AddHighColons_EmptyInput_RemainsUnchanged()
+    Public Sub EscapeSingleQuotes_EmptyInput_RemainsUnchanged()
         Dim result As String = DaoTools.EscapeSingleQuotes("")
         Assert.AreEqual("", result)
     End Sub
 
     <Test>
-    Public Sub BooleanToString_AllInputs_AreConverted()
-        Assert.AreEqual("0", DaoTools.BooleanToString(False))
-        Assert.AreEqual("-1", DaoTools.BooleanToString(True))
+    Public Sub EscapeSingleQuotes_EmptyList_RemainsEmpty()
+        Dim result As IEnumerable(Of Object) = DaoTools.EscapeSingleQuotes(New List(Of Object))
+        CollectionAssert.AreEqual(New List(Of String), result)
+    End Sub
+
+    <Test>
+    Public Sub EscapeSingleQuotes_EmptyList_EscapesAllEntries()
+        Dim result As IEnumerable(Of Object) = DaoTools.EscapeSingleQuotes(New List(Of Object) From {"2", "'", "can't"})
+        CollectionAssert.AreEqual(New List(Of String) From {"2", "''", "can''t"}, result)
+    End Sub
+
+    <Test>
+    Public Sub BooleanToDBFormat_AllInputs_AreConverted()
+        Assert.AreEqual(0, DaoTools.GetDBEntry(False))
+        Assert.AreEqual(1, DaoTools.GetDBEntry(True))
     End Sub
 
     <Test>

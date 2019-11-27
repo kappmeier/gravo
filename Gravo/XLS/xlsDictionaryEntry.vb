@@ -18,12 +18,12 @@ Public Class xlsDictionaryEntry
   Private m_irregular As Boolean
   'Private m_marked As Boolean                     ' Wort markiert? z.b. rezeptiver Wortschatz etc.
 
-  Sub New(ByVal db as DatabaseOperation, ByVal Index As Integer)
+  Sub New(ByVal db as IDataBaseOperation, ByVal Index As Integer)
     MyBase.new(db)
     LoadWord(Index)
   End Sub
 
-  Sub New(ByVal db as DatabaseOperation)
+  Sub New(ByVal db as IDataBaseOperation)
     MyBase.New(db)
   End Sub
 
@@ -71,28 +71,29 @@ Public Class xlsDictionaryEntry
     DBConnection.DBCursor.Close()
   End Sub
 
-  Public Sub SaveWord()
-    If IsConnected() = False Then Throw New Exception("Datenbank nicht verbunden.")
-    ' Prüfen, ob die Änderung überhaupt durchgeführt werden darf
+    ' Will be contained in DictionaryDao, e.g. by ChangeEntry
+    Public Sub SaveWord()
+        If IsConnected() = False Then Throw New Exception("Datenbank nicht verbunden.")
+        ' Prüfen, ob die Änderung überhaupt durchgeführt werden darf 
 
-    Dim command As String = "SELECT [Index] FROM [DictionaryWords] WHERE [MainIndex]=" & MainIndex & " AND [Word]=" & GetDBEntry(Word) & " AND [Meaning]=" & GetDBEntry(Meaning) & ";"
-    DBConnection.ExecuteReader(command)
-    If DBConnection.DBCursor.HasRows Then
-      DBConnection.DBCursor.Read()
+        Dim command As String = "SELECT [Index] FROM [DictionaryWords] WHERE [MainIndex]=" & MainIndex & " AND [Word]=" & GetDBEntry(Word) & " AND [Meaning]=" & GetDBEntry(Meaning) & ";"
+        DBConnection.ExecuteReader(command)
+        If DBConnection.DBCursor.HasRows Then
+            DBConnection.DBCursor.Read()
             If DBConnection.SecureGetInt32(0) <> WordIndex Then Throw New EntryExistsException("Entry '" & Word & "' exists with index " & DBConnection.SecureGetInt32(0) & ".")
         End If
         command = "UPDATE DictionaryWords SET MainIndex=" & MainIndex & ", Word=" & GetDBEntry(Word) & ", Pre=" & GetDBEntry(Pre) & ", Post=" & GetDBEntry(Post) & ", WordType=" & WordType & ", Meaning=" & GetDBEntry(Meaning) & ", TargetLanguageInfo=" & GetDBEntry(AdditionalTargetLangInfo) & ", Irregular=" & GetDBEntry(Irregular) & " WHERE [Index] = " & WordIndex & ";"
         DBConnection.ExecuteNonQuery(command)
-  End Sub
+    End Sub
 
-  Public Sub FindCorrectWordIndex()
-    ' ändert direkt den WordIndex. sorgt dafür, daß er korrigiert wird...
-    ' TODO wenn es keinen wordindex gibt, setze auf einen neuen. also wie LoadNewWord
-    Dim dic As New xlsDictionary(DBConnection)
-    m_index = dic.GetSubEntryIndex(MainIndex, Word, Meaning)
-  End Sub
+    Public Sub FindCorrectWordIndex()
+        ' ändert direkt den WordIndex. sorgt dafür, daß er korrigiert wird...
+        ' TODO wenn es keinen wordindex gibt, setze auf einen neuen. also wie LoadNewWord
+        Dim dic As New xlsDictionary(DBConnection)
+        m_index = dic.GetSubEntryIndex(MainIndex, Word, Meaning)
+    End Sub
 
-  Public ReadOnly Property WordIndex() As Integer
+    Public ReadOnly Property WordIndex() As Integer
     ' kann geändert werden
     'Set(ByVal NewIndex As Integer)
     '  Me.LoadWord(NewIndex)

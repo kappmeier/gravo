@@ -15,7 +15,7 @@ Public Class xlsCard
     Load(wordNumber)
   End Sub
 
-  Public Sub New(ByVal db as DatabaseOperation, ByVal wordNumber As Integer)
+  Public Sub New(ByVal db as IDataBaseOperation, ByVal wordNumber As Integer)
     MyBase.New(db)
     Load(wordNumber)
   End Sub

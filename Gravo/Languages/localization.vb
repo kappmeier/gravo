@@ -141,7 +141,7 @@ Public Class localization
         MyBase.New()
     End Sub
 
-    Sub New(ByVal db as DatabaseOperation)
+    Sub New(ByVal db as IDataBaseOperation)
         MyBase.New(db)
     End Sub
 

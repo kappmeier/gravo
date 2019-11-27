@@ -5,7 +5,7 @@
 ''' 
 ''' Implementations hide the connection details, such as connection string.
 ''' </summary>
-Public Interface DataBaseOperation
+Public Interface IDataBaseOperation
     ''' <summary>
     ''' Conects to a database at a given location.
     ''' 
@@ -40,7 +40,7 @@ Public Interface DataBaseOperation
     ''' <param name="commandText">the command text</param>
     ''' <param name="values">values for parameters</param>
     ''' <returns>whether the command was executed successful.</returns>
-    Function ExecuteNonQuery(ByVal commandText As String, ByRef values As IEnumerable(Of String)) As Boolean
+    Function ExecuteNonQuery(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As Boolean
 
     ''' <summary>
     ''' Executes an SQL command and returns the database cursor with the results.
@@ -56,7 +56,7 @@ Public Interface DataBaseOperation
     ''' <param name="commandText">the command text</param>
     ''' <param name="values">values for parameters</param>
     ''' <returns>The cursor to the reader with the results of the query.</returns>
-    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of String)) As DbDataReader
+    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader
 
     ''' <summary>
     ''' Returns the cursor to the last query.

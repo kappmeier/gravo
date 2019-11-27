@@ -349,7 +349,7 @@ Public Class Main
         Dim ret As DialogResult = MsgBox("Es wird versucht, Fehler automatisch zu Beheben. Für weitere Möglichkeiten benutzen Sie bitte das Datenbank-Management. Wollen Sie den Test jetzt durchführen? Der Vorgang kann einige Minuten dauern.", MsgBoxStyle.YesNo, "Hinweis")
         If ret = Windows.Forms.DialogResult.No Then Exit Sub
 
-        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
 
         Dim man As New xlsManagement(db)
@@ -417,7 +417,7 @@ Public Class Main
         If Trim(programSettings.LastSubGroup) <> "" Then frmSelect.LastSubGroup = programSettings.LastSubGroup
         frmSelect.TestSetPhrases = programSettings.TestSetPhrases
         frmSelect.TestFormerLanguage = programSettings.TestFormerLanguage
-        Dim group As xlsGroup
+        Dim group As GroupDto
         Dim frmTest As TestSimple = Nothing
         Do
             Dim res As DialogResult = frmSelect.ShowDialog(Me)

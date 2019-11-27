@@ -1,5 +1,6 @@
 Imports Gravo.localization
 Imports System.Collections.ObjectModel  ' Für Collection(Of T)
+Imports System.Linq
 
 Public Class VocabularyExplorer
     Enum ListViewStyleEnum
@@ -44,6 +45,9 @@ Public Class VocabularyExplorer
     Private Const NODE_LEVEL_DICTIONARY As Integer = NODE_LEVEL_BASE
     Private Const NODE_LEVEL_MAIN_LANGUAGE As Integer = NODE_LEVEL_DICTIONARY + 1
     Private Const NODE_LEVEL_LANGUAGE As Integer = NODE_LEVEL_MAIN_LANGUAGE + 1
+    ''' <summary>
+    ''' Nodes containing main entries.
+    ''' </summary>
     Private Const NODE_LEVEL_ENTRY As Integer = NODE_LEVEL_LANGUAGE + 2
 
     Private Const NODE_LEVEL_GROUPS As Integer = NODE_LEVEL_BASE
@@ -52,13 +56,14 @@ Public Class VocabularyExplorer
     Private Const NODE_LEVEL_GROUP_ENTRY As Integer = NODE_LEVEL_SUBGROUP + 1
 
     Dim db As New SQLiteDataBaseOperation()
-    Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
-    Dim xlsGroups As New xlsGroups()
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
-    Dim prop As New xlsDBPropertys()
+    Dim GroupDao As IGroupDao
+    Dim DictionaryDao As IDictionaryDao
+    Dim properties As Properties
+    Dim wordTypes As WordTypes
 
     Dim listUpdate As Boolean = True
     Dim listSort As System.Windows.Forms.SortOrder = SortOrder.Ascending
@@ -79,10 +84,12 @@ Public Class VocabularyExplorer
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)     ' Datenbank öffnen
-        voc.DBConnection = db
-        xlsGroups.DBConnection = db
         GroupsDao = New GroupsDao(db)
-        prop.DBConnection = db
+        GroupDao = New GroupDao(db)
+        DictionaryDao = New DictionaryDao(db)
+        Dim propertiesDao As IPropertiesDao = New PropertiesDao(db)
+        properties = propertiesDao.LoadProperties()
+        WordTypes = propertiesDao.LoadWordTypes()
 
         ' Lade die Collections
         PanelViewItems.Add(PanelViewDefaultMenuItem)
@@ -93,13 +100,13 @@ Public Class VocabularyExplorer
         PanelWordInfo.Dock = DockStyle.Fill
         PanelMultiEdit.Dock = DockStyle.Fill
 
-        ' Anzahl der Zeichen pro Textfeld
-        txtPre.MaxLength = prop.DictionaryWordsMaxLengthPre
-        txtPost.MaxLength = prop.DictionaryWordsMaxLengthPost
-        txtWord.MaxLength = prop.DictionaryWordsMaxLengthWord
-        txtMeaning.MaxLength = prop.DictionaryWordsMaxLengthMeaning
-        txtAdditionalTargetLangInfo.MaxLength = prop.DictionaryWordsMaxLengthAdditionalTargetLangInfo
-        txtMainEntry.MaxLength = prop.DictionaryMainMaxLengthWordEntry
+        ' Set number of chars per field with respect to the database properties
+        txtPre.MaxLength = properties.DictionaryWordsMaxLengthPre
+        txtPost.MaxLength = properties.DictionaryWordsMaxLengthPost
+        txtWord.MaxLength = properties.DictionaryWordsMaxLengthWord
+        txtMeaning.MaxLength = properties.DictionaryWordsMaxLengthMeaning
+        txtAdditionalTargetLangInfo.MaxLength = properties.DictionaryWordsMaxLengthAdditionalTargetLangInfo
+        txtMainEntry.MaxLength = properties.DictionaryMainMaxLengthWordEntry
     End Sub
 
     Private Sub VocabularyExplorer_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -164,9 +171,10 @@ Public Class VocabularyExplorer
         Dim typeMultiSelected As Integer = lstWordType.SelectedIndex
         lstWordType.Items.Clear()
         lstMultiWordType.Items.Clear()
-        For Each type As String In prop.GetSupportedWordTypes()
-            lstWordType.Items.Add(GetLoc.GetText(type))
-            lstMultiWordType.Items.Add(GetLoc.GetText(type))
+        For Each type As String In wordTypes.GetSupportedWordTypes()
+            Dim dictionaryCode = "WORD_TYPE_" & type.ToUpper
+            lstWordType.Items.Add(GetLoc.GetText(dictionaryCode))
+            lstMultiWordType.Items.Add(GetLoc.GetText(dictionaryCode))
         Next type
         If lstWordType.Items.Count > 0 Then
             lstWordType.SelectedIndex = 0
@@ -186,26 +194,26 @@ Public Class VocabularyExplorer
         tvRoot = TreeView.Nodes.Add(GetLoc.GetText(TREE_DICTIONARY))
         tvFirst = tvRoot
 
-        ' Wörterbucheinträge Hinzufügen
-        For Each mainLanguage As String In voc.DictionaryMainLanguages()
-            tvRoot = tvRoot.Nodes.Add(mainLanguage) ' Bis jetzt nur deutsch ;)
-            Dim languages As Collection(Of String) = voc.DictionaryLanguages(mainLanguage)
+        ' add dictionary entries
+        For Each mainLanguage As String In DictionaryDao.DictionaryMainLanguages()
+            tvRoot = tvRoot.Nodes.Add(mainLanguage)
+            Dim languages As Collection(Of String) = DictionaryDao.DictionaryLanguages(mainLanguage)
             Dim i As Integer
             Dim tvLang As TreeNode
             For i = 0 To languages.Count - 1
-                tvLang = tvRoot.Nodes.Add(languages.Item(i)) 'Wurzel für jede Sprache
-                ' Erstelle den Temp-Subeintrag
+                tvLang = tvRoot.Nodes.Add(languages.Item(i)) 'root for each language
+                ' create temporary child node
                 tvNode = tvLang.Nodes.Add("temp")
             Next i
         Next mainLanguage
         tvRoot = TreeView.Nodes.Add(GetLoc.GetText(TREE_GROUPS))
 
-        ' Gruppen hinzufügen
+        ' add group entries
         For Each group As String In GroupsDao.GetGroups()
             tvNode = tvRoot.Nodes.Add(group)
             For Each subGroup As GroupEntry In GroupsDao.GetSubGroups(group)
                 Dim tv As TreeNode = tvNode.Nodes.Add(subGroup.SubGroup)
-                If xlsGroups.WordCount(group, subGroup.SubGroup) > 0 Then
+                If GroupDao.Load(subGroup).WordCount > 0 Then
                     tv.Nodes.Add("temp")
                 End If
             Next subGroup
@@ -226,13 +234,13 @@ Public Class VocabularyExplorer
         If GetBaseFromNode(tvSelectedNode) = GetLoc.GetText(TREE_DICTIONARY) Then
             Select Case tvSelectedNode.Level
                 Case NODE_LEVEL_ENTRY
-                    Dim index As Integer = voc.GetEntryIndex(oldName, GetLanguageFromNode(), GetMainLanguageFromNode())
+                    Dim oldEntry As MainEntry = DictionaryDao.GetMainEntry(oldName, GetLanguageFromNode(), GetMainLanguageFromNode())
                     Try
                         ' Den Eintrag im Hauptverzeichnis ändern
-                        voc.ChangeEntry(index, newName)
+                        Dim updatedMainEntry = DictionaryDao.ChangeMainEntry(oldEntry, newName)
                         ' Alle Einträge für das Wort im Unterverzeichnis ändern, falls es welche gibt
-                        Dim indices As Collection(Of Integer) = voc.GetSubEntryIndices(index, oldName)
-                        voc.ChangeSubEntries(indices, newName)
+                        DictionaryDao.AdaptSubEntries(updatedMainEntry, oldName)
+                        ' TODO: update the words also in the list
                     Catch ex As Exception
                         MsgBox(ex.Message, MsgBoxStyle.Exclamation, """" & oldName & """ konnte nicht umbenannt werden.")
                         e.CancelEdit = True
@@ -243,7 +251,7 @@ Public Class VocabularyExplorer
                     MsgBox("Änderungen werden nicht übernommen", MsgBoxStyle.Exclamation, "Warunung")
                     e.CancelEdit = True
             End Select
-        ElseIf IsGroupNode() Then 'GetBaseFromNode(tvSelectedNode) = GetLoc.GetText(TREE_GROUPS) Then
+        ElseIf IsGroupNode() Then
             Select Case tvSelectedNode.Level
                 Case NODE_LEVEL_GROUP
                     GroupsDao.EditGroup(oldName, newName)
@@ -251,14 +259,16 @@ Public Class VocabularyExplorer
                     GroupsDao.EditSubGroup(GetGroupFromNode(), oldName, newName)
                 Case NODE_LEVEL_GROUP_ENTRY
                     Dim item As ListViewItem = ListView.Items.Item(0)
-                    Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-                    Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
-                    Dim selectedWordIndex As Integer = dicEntry.WordIndex
-                    Dim t As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, selectedWordIndex)
-                    t.Word = newName
+                    Dim testWord As TestWord = item.Tag
+                    Dim word As WordEntry = testWord.WordEntry
+                    Dim nameUpdate As New IDictionaryDao.UpdateData With {
+                        .Word = newName
+                    }
                     Try
-                        t.SaveWord()
-                        item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = t.Word
+                        Dim updatedWord = DictionaryDao.ChangeEntry(word, nameUpdate)
+                        item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = updatedWord.word
+                        ' TODO: update test word in item.tag after update and also the texts in the list
+                        Throw New Exception()
                     Catch ex As EntryExistsException
                         MsgBox("Eintrag existiert bereits.")
                         e.CancelEdit = True
@@ -294,30 +304,32 @@ Public Class VocabularyExplorer
                     tvNode.Nodes.Clear()
                     For Each character As String In a
                         tvSub = tvNode.Nodes.Add(character)
-                        If voc.WordCount(tvNode.Text, GetMainLanguageFromNode(tvNode), character) > 0 Then
+                        If DictionaryDao.WordCount(tvNode.Text, GetMainLanguageFromNode(tvNode), character) > 0 Then
                             tvSub.Nodes.Add("temp")
                         End If
                     Next
                 Case NODE_LEVEL_LANGUAGE + 1
-                    ' Lade die Wörter die mit diesem Buchstaben beginnen
-                    Dim words As Collection(Of String) = voc.DictionaryEntrys(GetLanguageFromNode(tvNode), GetMainLanguageFromNode(tvNode), tvNode.Text)
+                    ' Get all main word entries starting with this letter
+                    Dim words As ICollection(Of MainEntry) = DictionaryDao.GetMainEntries(GetLanguageFromNode(tvNode), GetMainLanguageFromNode(tvNode), tvNode.Text)
                     tvNode.Nodes.Clear()
-                    For i = 0 To words.Count - 1
-                        tvSub = tvNode.Nodes.Add(words.Item(i))
-                    Next i
+
+                    Dim distinctWords As IEnumerable(Of String) = words.Select(Of String)(Function(t) t.Word).Distinct()
+
+                    For Each word As String In distinctWords
+                        tvSub = tvNode.Nodes.Add(word)
+                    Next word
             End Select
         Else
             ' Gruppen wurden ausgewählt
             If tvNode.Level = NODE_LEVEL_SUBGROUP Then
                 tvNode.Nodes.Clear()
                 ' Laden der Gruppeneinträge
-                Dim group As String = GetGroupFromNode(tvNode)
-                Dim subGroup As String = GetSubGroupFromNode(tvNode)
-                Dim grp As xlsGroup = xlsGroups.GetGroup(group, subGroup)
-                For Each index As Integer In grp.GetIndices()
-                    tvSub = tvNode.Nodes.Add(voc.GetSubEntryName(index))
-                    tvSub.Tag = index
-                Next index
+                Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(tvNode), GetSubGroupFromNode(tvNode))
+                Dim groupData As GroupDto = GroupDao.Load(groupEntry)
+                For Each entry As TestWord In groupData.Entries
+                    tvSub = tvNode.Nodes.Add(entry.Word)
+                    tvSub.Tag = entry
+                Next entry
             End If
         End If
     End Sub
@@ -382,17 +394,24 @@ Public Class VocabularyExplorer
             End If
             ' Es handelt sich um einen Knoten, zu dem Vokabel-Informationen angezeigt werden sollen.
             ' Der zugehörige Index des Haupteintrages kann aus der item.Tag Eigenschaft geholt werden
-            Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-            ShowWordInfo(index)
-        ElseIf IsLanguageNode() Then    ' LanguageNode ist kein WordEntry Node!
+            If IsGroupNode() Then
+                Dim wordEntry As TestWord = item.Tag
+                ShowWordInfo(wordEntry)
+
+            Else
+                Dim wordEntry As WordEntry = item.Tag
+                ShowWordInfo(wordEntry)
+
+            End If
+        ElseIf IsLanguageNode() Then
             If ListView1.Visible = False Then
                 Me.ListView1.Visible = True
                 PanelWordInfoInner.Top = ListView1.Height
             End If
-            Dim words As Collection(Of xlsDictionaryEntry) = voc.DictionarySubEntrysExt(item.SubItems(0).Text, Me.GetLanguageFromNode(), Me.GetMainLanguageFromNode())
+            Dim words As ICollection(Of WordEntry) = DictionaryDao.GetWordsAndSubWords(item.SubItems(0).Text, Me.GetLanguageFromNode(), Me.GetMainLanguageFromNode())
             ListView1.Items.Clear()
             Me.SetUpListViewColumns2(ListViewStyleEnum.WordEntry)
-            For Each word As xlsDictionaryEntry In words
+            For Each word As WordEntry In words
                 AddDictionaryEntryToList2(word)
             Next word
             If ListView1.Items.Count > 0 Then
@@ -424,25 +443,25 @@ Public Class VocabularyExplorer
         End If
 
         ' Markierung setzen
-        If ListView.Items.Count > 0 Then ListView.SelectedIndices.Add(0) 'Else cmdChangeWord.Enabled = False
+        If ListView.Items.Count > 0 Then ListView.SelectedIndices.Add(0)
     End Sub
 
     Private Sub LoadListViewDict()
         ' Abhängig vom aktuell ausgewählten Wort die Bedeutungen anzeigen
         Dim tvSelectedNode As TreeNode = TreeView.SelectedNode
 
-        Dim words As Collection(Of xlsDictionaryEntry) ' Finde die Ebene Raus
+        Dim words As ICollection(Of WordEntry) ' Finde die Ebene Raus
         Select Case tvSelectedNode.Level
             Case NODE_LEVEL_DICTIONARY
                 ' Zeige für alle Sprachen/Hauptsprachen die Anzahl der Einträge an
                 SetUpListViewColumns(ListViewStyleEnum.Dictionary)
                 ListView.BeginUpdate()
-                For Each mainLanguage As String In voc.DictionaryMainLanguages()
-                    For Each language As String In voc.DictionaryLanguages(mainLanguage)
+                For Each mainLanguage As String In DictionaryDao.DictionaryMainLanguages()
+                    For Each language As String In DictionaryDao.DictionaryLanguages(mainLanguage)
                         SetRangeEntry(GetColumnIndex(ColumnName.DictMainLanguage), mainLanguage)
                         SetRangeEntry(GetColumnIndex(ColumnName.DictLanguage), language)
-                        SetRangeEntry(GetColumnIndex(ColumnName.DictCountMainEntry), voc.WordCount(language, mainLanguage))
-                        SetRangeEntry(GetColumnIndex(ColumnName.DictCountEntrys), voc.WordCountTotal(language, mainLanguage))
+                        SetRangeEntry(GetColumnIndex(ColumnName.DictCountMainEntry), DictionaryDao.WordCount(language, mainLanguage))
+                        SetRangeEntry(GetColumnIndex(ColumnName.DictCountEntrys), DictionaryDao.WordCountTotal(language, mainLanguage))
                         AddRange()
                     Next language
                 Next mainLanguage
@@ -455,23 +474,22 @@ Public Class VocabularyExplorer
                 For Each tvNode As TreeNode In tvSelectedNode.Nodes
                     Dim currentLanguage As String = GetLanguageFromNode(tvNode)
                     Dim item As ListViewItem = ListView.Items.Add(currentLanguage)
-                    item.SubItems.AddRange(New String() {voc.WordCount(currentLanguage, mainLanguage), voc.WordCountTotal(currentLanguage, mainLanguage)})
+                    item.SubItems.AddRange(New String() {DictionaryDao.WordCount(currentLanguage, mainLanguage), DictionaryDao.WordCountTotal(currentLanguage, mainLanguage)})
                 Next tvNode
                 ListView.EndUpdate()
             Case NODE_LEVEL_LANGUAGE
-                ' 
                 SetUpListViewColumns(ListViewStyleEnum.Language)
                 ListView.BeginUpdate()
-                Dim wordsa As Collection(Of String) = voc.DictionaryEntrys(GetLanguageFromNode(), GetMainLanguageFromNode()) 'voc.DictionaryEntrys(GetLanguageFromNode(tvNode), GetMainLanguageFromNode(tvNode), tvNode.Text)
-                For Each entry As String In wordsa
+                Dim wordsa As ICollection(Of MainEntry) = DictionaryDao.GetMainEntries(GetLanguageFromNode(), GetMainLanguageFromNode())
+                For Each entry As String In wordsa.Select(Of String)(Function(t) t.Word)
                     AddMainEntryToList(entry)
                 Next entry
                 ListView.EndUpdate()
             Case NODE_LEVEL_LANGUAGE + 1
-                ' Zeige alle Buchstaben mit dem anfangsbuchstaben an
+                ' Add all main entries/words starting with this letter
                 SetUpListViewColumns(ListViewStyleEnum.WordEntry)
                 ListView.BeginUpdate()
-                For Each entry As xlsDictionaryEntry In voc.GetWords(GetLanguageFromNode(), GetMainLanguageFromNode(), GetInitialFromNode())
+                For Each entry As WordEntry In DictionaryDao.GetWords(GetLanguageFromNode(), GetMainLanguageFromNode(), GetInitialFromNode())
                     AddDictionaryEntryToList(entry)
                 Next entry
                 ListView.EndUpdate()
@@ -482,15 +500,15 @@ Public Class VocabularyExplorer
                 ' Anzeigen der Bedeutungen für dieses Wort 
                 SetUpListViewColumns(ListViewStyleEnum.WordEntry)
                 ' Main-Entry berechnen
-                words = voc.GetWords(mainEntry, mainEntry, language, GetMainLanguageFromNode())
+                words = DictionaryDao.GetWords(mainEntry, mainEntry, language, GetMainLanguageFromNode())
                 ' Anzeigen aller Einträge aus der Collection
-                For Each entry As xlsDictionaryEntry In words
+                For Each entry As WordEntry In words
                     AddDictionaryEntryToList(entry)
                 Next entry
                 ' Anzeigen der SubEntrys zum gewählten Eintrag
-                words = voc.GetSubWords(mainEntry, language, GetMainLanguageFromNode())
+                words = DictionaryDao.GetSubWords(mainEntry, language, GetMainLanguageFromNode())
                 ' Anzeigen aller Einträge aus der Collection
-                For Each entry As xlsDictionaryEntry In words
+                For Each entry As WordEntry In words
                     Me.AddDictionaryEntryToList(entry)
                 Next entry
         End Select
@@ -506,37 +524,39 @@ Public Class VocabularyExplorer
                 For Each groupName As String In GroupsDao.GetGroups
                     SetRangeEntry(GetColumnIndex(ColumnName.GroupsName), groupName)
                     SetRangeEntry(GetColumnIndex(ColumnName.GroupsSubGroup), GroupsDao.SubGroupCount(groupName))
-                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), xlsGroups.WordCount(groupName))
-                    SetRangeEntry(GetColumnIndex(ColumnName.GroupCountLanguages), xlsGroups.UsedLanguagesCount(groupName))
+                    SetRangeEntry(GetColumnIndex(ColumnName.GroupsCountEntry), DataTools.WordCount(GroupsDao, GroupDao, groupName))
+                    SetRangeEntry(GetColumnIndex(ColumnName.GroupCountLanguages), DataTools.UsedLanguagesCount(GroupsDao, GroupDao, groupName))
                     AddRange()
                 Next groupName
                 ListView.EndUpdate()
             Case NODE_LEVEL_GROUP_ENTRY
                 SetUpListViewColumns(ListViewStyleEnum.WordEntrySubGroup)
-                AddDictionaryGroupEntryToList(voc.GetSubEntry(tvSelectedNode.Tag))
+                Dim theWord As TestWord = tvSelectedNode.Tag
+                AddDictionaryGroupEntryToList(theWord)
             Case NODE_LEVEL_SUBGROUP
                 SetUpListViewColumns(ListViewStyleEnum.WordEntrySubGroup)
-                Dim group As xlsGroup = xlsGroups.GetGroup(GetGroupFromNode(tvSelectedNode), GetSubGroupFromNode(tvSelectedNode))
+                Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(tvSelectedNode), GetSubGroupFromNode(tvSelectedNode))
+                Dim group As GroupDto = GroupDao.Load(groupEntry)
                 ListView.BeginUpdate()
-                For Each index As Integer In group.GetIndices
-                    AddDictionaryGroupEntryToList(voc.GetSubEntry(index), group)
-                Next index
+                For Each testWord As TestWord In group.Entries
+                    AddDictionaryGroupEntryToList(testWord, group)
+                Next testWord
                 ListView.EndUpdate()
             Case NODE_LEVEL_GROUP
                 SetUpListViewColumns(ListViewStyleEnum.WordEntryGroup)
                 For Each subGroup As GroupEntry In GroupsDao.GetSubGroups(GetGroupFromNode())
-                    Dim group As xlsGroup = xlsGroups.GetGroup(subGroup.Name, subGroup.SubGroup)
+                    Dim groupEntry As GroupEntry = GroupsDao.GetGroup(subGroup.Name, subGroup.SubGroup)
+                    Dim group As GroupDto = GroupDao.Load(groupEntry)
                     ListView.BeginUpdate()
-                    For Each index As Integer In group.GetIndices
-                        AddDictionaryGroupEntryToList(voc.GetSubEntry(index), group)
-                    Next index
+                    For Each testWord As TestWord In group.Entries
+                        AddDictionaryGroupEntryToList(testWord, group)
+                    Next testWord
                     ListView.EndUpdate()
                 Next subGroup
         End Select
     End Sub
 
     Private Sub SetUpListViewColumns2(ByVal Type As ListViewStyleEnum)
-        'If ListViewStyle = Type Then Exit Sub Else ListViewStyle = Type
         If Not ListView1Initialized Then
             ListView1.Columns.Clear()
             For i As Integer = 0 To GetColumnCount(Type) - 1
@@ -564,7 +584,7 @@ Public Class VocabularyExplorer
         SetRange()
     End Sub
 
-    Private Sub AddEntryToList(ByVal word As xlsDictionaryEntry)
+    Private Sub AddEntryToList(ByVal word As TestWord)
         ' fügt einen eintrag in die liste hinzu, abhängig davon, ob er gerade angezeigt werden soll
         ' In die Liste hinzufügen
         ' abhängig machen, vom knotentyp
@@ -583,8 +603,8 @@ Public Class VocabularyExplorer
                 End If
             ElseIf node.Level = NODE_LEVEL_ENTRY Then
                 ' einfügen, wenn main-index gleich ist
-                Dim mainEntry As String = voc.GetEntryName(word.MainIndex)
-                If mainEntry.ToUpper = GetEntryFromNode().ToUpper Then
+                Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(word.WordEntry)
+                If mainEntry.Word.ToUpper = GetEntryFromNode().ToUpper Then
                     AddDictionaryEntryToList(word)
                 Else
                     Exit Sub
@@ -696,150 +716,122 @@ Public Class VocabularyExplorer
     End Sub
 
     Private Sub ChangeWord(ByVal selectedIndex As Integer)
-        Dim item As ListViewItem
-        If ListView1.Visible Then
-            item = ListView1.Items.Item(selectedIndex)
-        Else
-            item = ListView.Items.Item(selectedIndex)
-        End If
+        Dim wordEntry As WordEntry = GetChangeWord(selectedIndex)
 
-
-        Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-        Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
-        Dim selectedWordIndex As Integer = dicEntry.WordIndex
-
-        Dim t As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, selectedWordIndex)
-        ' Main-Index kann nicht geändert werden
-        ' finde den main-index heraus, das dazugehörige wort und teste, ob sie übereinstimmen
-        Dim newIndex As Integer
-        Dim mainIndexChanged As Boolean = False
-        If Trim(voc.GetEntryName(t.MainIndex)) <> Trim(txtMainEntry.Text) Then
-            mainIndexChanged = True
-            ' Erzeuge neuen MainIndex oder hole den Index eines alten
-            Try
-                newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-            Catch ex As EntryNotFoundException
-                ' Haupteintrag erstellen und anschließend laden
-                Try
-                    MsgBox("Neuer Eintrag wird erstellt")
-                    voc.AddEntry(Trim(txtMainEntry.Text), voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-                    newIndex = voc.GetEntryIndex(txtMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-                Catch sex As xlsExceptionInput
-                    MsgBox(sex.Message, MsgBoxStyle.Information, "Unerwarteter Fehler")
-                    Exit Sub
-                End Try
-            End Try
-            t.MainIndex = newIndex
-        End If
-        t.Pre = txtPre.Text
-        t.Word = txtWord.Text
-        t.Post = txtPost.Text
-        t.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
-        t.Meaning = txtMeaning.Text
-        t.WordType = lstWordType.SelectedIndex
-        t.Irregular = chkIrregular.Checked
         Try
-            t.SaveWord()
+            Dim newEntry As WordEntry = ChangeWord(wordEntry)
+            If IsSubGroupNode() Then
+                ChangeGroup(newEntry, chkMarked.Checked)
+            End If
 
-            ' Falls ein Gruppeneintrag ist, marked setzen
-            If (IsSubGroupNode()) Then
-                Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
-                Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-                group.SetMarked(t.WordIndex, chkMarked.Checked)
-                ' Markiert dann auch updaten
+            Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(wordEntry)
+            If (mainEntry.Word <> txtMainEntry.Text) Then
+                ChangeMainEntry(newEntry)
             End If
-            ' Laden in die Auswahlliste, falls der MainIndex geändert wurde, aktualisieren
-            If mainIndexChanged Then
-                item.Tag = t.MainIndex
-            End If
-            Dim lvs As ListViewStyleEnum
-            If ListView1.Visible Then lvs = ListViewStyleEnum.WordEntry Else lvs = ListViewStyle
-            item.SubItems(GetColumnIndex(ColumnName.EntryPre, lvs)).Text = t.Pre
-            item.SubItems(GetColumnIndex(ColumnName.EntryWord, lvs)).Text = t.Word
-            item.SubItems(GetColumnIndex(ColumnName.EntryPost, lvs)).Text = t.Post
-            item.SubItems(GetColumnIndex(ColumnName.EntryMeaning, lvs)).Text = t.Meaning
-            item.SubItems(GetColumnIndex(ColumnName.EntryType, lvs)).Text = TextTypeName(t.WordType)
-            item.SubItems(GetColumnIndex(ColumnName.EntryExtendedInfo, lvs)).Text = t.AdditionalTargetLangInfo
-            item.SubItems(GetColumnIndex(ColumnName.EntryIrregular, lvs)).Text = TextYesNo(t.Irregular)
-            If IsGroupNode() Then item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked, lvs)).Text = TextYesNo(chkMarked.Checked) 'IIf(chkMarked.Checked, "Ja", "Nein")
-            'End If
+
+            UpdateListViewAfterWordEdit(selectedIndex, newEntry)
         Catch ex As EntryExistsException
-            MsgBox("Eintrag existiert bereits.")
+            MsgBox("Eintrag existiert bereits: " & txtWord.Text)
         End Try
     End Sub
 
+    Private Function GetChangeWord(selectedIndex As Integer) As WordEntry
+        Dim item As ListViewItem = GetSelectedItem(selectedIndex)
+        Return item.Tag
+    End Function
+
+    Private Function ChangeWord(wordEntry As WordEntry) As WordEntry
+        Dim allUpdate As New IDictionaryDao.UpdateData With {
+            .Word = txtWord.Text,
+            .Pre = txtPre.Text,
+            .Post = txtPost.Text,
+            .WordType = wordTypes.GetWordType(wordTypes.GetWordType(lstWordType.SelectedIndex)),
+            .Meaning = txtMeaning.Text,
+            .AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text,
+            .Irregular = chkIrregular.Checked
+        }
+        Return DictionaryDao.ChangeEntry(wordEntry, allUpdate)
+    End Function
+
+    Private Sub ChangeGroup(newEntry As WordEntry, marked As Boolean)
+        Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+        ' TODO: add loadsingleentry combining the next two options
+        Dim groupData As GroupDto = GroupDao.Load(groupEntry)
+        Dim testWord As TestWord = groupData.GetWord(newEntry.WordIndex)
+        GroupDao.UpdateMarked(groupEntry, testWord, marked)
+    End Sub
+
+    Private Sub ChangeMainEntry(wordEntry As WordEntry)
+        Dim mainEntry As MainEntry = DataTools.GetOrCreateMainEntry(DictionaryDao, txtMainEntry.Text, GetLanguageFromNode, "german")
+        DictionaryDao.ChangeEntry(wordEntry, mainEntry)
+    End Sub
+
+    Private Sub UpdateListViewAfterWordEdit(selectedIndex As Integer, newEntry As WordEntry)
+        Dim item As ListViewItem = GetSelectedItem(selectedIndex)
+        ' Laden in die Auswahlliste, falls der MainIndex geändert wurde, aktualisieren
+        Dim lvs As ListViewStyleEnum
+        If ListView1.Visible Then lvs = ListViewStyleEnum.WordEntry Else lvs = ListViewStyle
+        item.SubItems(GetColumnIndex(ColumnName.EntryPre, lvs)).Text = newEntry.Pre
+        item.SubItems(GetColumnIndex(ColumnName.EntryWord, lvs)).Text = newEntry.Word
+        item.SubItems(GetColumnIndex(ColumnName.EntryPost, lvs)).Text = newEntry.Post
+        item.SubItems(GetColumnIndex(ColumnName.EntryMeaning, lvs)).Text = newEntry.Meaning
+        item.SubItems(GetColumnIndex(ColumnName.EntryType, lvs)).Text = TextTypeName(newEntry.WordType)
+        item.SubItems(GetColumnIndex(ColumnName.EntryExtendedInfo, lvs)).Text = newEntry.AdditionalTargetLangInfo
+        item.SubItems(GetColumnIndex(ColumnName.EntryIrregular, lvs)).Text = TextYesNo(newEntry.Irregular)
+        If IsGroupNode() Then item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked, lvs)).Text = TextYesNo(chkMarked.Checked)
+    End Sub
+
+    Private Function GetSelectedItem(selectedIndex As Integer) As ListViewItem
+        If ListView1.Visible Then
+            GetSelectedItem = ListView1.Items.Item(selectedIndex)
+        Else
+            GetSelectedItem = ListView.Items.Item(selectedIndex)
+        End If
+    End Function
+
     Private Sub cmdMultiChange_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdMultiChange.Click
+        Dim newMainEntry As MainEntry = Nothing
+        If chkEnableMultiMainEntry.Checked Then
+            newMainEntry = DataTools.GetOrCreateMainEntry(DictionaryDao, txtMultiMainEntry.Text, GetLanguageFromNode, "german")
+        End If
+
         For Each index As Integer In ListView.SelectedIndices
-            MultiChangeWord(index)
+            MultiChangeWord(index, newMainEntry)
         Next
     End Sub
 
-    Private Sub MultiChangeWord(ByVal selectedIndex As Integer)
-        Dim item As ListViewItem = ListView.Items.Item(selectedIndex)
-        Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-        Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, index)
-        Dim selectedWordIndex As Integer = dicEntry.WordIndex
+    Private Sub MultiChangeWord(selectedIndex As Integer, newMainEntry As MainEntry)
+        ' TODO: create main entry before this is called, if multi main entry is set
+        Dim wordEntry As WordEntry = GetChangeWord(selectedIndex)
+        Try
+            Dim newEntry As WordEntry = ChangeWordMulti(wordEntry)
 
-        Dim t As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, selectedWordIndex)
-        ' finde den main-index heraus, das dazugehörige wort und teste, ob sie übereinstimmen
-        'Dim newIndex As Integer
-        'Dim mainIndexChanged As Boolean = False
+            If (IsSubGroupNode()) And chkEnableMultiMarked.Checked Then
+                ' Markiert dann auch updaten
+                ChangeGroup(newEntry, chkMultiMarked.Checked)
+            End If
 
-        ' Neuen Main-Index nur suchen, wenn geändert werden soll.
-        If chkEnableMultiMainEntry.Checked Then
-            Dim newIndex As Integer
-            Try
-                newIndex = voc.GetEntryIndex(txtMultiMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-            Catch ex As EntryNotFoundException
-                ' Haupteintrag erstellen und anschließend laden
-                Try
-                    MsgBox("Neuer Eintrag wird erstellt")
-                    voc.AddEntry(Trim(txtMultiMainEntry.Text), voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-                    newIndex = voc.GetEntryIndex(txtMultiMainEntry.Text, voc.GetEntryLanguage(t.MainIndex), voc.GetEntryMainLanguage(t.MainIndex))
-                Catch sex As xlsExceptionInput
-                    MsgBox(sex.Message, MsgBoxStyle.Information, "Unerwarteter Fehler")
-                    Exit Sub
-                End Try
-            End Try
-            t.MainIndex = newIndex
-        End If
+            If chkEnableMultiMainEntry.Checked Then
+                DictionaryDao.ChangeEntry(wordEntry, newMainEntry)
+            End If
 
-        If chkEnableMultiPre.Checked Then t.Pre = txtMultiPre.Text
-        If chkEnableMultiWord.Checked Then t.Word = txtMultiWord.Text
-        If chkEnableMultiPost.Checked Then t.Post = txtMultiPost.Text
-        If chkEnableMultiAdditionalTargetLangInfo.Checked Then t.AdditionalTargetLangInfo = txtMultiAdditionaltargetLangInfo.Text
-        If chkEnableMultiMeaning.Checked Then t.Meaning = txtMultiMeaning.Text
-        If chkEnableMultiWordType.Checked Then t.WordType = lstMultiWordType.SelectedIndex
-        If chkEnableMultiIrregular.Checked Then t.Irregular = chkMultiIrregular.Checked
-        t.SaveWord()
-
-        ' Falls ein Gruppeneintrag ist, marked setzen
-        Dim newMarkStatus As Boolean
-        Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
-        Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-        If (IsSubGroupNode()) And chkEnableMultiMarked.Checked Then
-            ' Markiert dann auch updaten
-            group.SetMarked(t.WordIndex, chkMultiMarked.Checked)
-            newMarkStatus = chkMultiMarked.Checked
-        ElseIf IsSubGroupNode() Then
-            newMarkStatus = group.GetMarked(t.WordIndex)
-        End If
-
-        ' Laden in die Auswahlliste, falls der MainIndex geändert wurde, aktualisieren
-        'Dim item As ListViewItem = ListView.Items.Item(ListView.SelectedIndices.Item(0))
-        If chkEnableMultiMainEntry.Checked Then
-            item.Tag = t.MainIndex
-        End If
-        item.SubItems(GetColumnIndex(ColumnName.EntryPre)).Text = t.Pre
-        item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = t.Word
-        item.SubItems(GetColumnIndex(ColumnName.EntryPost)).Text = t.Post
-        item.SubItems(GetColumnIndex(ColumnName.EntryMeaning)).Text = t.Meaning
-        item.SubItems(GetColumnIndex(ColumnName.EntryType)).Text = TextTypeName(t.WordType)
-        item.SubItems(GetColumnIndex(ColumnName.EntryExtendedInfo)).Text = t.AdditionalTargetLangInfo
-        item.SubItems(GetColumnIndex(ColumnName.EntryIrregular)).Text = TextYesNo(t.Irregular)
-        item.SubItems(GetColumnIndex(ColumnName.GroupEntryMarked)).Text = TextYesNo(newMarkStatus) 'IIf(chkMarked.Checked, "Ja", "Nein")
-        'End If
+            UpdateListViewAfterWordEdit(selectedIndex, newEntry)
+        Catch ex As EntryExistsException
+            MsgBox("Eintrag existiert bereits: " & txtMultiWord.Text)
+        End Try
     End Sub
+
+    Private Function ChangeWordMulti(wordEntry As WordEntry) As WordEntry
+        Dim allUpdate As New IDictionaryDao.UpdateData
+        If chkEnableMultiWord.Checked Then allUpdate.Word = txtMultiWord.Text
+        If chkEnableMultiPre.Checked Then allUpdate.Pre = txtMultiPre.Text
+        If chkEnableMultiPost.Checked Then allUpdate.Post = txtMultiPost.Text
+        If chkEnableMultiWordType.Checked Then allUpdate.WordType = wordTypes.GetWordType(wordTypes.GetWordType(lstWordType.SelectedIndex))
+        If chkEnableMultiMeaning.Checked Then allUpdate.Meaning = txtMultiMeaning.Text
+        If chkEnableMultiAdditionalTargetLangInfo.Checked Then allUpdate.AdditionalTargetLangInfo = txtMultiAdditionaltargetLangInfo.Text
+        If chkEnableMultiIrregular.Checked Then allUpdate.Irregular = chkMultiIrregular.Checked
+        Return DictionaryDao.ChangeEntry(wordEntry, allUpdate)
+    End Function
 
     ' Hilfsfunktionen für die Knotenbehandlung
     Private Function GetBaseFromNode() As String
@@ -975,18 +967,27 @@ Public Class VocabularyExplorer
         AddRange()
     End Sub
 
-    Public Sub AddDictionaryEntryToList(ByVal Word As xlsDictionaryEntry)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-        AddRange().Tag = Word.MainIndex
+    Public Sub AddDictionaryEntryToList(ByVal Word As WordEntry)
+        AddDictionaryEntryToListData(Word)
+        AddRange().Tag = Word
     End Sub
 
-    Public Sub AddDictionaryEntryToList2(ByVal Word As xlsDictionaryEntry)
+    Public Sub AddDictionaryEntryToList(ByVal Word As TestWord)
+        AddDictionaryEntryToListData(Word.WordEntry)
+        AddRange().Tag = Word
+    End Sub
+
+    Private Sub AddDictionaryEntryToListData(ByRef word As WordEntry)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), word.Pre)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), word.Word)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), word.Post)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), word.Meaning)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(word.WordType))
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), word.AdditionalTargetLangInfo)
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(word.Irregular))
+    End Sub
+
+    Public Sub AddDictionaryEntryToList2(ByVal Word As WordEntry)
         Dim listViewStyle As ListViewStyleEnum = ListViewStyleEnum.WordEntry
         SetRangeEntry(GetColumnIndex(ColumnName.EntryPre, listViewStyle), Word.Pre)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryWord, listViewStyle), Word.Word)
@@ -995,35 +996,36 @@ Public Class VocabularyExplorer
         SetRangeEntry(GetColumnIndex(ColumnName.EntryType, listViewStyle), TextTypeName(Word.WordType))
         SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo, listViewStyle), Word.AdditionalTargetLangInfo)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular, listViewStyle), TextYesNo(Word.Irregular))
-        AddRange2().Tag = Word.MainIndex
+        AddRange2().Tag = Word
     End Sub
 
-    Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry, ByRef group As xlsGroup)
+    Public Sub AddDictionaryGroupEntryToList(ByVal Word As TestWord, ByRef group As GroupDto)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordEntry.WordType))
         SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
+        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(GroupDto.IsMarked(group, Word.WordIndex)))
         SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
-        AddRange().Tag = Word.MainIndex
+        AddRange().Tag = Word
     End Sub
 
-    Public Sub AddDictionaryGroupEntryToList(ByVal Word As xlsDictionaryEntry)
-        Dim groups As xlsGroups = New xlsGroups(voc.DBConnection)
-        Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+    Public Sub AddDictionaryGroupEntryToList(ByVal Word As TestWord)
+        Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+        Dim group As GroupDto = GroupDao.Load(groupEntry)
+
         SetRangeEntry(GetColumnIndex(ColumnName.EntryPre), Word.Pre)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryWord), Word.Word)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryPost), Word.Post)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryMeaning), Word.Meaning)
-        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordType))
+        SetRangeEntry(GetColumnIndex(ColumnName.EntryType), TextTypeName(Word.WordEntry.WordType))
         SetRangeEntry(GetColumnIndex(ColumnName.EntryExtendedInfo), Word.AdditionalTargetLangInfo)
         SetRangeEntry(GetColumnIndex(ColumnName.EntryIrregular), TextYesNo(Word.Irregular))
-        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(group.GetMarked(Word.WordIndex)))
-        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), group.GroupSubName)
-        AddRange().Tag = Word.MainIndex
+        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntryMarked), TextYesNo(GroupDto.IsMarked(group, Word.WordIndex)))
+        SetRangeEntry(GetColumnIndex(ColumnName.GroupEntrySubgroup), groupEntry.SubGroup)
+        AddRange().Tag = Word
     End Sub
 
     ' Hilfsfunktion für die Spalten
@@ -1286,7 +1288,7 @@ Public Class VocabularyExplorer
 
     Private Function AddRange() As ListViewItem
         Dim item As ListViewItem = ListView.Items.Add(rangeStart)
-        item.SubItems.AddRange(range)   'New String() {language, voc.WordCount(language, mainLanguage), voc.WordCountTotal(language, mainLanguage)})
+        item.SubItems.AddRange(range)
 
         Dim i As Integer
         For i = 0 To range.Length - 1
@@ -1298,7 +1300,7 @@ Public Class VocabularyExplorer
 
     Private Function AddRange2() As ListViewItem
         Dim item As ListViewItem = ListView1.Items.Add(rangeStart)
-        item.SubItems.AddRange(range)   'New String() {language, voc.WordCount(language, mainLanguage), voc.WordCountTotal(language, mainLanguage)})
+        item.SubItems.AddRange(range)
 
         Dim i As Integer
         For i = 0 To range.Length - 1
@@ -1338,7 +1340,7 @@ Public Class VocabularyExplorer
 
     ' Sprachspezifisches
     Private Function TextTypeName(ByVal value As Integer)
-        Return GetLoc.GetText(prop.GetWordType(value))
+        Return GetLoc.GetText(wordTypes.GetWordType(value))
     End Function
 
     Private Function TextYesNo(ByVal value As Boolean) As String
@@ -1383,7 +1385,7 @@ Public Class VocabularyExplorer
     End Sub
 
     Private Sub txtWord_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtWord.TextChanged
-        txtMainEntry.Text = txtWord.Text
+        'txtMainEntry.Text = txtWord.Text
     End Sub
 
     Private Sub ListView_SizeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles ListView.SizeChanged
@@ -1396,31 +1398,31 @@ Public Class VocabularyExplorer
         If ListView1.SelectedIndices.Count = 0 Then Exit Sub
         Dim selectedNode As TreeNode = TreeView.SelectedNode
         Dim item As ListViewItem = ListView1.Items.Item(ListView1.SelectedIndices.Item(0))
-
-        ' Der zugehörige Index des Haupteintrages kann aus der item.Tag Eigenschaft geholt werden
-        Dim index As Integer = voc.GetSubEntryIndex(item.Tag, item.SubItems(1).Text, item.SubItems(3).Text)
-        ShowWordInfo(index)
-
+        Dim wordEntry As WordEntry = item.Tag
+        ShowWordInfo(wordEntry)
     End Sub
 
-    Private Sub ShowWordInfo(ByVal Index As Integer)
-        Dim dicEntry As xlsDictionaryEntry = New xlsDictionaryEntry(voc.DBConnection, Index)
-        txtMainEntry.Text = voc.GetEntryName(dicEntry.MainIndex)
+    Private Sub ShowWordInfo(ByRef dicEntry As WordEntry)
+        Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(dicEntry)
+        txtMainEntry.Text = mainEntry.Word
         txtPre.Text = dicEntry.Pre
         txtWord.Text = dicEntry.Word
         txtPost.Text = dicEntry.Post
         txtAdditionalTargetLangInfo.Text = dicEntry.AdditionalTargetLangInfo
         txtMeaning.Text = dicEntry.Meaning
-        chkIrregular.Checked = dicEntry.Irregular
         lstWordType.SelectedIndex = dicEntry.WordType
-        ' Falls Group-Entry ist, muß "markiert" gesetzt werden
+
+        txtLanguage.Text = mainEntry.Language
+        txtMainLanguage.Text = mainEntry.MainLanguage
+    End Sub
+
+    Private Sub ShowWordInfo(ByRef dicEntry As TestWord)
+        ShowWordInfo(dicEntry.WordEntry)
+
+        chkIrregular.Checked = dicEntry.Irregular
         If IsSubGroupNode() Then
-            Dim groups As New xlsGroups(voc.DBConnection)
-            Dim group As xlsGroup = groups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-            chkMarked.Checked = group.GetMarked(Index)
+            chkMarked.Checked = dicEntry.Marked
         End If
-        txtLanguage.Text = voc.GetEntryLanguage(dicEntry.MainIndex)
-        txtMainLanguage.Text = voc.GetEntryMainLanguage(dicEntry.MainIndex)
     End Sub
 
     Private Sub cmdChangeWord_Click_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdChangeWord.Click
@@ -1438,36 +1440,27 @@ Public Class VocabularyExplorer
 
     Private Sub cmdAdd_Click_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAdd.Click
         listUpdate = True
-        Dim deWord As New xlsDictionaryEntry(voc.DBConnection)
-        deWord.LoadNewWord(voc.GetMaxSubEntryIndex + 1)
-        deWord.Pre = txtPre.Text
-        deWord.Word = txtWord.Text
-        deWord.Post = txtPost.Text
-        deWord.Meaning = txtMeaning.Text
-        deWord.AdditionalTargetLangInfo = txtAdditionalTargetLangInfo.Text
-        deWord.WordType = lstWordType.SelectedIndex
-        deWord.Irregular = chkIrregular.Checked
+        Dim deWord As New WordEntry(txtWord.Text, txtPre.Text, txtPost.Text, lstWordType.SelectedIndex, txtMeaning.Text, txtAdditionalTargetLangInfo.Text, chkIrregular.Checked)
 
         ' Versuch, ins Wörterbuch einzufügen
         Dim language As String
         Dim mainLanguage As String
 
-        Dim group As xlsGroup = Nothing
         If IsDictionaryNode() Then
             language = GetLanguageFromNode()
             mainLanguage = GetMainLanguageFromNode()
         ElseIf IsGroupNode() Then
-            group = xlsGroups.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
-            If group.LanguageCount > 1 Then
+            Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
+            If GroupDao.GetLanguages(groupEntry).Count > 1 Then
                 MsgBox("Zu viele Sprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
                 Exit Sub
             End If
-            If group.MainLanguageCount > 1 Then ' ob das jemals vorkommen kann?
+            If GroupDao.GetMainLanguages(groupEntry).Count > 1 Then
                 MsgBox("Zu viele Zielsprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht hinzugefügt.", MsgBoxStyle.Information, "Warning")
                 Exit Sub
             End If
-            language = group.GetUniqueLanguage()
-            mainLanguage = group.GetUniqueMainLanguage()
+            language = GroupDao.GetUniqueLanguage(GroupEntry)
+            mainLanguage = GroupDao.GetUniqueMainLanguage(GroupEntry)
             If (language = "") Then language = txtLanguage.Text
             If (mainLanguage = "") Then mainLanguage = txtMainLanguage.Text
         Else
@@ -1481,7 +1474,7 @@ Public Class VocabularyExplorer
             Exit Sub
         End If
         Try
-            voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+            DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
         Catch ex As EntryExistsException
             ' Existiert schon, nix zu tun, index feststellen
         Catch ex As EntryNotFoundException
@@ -1489,13 +1482,13 @@ Public Class VocabularyExplorer
             Dim res As MsgBoxResult = MsgBox("Der Haupteintrag '" & txtMainEntry.Text & "' ist für die gewählten Sprachen '" & mainLanguage & "' und '" & language & "' nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
             If res = MsgBoxResult.Yes Then
                 Try
-                    voc.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
+                    DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
                 Catch ex2 As xlsExceptionInput
                     MsgBox(ex2.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
                 End Try
                 ' Untereintrag hinzufügen
                 Try
-                    voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+                    DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
                 Catch ex2 As Exception
                     MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
                 End Try
@@ -1506,18 +1499,16 @@ Public Class VocabularyExplorer
             'ErrorCode = -2147467259
             MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
         End Try
-        deWord.MainIndex = voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage)
-        deWord.FindCorrectWordIndex()   ' aktualisieren, falls schon vorhanden war!
 
         ' Müsste im Wörterbuch sein, füge nun in die Gruppe ein
         If IsSubGroupNode() And Me.chkAddToGroup.Checked Then   ' hinzufügen für subgroup und tiefer
-            ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
-            Dim subIndex As Integer = voc.GetSubEntryIndex(deWord.MainIndex, deWord.Word, deWord.Meaning)
+            Dim groupEntry As GroupEntry = GroupsDao.GetGroup(GetGroupFromNode(), GetSubGroupFromNode())
             ' TODO example
-            group.Add(subIndex, chkMarked.Checked, "")
+            GroupDao.Add(groupEntry, deWord, chkMarked.Checked, "")
         End If
 
-        If (IsGroupNode() And chkMarked.Checked) Or IsDictionaryNode() Then AddEntryToList(deWord)
+        ' This will fail for IsDictionaryNode() == True, and not a group node.
+        If (IsGroupNode() And chkMarked.Checked) Or IsDictionaryNode() Then AddEntryToList(GroupDao.Load(GroupsDao.GetGroup(GetGroupFromNode(), GetSubGroupFromNode()), deWord))
 
         ' Anzeige aktualisieren
         txtMainEntry.SelectAll()

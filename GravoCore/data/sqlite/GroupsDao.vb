@@ -4,9 +4,9 @@ Imports Gravo
 Public Class GroupsDao
     Implements IGroupsDao
 
-    Private ReadOnly DBConnection As DataBaseOperation
+    Private ReadOnly DBConnection As IDataBaseOperation
 
-    Sub New(ByRef db As DataBaseOperation)
+    Sub New(ByRef db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -41,7 +41,7 @@ Public Class GroupsDao
         Return Groups
     End Function
 
-    Public Function GetSubGroups(groupName As String) As Collection(Of GroupEntry) Implements IGroupsDao.GetSubGroups
+    Public Function GetSubGroups(groupName As String) As ICollection(Of GroupEntry) Implements IGroupsDao.GetSubGroups
         Dim SubGroups As New Collection(Of GroupEntry)
         Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
         DBConnection.ExecuteReader(Command)
@@ -52,7 +52,7 @@ Public Class GroupsDao
         Return SubGroups
     End Function
 
-    Private Function GetGroup(groupName As String, subGroupName As String) As GroupEntry
+    Private Function GetGroup(groupName As String, subGroupName As String) As GroupEntry Implements IGroupsDao.GetGroup
         Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & " AND Groups.GroupSubName=" & GetDBEntry(subGroupName)
         DBConnection.ExecuteReader(Command)
         If Not DBConnection.DBCursor.HasRows Then
@@ -79,7 +79,7 @@ Public Class GroupsDao
 
     Public Function SubGroupCount(ByVal groupName As String) As Integer Implements IGroupsDao.SubGroupCount
         Dim command As String = "SELECT COUNT([Index]) FROM Groups WHERE GroupName = ?"
-        DBConnection.ExecuteReader(command, Enumerable.Repeat(groupName, 1))
+        DBConnection.ExecuteReader(command, groupName)
         DBConnection.DBCursor.Read()
         Dim count As Integer = DBConnection.SecureGetInt32(0)
         DBConnection.DBCursor.Close()
@@ -189,7 +189,7 @@ Public Class GroupsDao
 
     Public Function GroupExists(ByVal groupName As String) As Boolean Implements IGroupsDao.GroupExists
         Dim command As String = "SELECT DISTINCT GroupTable FROM Groups WHERE GroupName = ?"
-        DBConnection.ExecuteReader(command, Enumerable.Repeat(groupName, 1))
+        DBConnection.ExecuteReader(command, groupName)
         Dim ret As Boolean
         If DBConnection.DBCursor.HasRows Then
             ret = True
@@ -308,4 +308,5 @@ Public Class GroupsDao
     Private Function CreateGroupBaseTableName(groupName As String) As String
         Return "Group" & StripSpecialCharacters(groupName)
     End Function
+
 End Class

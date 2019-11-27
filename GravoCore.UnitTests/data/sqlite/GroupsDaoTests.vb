@@ -21,7 +21,7 @@ Public Class GroupsDaoTests
     Private ReadOnly ResourceFile = "test-data-simple.s3db"
     Private _groupsDao As GroupsDao
     Private _tempDb As String
-    Private _db As DataBaseOperation
+    Private _db As IDataBaseOperation
 
     <SetUp>
     Public Sub Setup()

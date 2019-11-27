@@ -8,29 +8,33 @@ Public Class Management
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
+    Dim GroupDao As IGroupDao
     Dim man As xlsManagement
     Dim dic As xlsDictionary
+    Dim DictionaryDao As IDictionaryDao
     Dim importFilename As String = ""
 
     Public Sub New()
         ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
         InitializeComponent()
 
-        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
         voc = New xlsBase(db)
         xlsGrp = New xlsGroups()
         xlsGrp.DBConnection = db
         GroupsDao = New GroupsDao(db)
+        GroupDao = New GroupDao(db)
         man = New xlsManagement
         man.DBConnection = db
         dic = New xlsDictionary
         dic.DBConnection = db
+        DictionaryDao = New DictionaryDao(db)
 
         ' Anzahl der Zeichen für Textfelder
-        Dim prop As New xlsDBPropertys(db)
-        txtGroupName.MaxLength = prop.GroupsMaxLengthName
-        txtUnitName.MaxLength = prop.GroupsMaxLengthSubName
+        Dim properties As Properties = New PropertiesDao(db).LoadProperties
+        txtGroupName.MaxLength = properties.GroupsMaxLengthName
+        txtUnitName.MaxLength = properties.GroupsMaxLengthSubName
     End Sub
 
     Private Sub LoadForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -101,7 +105,7 @@ Public Class Management
 
         ' lade Sprachen in die Export-Sprachen-Liste, nur tatsächlich vorhandene! (LDF-unabhängig)
         lstExportLanguages.Items.Clear()
-        For Each language As String In dic.DictionaryLanguages("german")
+        For Each language As String In DictionaryDao.DictionaryLanguages("german")
             lstExportLanguages.Items.Add(language)
         Next
         If lstExportLanguages.Items.Count > 0 Then lstExportLanguages.SelectedIndex = 0
@@ -164,7 +168,7 @@ Public Class Management
     Private Sub GroupSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstGroupList.SelectedIndexChanged
         If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irreguläre Werte abfangen
         txtGroupName.Text = lstGroupList.SelectedItem     ' Text aktualisieren
-        Dim count As Integer = xlsGrp.WordCount(txtGroupName.Text)
+        Dim count As Integer = DataTools.WordCount(GroupsDao, GroupDao, txtGroupName.Text)
         lblGroupInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
     End Sub
 
@@ -222,7 +226,7 @@ Public Class Management
 
     Private Sub cmdDataSelectSaveDB_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImortSelectDB.Click
         Dim res As DialogResult = dlgImport.ShowDialog(Me)
-        Dim db As DataBaseOperation
+        Dim db As IDataBaseOperation
         If res = Windows.Forms.DialogResult.OK Then
             db = New SQLiteDataBaseOperation()
             Try ' Testweise öffnen
@@ -257,7 +261,7 @@ Public Class Management
             Exit Sub
         End If
 
-        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         Dim res As DialogResult = dlgExport.ShowDialog(Me)
         If res = Windows.Forms.DialogResult.OK Then
             If FileIO.FileSystem.FileExists(dlgExport.FileName) Then
@@ -356,7 +360,7 @@ Public Class Management
         End If
 
         ' Sichern von Gruppen
-        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         Try
             db.Open(importFilename)
         Catch ex As Exception
@@ -391,7 +395,7 @@ Public Class Management
 
     Private Sub cmdImportDictionary_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImportDictionary.Click
         ' sichern
-        Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         Try
             db.Open(importFilename)
         Catch ex As Exception

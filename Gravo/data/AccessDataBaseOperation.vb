@@ -2,7 +2,7 @@ Imports System.Data.Common
 Imports System.Data.OleDb
 
 Public Class AccessDatabaseOperation
-    Implements DataBaseOperation
+    Implements IDataBaseOperation
     Protected oledbCmd As OleDbCommand = New OleDbCommand
     Protected oledbConnect As OleDbConnection = New OleDbConnection
     Protected oleCursor As OleDbDataReader
@@ -24,7 +24,7 @@ Public Class AccessDatabaseOperation
         End Get
     End Property
 
-    Public Function Open(ByVal DBPath As String) As Boolean Implements DataBaseOperation.Open
+    Public Function Open(ByVal DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If bInit Then Close()
         oledbConnect.ConnectionString = "Provider=Microsoft.JET.OLEDB.4.0;data source=" & DBPath
         oledbConnect.Open()
@@ -47,7 +47,7 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
-    Public Function ExecuteNonQuery(ByVal CommandText As String) As Boolean Implements DataBaseOperation.ExecuteNonQuery
+    Public Function ExecuteNonQuery(ByVal CommandText As String) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         m_command = CommandText
         If Not bInit Then Return False
         If Not oleCursor Is Nothing Then oleCursor.Close()
@@ -63,7 +63,7 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
-    Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of String)) As Boolean Implements DataBaseOperation.ExecuteNonQuery
+    Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of Object)) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         Throw New NotSupportedException()
     End Function
 
@@ -84,11 +84,11 @@ Public Class AccessDatabaseOperation
         Return oleCursor
     End Function
 
-    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of String)) As DbDataReader Implements DataBaseOperation.ExecuteReader
+    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         Throw New NotSupportedException()
     End Function
 
-    Public Function ExecuteReader(ByVal CommandText As String) As DbDataReader Implements DataBaseOperation.ExecuteReader
+    Public Function ExecuteReader(ByVal CommandText As String) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         m_command = CommandText
 
         If oledbConnect.State <> ConnectionState.Open Then MsgBox("Database is not open")
@@ -110,7 +110,7 @@ Public Class AccessDatabaseOperation
         Return ExecuteReader(m_command)
     End Function
 
-    Public Function Close() As Boolean Implements DataBaseOperation.Close
+    Public Function Close() As Boolean Implements IDataBaseOperation.Close
         If Not bInit Then Return True
         oledbConnect.Close()
         If Not oleCursor Is Nothing Then oleCursor.Close()
@@ -118,7 +118,7 @@ Public Class AccessDatabaseOperation
         Return True
     End Function
 
-    Public Sub CloseReader() Implements DataBaseOperation.CloseReader
+    Public Sub CloseReader() Implements IDataBaseOperation.CloseReader
         If Not oleCursor Is Nothing Then oleCursor.Close()
     End Sub
 
@@ -149,23 +149,23 @@ Public Class AccessDatabaseOperation
         If TypeOf (dbc.GetValue(Index)) Is DBNull Then Return "" Else Return dbc.GetDateTime(Index)
     End Function
 
-    Public Function SecureGetBool(ByVal Index As Integer) As Boolean Implements DataBaseOperation.SecureGetBool
+    Public Function SecureGetBool(ByVal Index As Integer) As Boolean Implements IDataBaseOperation.SecureGetBool
         If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return False Else Return oleCursor.GetBoolean(Index)
     End Function
 
-    Public Function SecureGetInt32(ByVal Index As Integer) As Integer Implements DataBaseOperation.SecureGetInt32
+    Public Function SecureGetInt32(ByVal Index As Integer) As Integer Implements IDataBaseOperation.SecureGetInt32
         If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return 0 Else Return oleCursor.GetInt32(Index)
     End Function
 
-    Public Function SecureGetString(ByVal Index As Integer) As String Implements DataBaseOperation.SecureGetString
+    Public Function SecureGetString(ByVal Index As Integer) As String Implements IDataBaseOperation.SecureGetString
         If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return "" Else Return oleCursor.GetString(Index)
     End Function
 
-    Public Function SecureGetDateTime(ByVal Index As Integer) As DateTime Implements DataBaseOperation.SecureGetDateTime
+    Public Function SecureGetDateTime(ByVal Index As Integer) As DateTime Implements IDataBaseOperation.SecureGetDateTime
         If TypeOf (oleCursor.GetValue(Index)) Is DBNull Then Return "" Else Return oleCursor.GetDateTime(Index)
     End Function
 
-    Public Function DBCursor() As DbDataReader Implements DataBaseOperation.DBCursor
+    Public Function DBCursor() As DbDataReader Implements IDataBaseOperation.DBCursor
         Return oleCursor
     End Function
 

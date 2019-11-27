@@ -2,7 +2,7 @@ Imports Gravo.AccessDatabaseOperation
 
 Public Class xlsBase
     ' Datenbank-Anbindung
-    Protected m_DBConnection As DataBaseOperation
+    Protected m_DBConnection As IDataBaseOperation
 
     ' Klassenzustände
     Private m_bConnected As Boolean = False  ' mit der Datenbank verbunden
@@ -11,16 +11,16 @@ Public Class xlsBase
         m_bConnected = False
     End Sub
 
-    Sub New(ByVal db As DataBaseOperation)    ' Keinen Speziellen Table auswählen
+    Sub New(ByVal db As IDataBaseOperation)    ' Keinen Speziellen Table auswählen
         m_bConnected = True
         m_DBConnection = db
     End Sub
 
-    Public Property DBConnection() As DataBaseOperation
+    Public Property DBConnection() As IDataBaseOperation
         Get
             Return m_DBConnection
         End Get
-        Set(ByVal DB As DataBaseOperation)
+        Set(ByVal DB As IDataBaseOperation)
             If m_bConnected Then m_DBConnection.Close()
             m_DBConnection = DB
             ' testen, ob die datenbank das richtige format hat

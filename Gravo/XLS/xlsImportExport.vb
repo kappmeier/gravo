@@ -16,13 +16,14 @@ Public Class xlsImportExport
         MyBase.New()
     End Sub
 
-    Sub New(ByVal db As DataBaseOperation)    ' Keinen Speziellen Table auswählen
+    Sub New(ByVal db As IDataBaseOperation)    ' Keinen Speziellen Table auswählen
         MyBase.New(db)
     End Sub
 
-    Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource As DataBaseOperation)
+    Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim xlsGrp As New xlsGroups()
         Dim newdic As New xlsDictionary()
+        Dim newDictionaryDao As IDictionaryDao = New DictionaryDao(dbSource)
         newdic.DBConnection = dbSource
         Dim dic As New xlsDictionary()
         dic.DBConnection = DBConnection
@@ -30,6 +31,7 @@ Public Class xlsImportExport
         newGroups.DBConnection = dbSource
         xlsGrp.DBConnection = DBConnection
         Dim GroupsDao As IGroupsDao = New GroupsDao(DBConnection)
+        Dim GroupDao As IGroupDao = New GroupDao(DBConnection)
         Dim Groups As Collection(Of GroupEntry)
         Groups = GroupsDao.GetSubGroups(Group)
 
@@ -40,6 +42,7 @@ Public Class xlsImportExport
             For Each index As Integer In existingGroup.GetIndices()
                 ' Lade das Wort aus der originalen Datenbank
                 Dim existingEntry As New xlsDictionaryEntry(DBConnection, index)
+                Dim existingWord As WordEntry
                 Dim newEntry As String = dic.GetEntryName(existingEntry.MainIndex)
                 Dim newEntryLanguage As String = dic.GetEntryLanguage(existingEntry.MainIndex)
 
@@ -48,7 +51,7 @@ Public Class xlsImportExport
                 Dim entryMainIndex As Integer
                 Try
                     entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
-                Catch ex As xlsExceptionLanguageNotFound
+                Catch ex As LanguageNotFoundException
                     newdic.AddEntry(newEntry, newEntryLanguage, MainLanguage)
                     entryMainIndex = newdic.GetEntryIndex(newEntry, newEntryLanguage, MainLanguage)
                 Catch ex As EntryNotFoundException
@@ -63,17 +66,18 @@ Public Class xlsImportExport
                 Catch ex As EntryNotFoundException
                     ' Füge das Wort nun ein
                     existingEntry.MainIndex = entryMainIndex
-                    newdic.AddSubEntry(existingEntry, newEntry, newEntryLanguage, MainLanguage)
+                    newDictionaryDao.AddSubEntry(existingWord, newEntry, newEntryLanguage, MainLanguage)
                     entryIndex = newdic.GetSubEntryIndex(entryMainIndex, existingEntry.Word, existingEntry.Meaning)
                 End Try
                 Dim marked As Boolean = existingGroup.GetMarked(index)
                 ' TODO example
-                currentGroup.Add(entryIndex, marked, "")
+                'currentGroup.Add(entryIndex, marked, "")
+                GroupDao.Add(Nothing, Nothing, marked, "")
             Next index
         Next groupEntry
     End Sub
 
-    Public Sub ExportLanguage(ByVal Language As String, ByVal MainLanguage As String, ByVal dbSource As DataBaseOperation)
+    Public Sub ExportLanguage(ByVal Language As String, ByVal MainLanguage As String, ByVal dbSource As IDataBaseOperation)
         ' sichern der Main-Einträge
         Dim command As String
         If ExportEmptyEntrys Then
@@ -138,8 +142,9 @@ Public Class xlsImportExport
         End Set
     End Property
 
-    Public Sub ImportDictionary(ByVal mainLanguage As String, ByVal dbSource As DataBaseOperation)
+    Public Sub ImportDictionary(ByVal mainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim dicImport As New xlsDictionary(dbSource)
+        Dim importDictionaryDao As IDictionaryDao = New DictionaryDao(dbSource)
         Dim dic As New xlsDictionary(DBConnection)
         ImportedMainEntrys = 0
         ImportedSubEntrys = 0
@@ -148,7 +153,7 @@ Public Class xlsImportExport
         ImportedSubGroups = 0
 
         ' Füge die Haupt-Einträge ein
-        For Each language As String In dicImport.DictionaryLanguages(mainLanguage)
+        For Each language As String In importDictionaryDao.DictionaryLanguages(mainLanguage)
             For Each word As String In dicImport.DictionaryEntrys(language, mainLanguage)
                 Try
                     dic.AddEntry(word, language, mainLanguage)
@@ -160,10 +165,10 @@ Public Class xlsImportExport
                 End Try
 
                 ' Füge die Sub-Einträge ein
-                For Each subEntry As xlsDictionaryEntry In dicImport.GetWordsAndSubWords(word, language, mainLanguage)
-                    subEntry.MainIndex = dic.GetEntryIndex(word, language, mainLanguage)
+                For Each subEntry As WordEntry In importDictionaryDao.GetWordsAndSubWords(word, language, mainLanguage)
+                    'subEntry.MainIndex = dic.GetEntryIndex(word, language, mainLanguage)
                     Try
-                        dic.AddSubEntry(subEntry, word, language, mainLanguage)
+                        '                        dic.AddSubEntry(subEntry, word, language, mainLanguage)
                     Catch ex As EntryExistsException
                         ' schon vorhanden gewesen
                         Continue For
@@ -174,14 +179,16 @@ Public Class xlsImportExport
         Next language
     End Sub
 
-    Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource As DataBaseOperation)
+    Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim dicImport As New xlsDictionary(dbSource)
         Dim dic As New xlsDictionary(DBConnection)
+        Dim dictionaryDao As IDictionaryDao = New DictionaryDao(DBConnection)
         Dim xlsGroupsImport As New xlsGroups(dbSource)
         Dim GroupsImportDao As IGroupsDao = New GroupsDao(dbSource)
 
         Dim groups As New xlsGroups(DBConnection)
-        Dim GroupDao As IGroupsDao = New GroupsDao(DBConnection)
+        Dim GrouspDao As IGroupsDao = New GroupsDao(DBConnection)
+        Dim GroupDao As IGroupDao = New GroupDao(DBConnection)
         ImportedMainEntrys = 0
         ImportedSubEntrys = 0
         ImportedGroups = 0
@@ -192,7 +199,7 @@ Public Class xlsImportExport
         ' das heißt, wenn eine Gruppe unter demselben Namen vorhanden war, _alles_ löschen
         For Each group As String In GroupsImportDao.GetGroups
             ' Testen, ob eine solche Gruppe in der DB vorhanden ist. Wenn ja --> löschen
-            If GroupDao.GroupExists(group) Then GroupDao.DeleteGroup(group)
+            If GrouspDao.GroupExists(group) Then GrouspDao.DeleteGroup(group)
 
             ' Einfügen der Gruppe
             For Each subGroup As GroupEntry In GroupsImportDao.GetSubGroups(group)
@@ -203,6 +210,7 @@ Public Class xlsImportExport
 
                 For Each index As Integer In grpImport.GetIndices()
                     Dim word As xlsDictionaryEntry
+                    Dim wordEntry As WordEntry
                     Try
                         word = New xlsDictionaryEntry(dbSource, index) ' eintag muß da vorhanden sein, wenn db ok.
                     Catch ex As Exception
@@ -215,7 +223,7 @@ Public Class xlsImportExport
                     Dim mainIndex As Integer
                     Try
                         mainIndex = dic.GetEntryIndex(entry, language, mainLanguage)
-                    Catch ex As xlsExceptionLanguageNotFound
+                    Catch ex As LanguageNotFoundException
                         dic.AddEntry(entry, language, mainLanguage)
                         mainIndex = dic.GetEntryIndex(entry, language, mainLanguage)
                         ImportedMainEntrys += 1
@@ -230,13 +238,14 @@ Public Class xlsImportExport
                         subIndex = dic.GetSubEntryIndex(mainIndex, word.Word, word.Meaning)
                     Catch ex As EntryNotFoundException
                         word.MainIndex = mainIndex
-                        dic.AddSubEntry(word, entry, language, mainLanguage)
+                        dictionaryDao.AddSubEntry(wordEntry, entry, language, mainLanguage)
                         subIndex = dic.GetSubEntryIndex(mainIndex, word.Word, word.Meaning)
                         ImportedSubEntrys += 1
                     End Try
                     Dim marked As Boolean = grpImport.GetMarked(index)
                     ' TODO example
-                    grp.Add(subIndex, marked, "")
+                    'grp.Add(subIndex, marked, "")
+                    GroupDao.Add(Nothing, Nothing, marked, "")
                     ImportedGroupEntrys += 1
                 Next index
                 ImportedSubGroups += 1

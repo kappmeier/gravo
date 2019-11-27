@@ -4,11 +4,17 @@ Public Class WordInput
     Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
     Dim grp As New xlsGroup("")                           ' Zugriff auf eine Gruppe
     Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
+    Dim DictionaryDao As IDictionaryDao
     Dim xlsGroups As New xlsGroups
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
+    ''' <summary>
+    ''' Currently loaded group
+    ''' </summary>
+    Dim GroupEntry As GroupEntry
+    Dim GroupDao As IGroupDao
 
     Dim language As String
     Dim mainLanguage As String
@@ -25,17 +31,19 @@ Public Class WordInput
         voc.DBConnection = db
         grp.DBConnection = db
         xlsGroups.DBConnection = db
+        DictionaryDao = New DictionaryDao(db)
         GroupsDao = New GroupsDao(db)
 
-        Dim prop As New xlsDBPropertys(db)
-        txtWord.MaxLength = prop.DictionaryWordsMaxLengthWord
-        txtPre.MaxLength = prop.DictionaryWordsMaxLengthPre
-        txtPost.MaxLength = prop.DictionaryWordsMaxLengthPost
-        txtMeaning.MaxLength = prop.DictionaryWordsMaxLengthMeaning
-        txtAdditionalTargetlanguageInfo.MaxLength = prop.DictionaryWordsMaxLengthAdditionalTargetLangInfo
-        txtMainEntry.MaxLength = prop.DictionaryMainMaxLengthWordEntry
-        txtLanguage.MaxLength = prop.DictionaryMainMaxLengthLanguage
-        txtMainLanguage.MaxLength = prop.DictionaryMainMaxLengthMainLanguage
+        Dim propertiesDao As IPropertiesDao = New PropertiesDao(db)
+        Dim properties As Properties = propertiesDao.LoadProperties
+        txtWord.MaxLength = properties.DictionaryWordsMaxLengthWord
+        txtPre.MaxLength = properties.DictionaryWordsMaxLengthPre
+        txtPost.MaxLength = properties.DictionaryWordsMaxLengthPost
+        txtMeaning.MaxLength = properties.DictionaryWordsMaxLengthMeaning
+        txtAdditionalTargetlanguageInfo.MaxLength = properties.DictionaryWordsMaxLengthAdditionalTargetLangInfo
+        txtMainEntry.MaxLength = properties.DictionaryMainMaxLengthWordEntry
+        txtLanguage.MaxLength = properties.DictionaryMainMaxLengthLanguage
+        txtMainLanguage.MaxLength = properties.DictionaryMainMaxLengthMainLanguage
     End Sub
 
     Private Sub WordInput_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -47,13 +55,13 @@ Public Class WordInput
 
         ' Sprachen in die Listen einfügen
         cmbLanguages.Items.Clear()
-        Dim languages As Collection(Of String) = voc.DictionaryLanguages("german")
+        Dim languages As Collection(Of String) = DictionaryDao.DictionaryLanguages("german")
         For Each language As String In languages
             cmbLanguages.Items.Add(language)
         Next
         If languages.Count > 0 Then cmbLanguages.SelectedIndex = 0
         cmbMainLanguages.Items.Clear()
-        languages = voc.DictionaryMainLanguages()
+        languages = DictionaryDao.DictionaryMainLanguages()
         For Each language As String In languages
             cmbMainLanguages.Items.Add(language)
         Next
@@ -93,25 +101,17 @@ Public Class WordInput
         If grp.LanguageCount = 1 And grp.MainLanguageCount = 1 Then
             Dim usedLanguage As String
             Dim usedMainLanguage As String
-            usedLanguage = grp.GetUniqueLanguage()
+            usedLanguage = GroupDao.GetUniqueLanguage(GroupEntry)
             usedMainLanguage = grp.GetUniqueMainLanguage()
             If usedLanguage <> language Or usedMainLanguage <> mainLanguage Then
                 If MsgBox("Sie beabsichtigen einen eintrag mit den zweiten Sprachen '" & language & "' und '" & mainLanguage & "' zu erstellen. Soll damit fortgefahren werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
             End If
         End If
 
-        Dim deWord As New xlsDictionaryEntry(voc.DBConnection)
-        deWord.LoadNewWord(voc.GetMaxSubEntryIndex + 1)
-        deWord.Pre = txtPre.Text
-        deWord.Word = txtWord.Text
-        deWord.Post = txtPost.Text
-        deWord.Meaning = txtMeaning.Text
-        deWord.AdditionalTargetLangInfo = txtAdditionalTargetlanguageInfo.Text
-        deWord.WordType = lstWordTypes.SelectedIndex
-        deWord.Irregular = chkIrregular.Checked
+        Dim deWord As New WordEntry(txtWord.Text, txtPre.Text, txtPost.Text, lstWordTypes.SelectedIndex, txtMeaning.Text, txtAdditionalTargetlanguageInfo.Text, chkIrregular.Checked)
 
         Try
-            voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+            DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
             If chkDirectAdd.Checked Then AddToGroup()
         Catch ex As EntryExistsException
             ' Eintrag existiert schon
@@ -128,7 +128,7 @@ Public Class WordInput
                 End Try
                 ' Erneut den subentry hinzufügen
                 Try
-                    voc.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+                    DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
                     ' hinzufügen in die gruppe
                     If chkDirectAdd.Checked Then AddToGroup()
                 Catch sex As EntryExistsException
@@ -162,15 +162,16 @@ Public Class WordInput
         ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
         Dim subIndex As Integer = voc.GetSubEntryIndex(voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage), txtWord.Text, txtMeaning.Text)
         ' TODO example
-        grp.Add(subIndex, chkMarked.Checked, "")
+        ' TODO: create/get a wordentry to add
+        GroupDao.Add(GroupEntry, Nothing, chkMarked.Checked, "")
     End Sub
 
     Private Sub cmbLanguages_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbLanguages.SelectedIndexChanged
         ' Liste der Wortarten füllen (immer alle unterstützen zur zeit)
         lstWordTypes.Items.Clear()
 
-        Dim prop As New xlsDBPropertys(db)
-        For Each type As String In prop.GetSupportedWordTypes()
+        Dim propertiesDao As New PropertiesDao(db)
+        For Each type As String In propertiesDao.LoadWordTypes.GetSupportedWordTypes()
             lstWordTypes.Items.Add(GetLoc.GetText(type))
         Next type
         lstWordTypes.SelectedIndex = 0
@@ -229,11 +230,11 @@ Public Class WordInput
 
     Private Sub cmbDirectAddSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbDirectAddSubGroup.SelectedIndexChanged
         If cmbDirectAddSubGroup.Items.Count = 0 Then grp = Nothing : Exit Sub
-        grp = xlsGroups.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
+        GroupEntry = GroupsDao.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
 
         ' Wenn die verwendeten Sprachen eindeutig sind, setzen
         Try
-            Dim language As String = grp.GetUniqueLanguage()
+            Dim language As String = GroupDao.GetUniqueLanguage(GroupEntry)
             cmbLanguages.SelectedItem = language
         Catch ex As Exception
             ' keine eindeutige Language

@@ -6,7 +6,7 @@
 
         Console.WriteLine("Loading database from" & DBPath)
 
-        Dim DB As DataBaseOperation = New SQLiteDataBaseOperation()
+        Dim DB As IDataBaseOperation = New SQLiteDataBaseOperation()
         DB.Open(DBPath)
 
         Dim GroupsDao As IGroupsDao = New GroupsDao(DB)

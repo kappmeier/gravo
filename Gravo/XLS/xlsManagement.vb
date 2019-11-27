@@ -12,7 +12,7 @@ Public Class xlsManagement
         MyBase.New()
     End Sub
 
-    Public Sub New(ByRef db As DataBaseOperation)
+    Public Sub New(ByRef db As IDataBaseOperation)
         MyBase.New(db)
     End Sub
 
@@ -346,21 +346,24 @@ Public Class xlsManagement
 
         ' Suche in Gruppen nach Einträgen zu Wörtern die nicht existieren
         Dim GroupsDao As IGroupsDao = New GroupsDao(DBConnection)
+        Dim GroupDao As IGroupDao = New GroupDao(DBConnection)
+
         For Each Group As GroupEntry In GroupsDao.GetAllGroups()
+            Dim groupDto As GroupDto = GroupDao.Load(Group)
             Dim grp As New xlsGroup(Group.Table)
             grp.DBConnection = DBConnection
-            For Each index As Integer In grp.GetIndices()
-                command = "SELECT MainIndex FROM DictionaryWords WHERE [Index]=" & index & ";"
+            For Each entry As TestWord In groupDto.Entries
+                command = "SELECT MainIndex FROM DictionaryWords WHERE [Index]=" & entry.Index & ";"
                 DBConnection.ExecuteReader(command)
                 If DBConnection.DBCursor.HasRows = False Then
                     ' löschen, da eintrag nicht existiert
                     DBConnection.CloseReader()
-                    grp.Delete(index)
+                    GroupDao.Delete(Group, entry)
                     ErrorCount += 1
                 Else
                     DBConnection.CloseReader()
                 End If
-            Next index
+            Next entry
         Next Group
     End Sub
 

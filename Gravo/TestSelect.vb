@@ -2,21 +2,21 @@ Imports System.Collections.ObjectModel
 Imports Gravo.localization
 
 Public Class TestSelect
-    Dim db As New SQLiteDataBaseOperation
-    Dim xlsGroups As New xlsGroups
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
-    Dim group As xlsGroup = Nothing
+    Dim group As GroupDto = Nothing
+    ''' <summary>
+    ''' Loading group data.
+    ''' </summary>
+    Dim GroupDao As IGroupDao
 
     Public Sub New()
-        ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
         InitializeComponent()
 
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
+        Dim db As New SQLiteDataBaseOperation
         db.Open(DBPath)     ' Datenbank öffnen
-        xlsGroups.DBConnection = db
         GroupsDao = New GroupsDao(db)
 
         ' Gruppen in die Liste einfügen
@@ -60,14 +60,15 @@ Public Class TestSelect
         If cmbSubGroup.Items.Count > 0 Then cmbSubGroup.SelectedIndex = 0
     End Sub
 
-    Public ReadOnly Property SelectedGroup() As xlsGroup
+    Public ReadOnly Property SelectedGroup() As GroupDto
         Get
             Return group
         End Get
     End Property
 
     Private Sub cmbSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbSubGroup.SelectedIndexChanged
-        group = xlsGroups.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
+        Dim groupEntry = GroupsDao.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
+        group = GroupDao.Load(groupEntry)
         Dim t As String = group.WordCount & IIf(group.WordCount = 1, " Vokabel abzufragen.", " Vokabeln abzufragen.")
         lblWordCount.Text = t
     End Sub

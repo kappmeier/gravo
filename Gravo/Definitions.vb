@@ -14,7 +14,7 @@
     Function GetLoc() As localization
         Static loc As localization
         If loc Is Nothing Then
-            Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
+            Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
             db.Open(DBPathLoc)
             loc = New localization(db)
         End If

@@ -23,7 +23,9 @@ Public Interface IGroupsDao
     ''' TODO: Define the order the strings have to be.
     ''' </summary>
     ''' <returns></returns>
-    Function GetSubGroups(ByVal groupName As String) As Collection(Of GroupEntry)
+    Function GetSubGroups(ByVal groupName As String) As ICollection(Of GroupEntry)
+
+    Function GetGroup(ByVal groupName As String, ByVal subGroupName As String) As GroupEntry
 
     Function SubGroupCount(ByVal groupName As String) As Integer
 

@@ -1,17 +1,31 @@
 Imports System.Collections.ObjectModel
 
 Public Class GroupInput
-    Dim db As DataBaseOperation = New SQLiteDataBaseOperation()
-    Dim voc As New xlsGroups                              ' Zugriff auf die Gruppen der Datenbank
-    Dim dic As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
-    Dim grp As xlsGroup                                   ' Zugriff auf eine Gruppe
-    Dim xlsGroups As New xlsGroups
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
-    Dim GroupsDao As IGroupsDao
+    Dim groupsDao As IGroupsDao
+    ''' <summary>
+    ''' Access to all words in the dictionary.
+    ''' </summary>
+    Dim dictionaryDao As IDictionaryDao
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    Dim groupDao As IGroupDao
+    ''' <summary>
+    ''' The currently loaded group.
+    ''' </summary>
+    Dim groupEntry As GroupEntry
+    ''' <summary>
+    ''' Data of the currently loaded group.
+    ''' </summary>
+    Dim groupData As GroupDto
 
-    Dim meanings As Collection(Of xlsDictionaryEntry)     ' Eine Sammlung der Wörter in der Bedeutungsauswahl
+    ''' <summary>
+    ''' A collection of all words in the selection field
+    ''' </summary>
+    Dim meanings As Collection(Of WordEntry)
 
     Dim lastControl As Control
 
@@ -19,11 +33,11 @@ Public Class GroupInput
         ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
         InitializeComponent()
 
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
-        voc.DBConnection = db
-        dic.DBConnection = db
-        xlsGroups.DBConnection = db
         GroupsDao = New GroupsDao(db)
+        DictionaryDao = New DictionaryDao(db)
+        GroupDao = New GroupDao(db)
     End Sub
 
     Private Sub GroupInput_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -36,14 +50,14 @@ Public Class GroupInput
         For Each groupName As String In groupNames
             cmbSelectGroup.Items.Add(groupName)
         Next
-        If groupNames.Count > 0 Then cmbSelectGroup.SelectedIndex = 0
 
         ' Sprachen in die Liste einfügen
         cmbSelectLanguage.Items.Clear()
-        Dim languages As Collection(Of String) = dic.DictionaryLanguages("german")
+        Dim languages As Collection(Of String) = DictionaryDao.DictionaryLanguages("german")
         For Each language As String In languages
             cmbSelectLanguage.Items.Add(language)
         Next
+        If groupNames.Count > 0 Then cmbSelectGroup.SelectedIndex = 0
         If languages.Count > 0 Then cmbSelectLanguage.SelectedIndex = 0 Else UpdateDisplayedInfo()
         SelectUniqueLanguage()
 
@@ -146,22 +160,26 @@ Public Class GroupInput
     End Sub
 
     Private Sub cmdSelect_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSelect.Click
-        If lstWords.Items.Count = 0 Then Exit Sub ' Es gibt keine Items in der Liste
-        If cmbSelectGroup.Items.Count = 0 Then Exit Sub ' Es gibt keine Gruppe in die etwas eingefügt werden könnte
+        If lstWords.Items.Count = 0 Then Exit Sub ' No items in list
+        If cmbSelectGroup.Items.Count = 0 Then Exit Sub ' no group exists
 
-        ' Wort in Gruppe einfügen
-        Dim wtWord As xlsDictionaryEntry
+        ' TODO example
+        Dim word As WordEntry
         Try
-            wtWord = meanings.Item(lstWords.SelectedIndices.Item(0))
+            word = meanings.Item(lstWords.SelectedIndices.Item(0))
         Catch ex As Exception
             MsgBox("Bitte wählen sie das Wort erneut aus!", vbInformation, "Fehler aufgetreten!")
             Exit Sub
         End Try
 
-        ' TODO example
-        grp.Add(wtWord.WordIndex, chkMarked.Checked, "")
+        Try
+            groupDao.Add(groupEntry, word, chkMarked.Checked, "")
+        Catch ex As EntryExistsException
+            MsgBox("Wort bereits in der Gruppe enthalten", vbInformation, "Hinzufügen nicht möglich")
+            Exit Sub
+        End Try
 
-        ' Anzeige aktualisieren
+        ' update display
         UpdateWordsInGroup()
         lstWordsInGroup.SelectedIndex = lstWordsInGroup.Items.Count - 1
 
@@ -188,13 +206,13 @@ Public Class GroupInput
     End Sub
 
     Private Sub UpdateWordsInGroupSelected()
-        Dim words As Collection(Of xlsDictionaryEntry) = grp.GetWords(lstWordsInGroup.SelectedItem)
+        Dim entries = groupData.FilterWords(lstWordsInGroup.SelectedItem)
 
         lstMeanings.Items.Clear()
-        For Each wCurrent As xlsDictionaryEntry In words
-            Dim lvItem As ListViewItem = lstMeanings.Items.Add(wCurrent.Pre)
-            lvItem.SubItems.AddRange(New String() {wCurrent.Word, wCurrent.Post, wCurrent.Meaning})
-        Next
+        For Each entry As TestWord In entries
+            Dim lvItem As ListViewItem = lstMeanings.Items.Add(entry.Pre)
+            lvItem.SubItems.AddRange(New String() {entry.Word, entry.Post, entry.Meaning})
+        Next entry
 
         If lstMeanings.Items.Count >= 1 Then lstMeanings.SelectedIndices.Add(0)
     End Sub
@@ -243,14 +261,17 @@ Public Class GroupInput
     End Sub
 
     Private Sub cmdDeselect_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDeselect.Click
+        'Throw New NotImplementedException
+
         If lstMeanings.Items.Count = 0 Then Exit Sub
         Dim selectedIndex As Integer = lstWordsInGroup.SelectedIndex
         Dim testitem As ListViewItem
         testitem = lstMeanings.Items(lstMeanings.SelectedIndices.Item(0))
         Dim word As String = testitem.SubItems(1).Text
         Dim meaning As String = testitem.SubItems(3).Text
-        Dim index As Integer = grp.GetIndex(word, meaning)
-        grp.Delete(index)
+        Dim testWord As TestWord = GroupDao.GetTestWord(groupEntry, word, meaning)
+
+        GroupDao.Delete(groupEntry, testWord)
         UpdateWordsInGroup()
         If selectedIndex > lstWordsInGroup.Items.Count - 1 Then
             If selectedIndex > 0 Then lstWordsInGroup.SelectedIndex = selectedIndex - 1 Else lstMeanings.Items.Clear()
@@ -260,14 +281,14 @@ Public Class GroupInput
     End Sub
 
     Private Function SearchWord(ByVal word As String) As Boolean
-        Dim similar As String = dic.FindSimilar(txtSearchText.Text, cmbSelectLanguage.SelectedItem, "german")
+        Dim similar As String = DictionaryDao.FindSimilar(txtSearchText.Text, cmbSelectLanguage.SelectedItem, "german")
         lblSimilarWord.Text = similar
         If similar = "" Then Return False
-        meanings = dic.GetWordsAndSubWords(similar, cmbSelectLanguage.SelectedItem, "german")
+        meanings = DictionaryDao.GetWordsAndSubWords(similar, cmbSelectLanguage.SelectedItem, "german")
 
         ' Anzeigen aller Einträge aus der Collection
         lstWords.Items.Clear()
-        For Each entry As xlsDictionaryEntry In meanings
+        For Each entry As WordEntry In meanings
             Dim lvItem As ListViewItem = lstWords.Items.Add(entry.Pre)
             lvItem.SubItems.AddRange(New String() {entry.Word, entry.Post, entry.Meaning})
         Next
@@ -283,8 +304,8 @@ Public Class GroupInput
         ' Falls nur eine Sprache gewählt worden ist, diese markieren
         Dim language As String
         Try
-            If grp IsNot Nothing Then
-                language = grp.GetUniqueLanguage()
+            If groupData IsNot Nothing Then
+                language = GroupDao.GetUniqueLanguage(groupEntry)
             Else
                 If cmbSelectLanguage.Items.Count > 0 Then language = cmbSelectLanguage.Items.Item(0) Else Exit Sub
             End If
@@ -296,19 +317,23 @@ Public Class GroupInput
     End Sub
 
     Private Sub UpdateDisplayedInfo()
+        If cmbSelectLanguage.SelectedItem Is Nothing Then
+            Return
+        End If
         ' Anzeige aktualisieren
-        Dim t As String = dic.WordCount(cmbSelectLanguage.SelectedItem, "german") & IIf(dic.WordCount(cmbSelectLanguage.SelectedItem, "german") = 1, " Eintrag", " Einträge")
+        Dim t As String = DictionaryDao.WordCount(cmbSelectLanguage.SelectedItem, "german") & IIf(DictionaryDao.WordCount(cmbSelectLanguage.SelectedItem, "german") = 1, " Eintrag", " Einträge")
         lblWordsInLanguage.Text = t & " in der Sprache."
         ' Anzeigen, wie viele Wörter in der Gruppe sind
         Dim t1 As String = lstWordsInGroup.Items.Count & IIf(lstWordsInGroup.Items.Count = 1, " verschiedener Eintrag", " verschiedene Einträge")
-        If grp Is Nothing Then
+
+        If groupData Is Nothing Then
             t = "0 Einträge insgesamt"
         Else
-            t = grp.WordCount & IIf(grp.WordCount = 1, " Eintrag insgesamt", " Einträge insgesamt")
+            t = groupData.WordCount & IIf(groupData.WordCount = 1, " Eintrag insgesamt", " Einträge insgesamt")
         End If
         lblWordsInSubGroup.Text = t1 & " in der Gruppe," & vbCrLf & t & "."
         ' Anzeige der Vokabeln aktualisieren
-        t = xlsGroups.WordCount(cmbSelectGroup.SelectedItem) & IIf(xlsGroups.WordCount(cmbSelectGroup.SelectedItem) = 1, " Eintrag", " Einträge")
+        t = DataTools.WordCount(GroupsDao, GroupDao, cmbSelectGroup.SelectedItem) & IIf(DataTools.WordCount(GroupsDao, GroupDao, cmbSelectGroup.SelectedItem) = 1, " Eintrag", " Einträge")
         lblWordsInGroup.Text = t & " in der Gruppe insgesamt."
     End Sub
 
@@ -318,11 +343,13 @@ Public Class GroupInput
         ' Neue Gruppe ausgewählt. Zeige die enthaltenen Vokabeln in der liste an
         lstWordsInGroup.BeginUpdate()
         lstWordsInGroup.Items.Clear()
-        grp = xlsGroups.GetGroup(cmbSelectGroup.SelectedItem, cmbSelectSubGroup.SelectedItem)
+        groupEntry = GroupsDao.GetGroup(cmbSelectGroup.SelectedItem, cmbSelectSubGroup.SelectedItem)
+        groupData = GroupDao.Load(GroupEntry)
 
-        Dim wordstrings As Collection(Of String) = grp.GetWords()
-        For Each sWord As String In wordstrings
-            lstWordsInGroup.Items.Add(sWord)
+
+        Dim wordstrings As IEnumerable(Of String) = groupData.GetWords
+        For Each word As String In groupData.GetWords
+            lstWordsInGroup.Items.Add(word)
         Next
         lstWordsInGroup.EndUpdate()
         If Not selected >= lstWordsInGroup.Items.Count Then lstWordsInGroup.SelectedIndex = selected
