@@ -16,10 +16,24 @@ Public Class DictionaryDao
     Implements IDictionaryDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
+    Private ReadOnly SELECT_WORDENTRY As String = "SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular"
 
     Sub New(ByRef db As IDataBaseOperation)
         DBConnection = db
     End Sub
+
+    Function GetEntry(mainEntry As MainEntry, word As String, meaning As String) As WordEntry Implements IDictionaryDao.GetEntry
+        Dim command As String = SELECT_WORDENTRY & " FROM DictionaryWords WHERE MainIndex = ? AND Word = ? AND Meaning = ?"
+
+        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {mainEntry.Index, word, meaning}))
+        FailIfEmpty(DBConnection, Function() As Exception
+                                      Return New EntryNotFoundException("There is no entry for the given word/meaning.")
+                                  End Function)
+
+        DBConnection.DBCursor.Read()
+        GetEntry = GroupDao.Extract(DBConnection)
+        DBConnection.DBCursor.Close()
+    End Function
 
     Function GetWords(ByVal mainEntry As String, ByVal subEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
         Dim mainIndex As Int32 = GetEntryIndex(mainEntry, language, mainLanguage)

@@ -64,6 +64,17 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub GetWord_Existing_Returns()
+        Dim wordEntry As WordEntry = _dictionaryDao.GetEntry(word1MainEntry, "word1", "m")
+        wordEntry.Should.BeEquivalentTo(word1entry1)
+    End Sub
+
+    <Test>
+    Public Sub GetWord_NonExisting_Fails()
+        Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.GetEntry(word1MainEntry, "non existing", "x"))
+    End Sub
+
+    <Test>
     Public Sub WordsLoaded_Existing_ListReturned()
         Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWords("word1", "word1", language, targetLanguage)
 

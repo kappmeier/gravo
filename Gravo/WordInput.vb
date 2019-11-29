@@ -3,7 +3,6 @@ Imports System.Collections.ObjectModel
 Public Class WordInput
     Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
     Dim grp As New xlsGroup("")                           ' Zugriff auf eine Gruppe
-    Dim voc As New xlsDictionary                          ' Zugriff auf die Wort-Datenbank allgemein
     Dim DictionaryDao As IDictionaryDao
     Dim xlsGroups As New xlsGroups
     ''' <summary>
@@ -28,7 +27,6 @@ Public Class WordInput
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)
-        voc.DBConnection = db
         grp.DBConnection = db
         xlsGroups.DBConnection = db
         DictionaryDao = New DictionaryDao(db)
@@ -122,7 +120,7 @@ Public Class WordInput
             If res = MsgBoxResult.Yes Then
                 ' Hinzufügen. Da die nicht-existiert-exception auftrat, kann nicht mehr die existiert-schon-exception auftreten
                 Try
-                    voc.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
+                    DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
                 Catch sex As xlsExceptionInput
                     MsgBox(sex.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
                 End Try
@@ -160,10 +158,10 @@ Public Class WordInput
 
     Private Sub AddToGroup()
         ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
-        Dim subIndex As Integer = voc.GetSubEntryIndex(voc.GetEntryIndex(txtMainEntry.Text, language, mainLanguage), txtWord.Text, txtMeaning.Text)
+        Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(txtMainEntry.Text, language, mainLanguage)
+        Dim wordEntry As WordEntry = DictionaryDao.GetEntry(mainEntry, txtWord.Text, txtMeaning.Text)
         ' TODO example
-        ' TODO: create/get a wordentry to add
-        GroupDao.Add(GroupEntry, Nothing, chkMarked.Checked, "")
+        GroupDao.Add(GroupEntry, wordEntry, chkMarked.Checked, "")
     End Sub
 
     Private Sub cmbLanguages_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbLanguages.SelectedIndexChanged
