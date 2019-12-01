@@ -2,23 +2,24 @@ Imports System.Collections.ObjectModel
 
 Public Class WordInput
     Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
-    Dim grp As New xlsGroup("")                           ' Zugriff auf eine Gruppe
     Dim DictionaryDao As IDictionaryDao
-    Dim xlsGroups As New xlsGroups
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
     ''' <summary>
-    ''' Currently loaded group
+    ''' Data access for a single group.
+    ''' </summary>
+    Dim GroupDao As IGroupDao
+    ''' <summary>
+    ''' Currently selected group.
     ''' </summary>
     Dim GroupEntry As GroupEntry
-    Dim GroupDao As IGroupDao
 
     Dim language As String
     Dim mainLanguage As String
 
-    ' easy-word-input Variablen
+    ' simple word input
     Dim wordEdited As Boolean = False
 
     Public Sub New()
@@ -27,10 +28,9 @@ Public Class WordInput
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)
-        grp.DBConnection = db
-        xlsGroups.DBConnection = db
         DictionaryDao = New DictionaryDao(db)
         GroupsDao = New GroupsDao(db)
+        GroupDao = New GroupDao(db)
 
         Dim propertiesDao As IPropertiesDao = New PropertiesDao(db)
         Dim properties As Properties = propertiesDao.LoadProperties
@@ -85,22 +85,25 @@ Public Class WordInput
     End Sub
 
     Private Sub AddSubEntry(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAddSubEntry.Click
-        If chkDirectAdd.Checked And grp Is Nothing Then
+        If chkDirectAdd.Checked And GroupEntry Is Nothing Then
             MsgBox("Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!", MsgBoxStyle.Information, "Warnung")
             Exit Sub
         End If
 
+        Dim languageCount As Integer = GroupDao.GetLanguages(GroupEntry).Count
+        Dim mainLanguageCount As Integer = GroupDao.GetMainLanguages(GroupEntry).Count
+
         ' Falls keine Sprache in der Gruppe vorhanden ist (0 Einträgee bisher), nachfragen ob wirklich erstellt werden soll
-        If grp.LanguageCount() = 0 Or grp.MainLanguageCount() = 0 Then
+        If languageCount = 0 Or mainLanguageCount = 0 Then
             If MsgBox("Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den Sprachen '" & language & "' und '" & mainLanguage & "' erstellt werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
         End If
 
         ' Falls bisher eine Sprache in der Gruppe vorhanden ist, nachfragen ob eine neue erstellt werden soll
-        If grp.LanguageCount = 1 And grp.MainLanguageCount = 1 Then
+        If languageCount = 1 And mainLanguageCount = 1 Then
             Dim usedLanguage As String
             Dim usedMainLanguage As String
             usedLanguage = GroupDao.GetUniqueLanguage(GroupEntry)
-            usedMainLanguage = grp.GetUniqueMainLanguage()
+            usedMainLanguage = GroupDao.GetUniqueMainLanguage(GroupEntry)
             If usedLanguage <> language Or usedMainLanguage <> mainLanguage Then
                 If MsgBox("Sie beabsichtigen einen eintrag mit den zweiten Sprachen '" & language & "' und '" & mainLanguage & "' zu erstellen. Soll damit fortgefahren werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
             End If
@@ -137,9 +140,6 @@ Public Class WordInput
             Else
                 ' Eintrag soll nicht erstellt werden, ende.
             End If
-        Catch ex As Exception 'System.Data.OleDb.OleDbException
-            'ErrorCode = -2147467259
-            MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
         End Try
         txtMainEntry.SelectAll()
         txtMainEntry.Focus()
@@ -227,23 +227,21 @@ Public Class WordInput
     End Sub
 
     Private Sub cmbDirectAddSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbDirectAddSubGroup.SelectedIndexChanged
-        If cmbDirectAddSubGroup.Items.Count = 0 Then grp = Nothing : Exit Sub
+        If cmbDirectAddSubGroup.Items.Count = 0 Then GroupEntry = Nothing : Exit Sub
         GroupEntry = GroupsDao.GetGroup(cmbDirectAddGroup.SelectedItem, cmbDirectAddSubGroup.SelectedItem)
 
-        ' Wenn die verwendeten Sprachen eindeutig sind, setzen
+        ' If the languages in the selected group is unique, select it
         Try
             Dim language As String = GroupDao.GetUniqueLanguage(GroupEntry)
             cmbLanguages.SelectedItem = language
-        Catch ex As Exception
-            ' keine eindeutige Language
+        Catch ex As LanguageException
             MsgBox("Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
         End Try
 
         Try
-            Dim mainLanguage = grp.GetUniqueMainLanguage()
+            Dim mainLanguage = GroupDao.GetUniqueMainLanguage(GroupEntry)
             cmbMainLanguages.SelectedItem = mainLanguage
-        Catch ex As Exception
-            ' keine eindeutige Mainlanguage
+        Catch ex As LanguageException
             MsgBox("Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
         End Try
 
