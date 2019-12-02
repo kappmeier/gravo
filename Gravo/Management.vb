@@ -2,15 +2,18 @@ Imports System.Collections.ObjectModel
 
 Public Class Management
     ' Datenbank-Zugriff
-    Dim voc As xlsBase            ' Zugriff auf Vokabel-Datenbank
-    Dim xlsGrp As xlsGroups
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
+    ''' <summary>
+    ''' Data access for a single group.
+    ''' </summary>
     Dim GroupDao As IGroupDao
     Dim man As xlsManagement
-    Dim dic As xlsDictionary
+    ''' <summary>
+    ''' Data access to the dictionary.
+    ''' </summary>
     Dim DictionaryDao As IDictionaryDao
     Dim importFilename As String = ""
 
@@ -20,15 +23,10 @@ Public Class Management
 
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
-        voc = New xlsBase(db)
-        xlsGrp = New xlsGroups()
-        xlsGrp.DBConnection = db
         GroupsDao = New GroupsDao(db)
         GroupDao = New GroupDao(db)
         man = New xlsManagement
         man.DBConnection = db
-        dic = New xlsDictionary
-        dic.DBConnection = db
         DictionaryDao = New DictionaryDao(db)
 
         ' Anzahl der Zeichen für Textfelder
@@ -116,7 +114,7 @@ Public Class Management
     End Sub
 
     Private Sub ClosingForm(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        voc.Close()
+
     End Sub
 
     Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs)
@@ -205,10 +203,11 @@ Public Class Management
 
     Private Sub UnitSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstUnitList.SelectedIndexChanged
         txtUnitName.Text = lstUnitList.SelectedItem
-        Dim group As xlsGroup = xlsGrp.GetGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
-        Dim count As Integer = group.WordCount
+        Dim groupEntry As GroupEntry = GroupsDao.GetGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
+        Dim groupData As GroupDto = GroupDao.Load(groupEntry)
+        Dim count As Integer = groupData.WordCount
         lblUnitInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
-        count = group.LanguageCount
+        count = GroupDao.GetLanguages(groupEntry).Count
         lblUnitInfo.Text &= vbCrLf & IIf(count = 1, count & " benutzte Sprache", count & " benutzte Sprachen")
     End Sub
 
@@ -319,7 +318,6 @@ Public Class Management
 
         ' sichern
         Dim export As New xlsImportExport
-        export.DBConnection = voc.DBConnection
         export.ExportEmptyEntrys = Not chkExportEmptyEntrys.Checked
         export.ExportStats = chkExportStats.Checked
         For Each selectedLanguage As String In lstExportLanguages.CheckedItems
@@ -381,7 +379,7 @@ Public Class Management
             End While
         End If
 
-        Dim import As New xlsImportExport(voc.DBConnection)
+        Dim import As New xlsImportExport(Nothing)
         import.ImportGroups("german", db)
         db.Close()
 
@@ -402,7 +400,7 @@ Public Class Management
             MsgBox("Fehler beim Datenbankzugriff: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             Exit Sub
         End Try
-        Dim import As New xlsImportExport(voc.DBConnection)
+        Dim import As New xlsImportExport(Nothing)
         import.ImportDictionary("german", db)
         db.Close()
 
