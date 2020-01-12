@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports Gravo.Properties
 
 Public Class Management
     ' Datenbank-Zugriff
@@ -10,11 +11,16 @@ Public Class Management
     ''' Data access for a single group.
     ''' </summary>
     Dim GroupDao As IGroupDao
-    Dim man As xlsManagement
+    'Dim man As xlsManagement
     ''' <summary>
     ''' Data access to the dictionary.
     ''' </summary>
     Dim DictionaryDao As IDictionaryDao
+    ''' <summary>
+    ''' Data access to manage database versions.
+    ''' </summary>
+    Dim ManagementDao As IManagementDao
+
     Dim importFilename As String = ""
 
     Public Sub New()
@@ -25,9 +31,8 @@ Public Class Management
         db.Open(DBPath)
         GroupsDao = New GroupsDao(db)
         GroupDao = New GroupDao(db)
-        man = New xlsManagement
-        man.DBConnection = db
         DictionaryDao = New DictionaryDao(db)
+        ManagementDao = New ManagementDao(db)
 
         ' Anzahl der Zeichen für Textfelder
         Dim properties As Properties = New PropertiesDao(db).LoadProperties
@@ -46,7 +51,7 @@ Public Class Management
         UpdateForm()
 
         ' Datenbank-Version, reorganisieren, importieren, exportieren
-        UpdateDatabaseVersion()
+        UpdateDatabaseVersionText()
         lblErrorCount.Text = "Gefundene und behobene Fehler: keine Überprüfung durchgeführt"
         lblImportDB.Text = "Datenbank: noch keine gewählt"
         cmdImportDictionary.Enabled = False
@@ -118,15 +123,9 @@ Public Class Management
     End Sub
 
     Private Sub DataUpdateDBVersion(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        man.UpdateDatabaseVersion()
+        ManagementDao.UpdateDatabaseVersion()
         UpdateForm()
-        If man.DatabaseVersionIndex <> 0 Then
-            cmdDBVersion.Text = "Update auf Version " & man.DatabaseVersion(man.NextVersionIndex)
-            cmdDBVersion.Enabled = True
-        Else
-            cmdDBVersion.Text = "Update auf Version " & man.DatabaseVersion(0)
-            cmdDBVersion.Enabled = False
-        End If
+        UpdateDatabaseVersionText()
     End Sub
 
     Private Sub GroupAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupAdd.Click
@@ -255,7 +254,7 @@ Public Class Management
 
     Private Sub cmdExport_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExport.Click
         ' Teste, ob die aktuelle Dateie die höchste Version hat
-        If Not man.IsVersionUpToDate Then
+        If Not ManagementDao.IsVersionUpToDate() Then
             MsgBox("Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.", MsgBoxStyle.Information, "Fehler")
             Exit Sub
         End If
@@ -272,9 +271,8 @@ Public Class Management
                 End Try
             End If
 
-
             'Try
-            man.CreateNewVocabularyDatabase(dlgExport.FileName)
+            Gravo.ManagementDao.CreateNewVocabularyDatabase(dlgExport.FileName)
             db.Open(dlgExport.FileName)
             'Catch ex As Exception
             '    MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
@@ -332,8 +330,8 @@ Public Class Management
     End Sub
 
     Private Sub cmdReorganizeDB_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdReorganizeDB.Click
-        man.Reorganize()
-        lblErrorCount.Text = "Gefundene und behobene Fehler: " & man.ErrorCount
+        Dim errorCount = ManagementDao.Reorganize
+        lblErrorCount.Text = "Gefundene und behobene Fehler: " & errorCount
         MsgBox("Testen der Datenbank auf Konsistenz abgeschlossen.", MsgBoxStyle.Information, "Hinweis")
     End Sub
 
@@ -352,7 +350,7 @@ Public Class Management
 
     Private Sub cmdImportGroup_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImportGroup.Click
         ' Teste, ob beide Dateien die höchste Version haben
-        If Not man.IsVersionUpToDate Then
+        If Not ManagementDao.IsVersionUpToDate() Then
             MsgBox("Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.", MsgBoxStyle.Information, "Fehler")
             Exit Sub
         End If
@@ -365,18 +363,15 @@ Public Class Management
             MsgBox("Fehler beim Datenbankzugriff: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             Exit Sub
         End Try
-        Dim versionTest As New xlsManagement
-        versionTest.DBConnection = db
-        If Not versionTest.IsVersionUpToDate Then
+        Dim versionTest As IManagementDao = New ManagementDao(db)
+        If Not versionTest.IsVersionUpToDate() Then
             Dim res As MsgBoxResult = MsgBox("Die Version der zu importierenden Datenbank ist nicht aktuell. Soll sie aktualisiert werden?", MsgBoxStyle.YesNo, "Warnung")
             If res = MsgBoxResult.No Then
                 db.Close()
                 Exit Sub
             End If
-            ' aktualisieren
-            While Not versionTest.IsVersionUpToDate
-                versionTest.UpdateDatabaseVersion()
-            End While
+            ' update
+            versionTest.UpdateDatabaseVersion()
         End If
 
         Dim import As New xlsImportExport(Nothing)
@@ -413,18 +408,20 @@ Public Class Management
     End Sub
 
     Private Sub cmdDBVersion_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdDBVersion.Click
-        If man.IsUpdateComplex Then MsgBox("Der Updatevorgang kann einige Zeit dauern!", MsgBoxStyle.Information, "Hinweis")
-        man.UpdateDatabaseVersion()
-        UpdateDatabaseVersion()
+        Dim currentVersion As DBVersion = ManagementDao.GetCurrentVersion
+        If ManagementDao.IsUpdateComplex(currentVersion) Then MsgBox("Der Updatevorgang kann einige Zeit dauern!", MsgBoxStyle.Information, "Hinweis")
+        ManagementDao.UpdateDatabaseVersion()
+        UpdateDatabaseVersionText()
     End Sub
 
-    Private Sub UpdateDatabaseVersion()
-        lblDBVersion.Text = "Aktuelle Datenbank-Version: " & man.DatabaseVersion
-        If man.IsVersionUpToDate Then
-            cmdDBVersion.Text = "Update auf Version " & man.DatabaseVersion(0)
+    Private Sub UpdateDatabaseVersionText()
+        Dim nextVersion = ManagementDao.GetNextVersion
+        Dim currentVersion = ManagementDao.GetCurrentVersion
+        If nextVersion Is Nothing Then
+            cmdDBVersion.Text = "Auf aktueller Version " & currentVersion.ToString
             cmdDBVersion.Enabled = False
         Else
-            cmdDBVersion.Text = "Update auf Version " & man.DatabaseVersion(man.NextVersionIndex)
+            cmdDBVersion.Text = "Update auf Version " & nextVersion.ToString
             cmdDBVersion.Enabled = True
         End If
     End Sub

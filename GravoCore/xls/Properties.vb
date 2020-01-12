@@ -176,6 +176,10 @@ Public Class Properties
                    _date = version._date AndAlso
                    _description = version._description
         End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return (_major, _minor, _date, _description).GetHashCode()
+        End Function
     End Class
 
     Private Interface IPropertiesBuilderAccess

@@ -1,7 +1,7 @@
 ﻿Imports System.Data.Common
 Imports System.Runtime.CompilerServices
 
-Module DataBaseExtension
+Public Module DataBaseExtension
     ''' <summary>
     ''' Executes an SQL command and returns the database cursor with the results.
     ''' </summary>
@@ -35,4 +35,22 @@ Module DataBaseExtension
             Throw createError.Invoke
         End If
     End Sub
+
+    <Extension()>
+    Function IsEmpty(ByRef dataBaseOperation As IDataBaseOperation)
+        Dim command As String = "SELECT count(*) FROM sqlite_master"
+        dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
+        dataBaseOperation.DBCursor.Read()
+        Dim objects As Int32 = dataBaseOperation.SecureGetInt32(0)
+        dataBaseOperation.DBCursor.Close()
+        IsEmpty = (objects = 0)
+    End Function
+
+    <Extension()>
+    Public Function ExistsTable(dataBaseOperation As IDataBaseOperation, tableName As String)
+        Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+        dataBaseOperation.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {tableName}))
+        ExistsTable = dataBaseOperation.DBCursor.HasRows
+        dataBaseOperation.DBCursor.Close()
+    End Function
 End Module

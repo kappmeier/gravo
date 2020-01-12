@@ -140,8 +140,8 @@ Public Class Main
         ' Initialisieren
         Dim db As New SQLiteDataBaseOperation()
         db.Open(DBPath)
-        Dim man As New xlsManagement(db)
-        If Not man.IsVersionUpToDate Then
+        Dim man As New ManagementDao(db)
+        If Not man.IsVersionUpToDate() Then
             MsgBox(GetLoc.GetText(DB_VERSION_OUTDATED), MsgBoxStyle.Information, GetLoc.GetText(HINT))
         End If
         Me.ExplorerMenuItem.PerformClick()
@@ -352,11 +352,11 @@ Public Class Main
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
 
-        Dim man As New xlsManagement(db)
+        Dim man As New ManagementDao(db)
 
-        man.Reorganize()
-        If man.ErrorCount > 0 Then
-            MsgBox("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden " & man.ErrorCount & " Fehler behoben.", MsgBoxStyle.Information, "Hinweis")
+        Dim errorCount = man.Reorganize()
+        If errorCount > 0 Then
+            MsgBox("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden " & errorCount & " Fehler behoben.", MsgBoxStyle.Information, "Hinweis")
         Else
             MsgBox("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden keine Fehler gefunden.", MsgBoxStyle.Information, "Hinweis")
         End If

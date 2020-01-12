@@ -1,4 +1,7 @@
-﻿Imports Gravo
+﻿Imports System.Collections.Immutable
+Imports System.Data.Common
+Imports System.Data.SQLite
+Imports Gravo
 
 Public Class PropertiesDao
     Implements IPropertiesDao
@@ -33,10 +36,27 @@ Public Class PropertiesDao
         Return New Properties(builder)
     End Function
 
+    ''' <summary>
+    ''' Returns nothing if no version information was found.    
+    ''' </summary>
+    ''' <returns></returns>
     Function LoadVersions() As ICollection(Of Properties.DBVersion)
+        Try
+            Dim command As String = "SELECT [Version], [Date], [Description] FROM DBVersion"
+            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
+        Catch ex As SQLiteException
+            If ex.ErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
+                Return ImmutableList(Of Properties.DBVersion).Empty
+            End If
+            Throw ex
+        End Try
+        LoadVersions = ExtractVersions(DBConnection.DBCursor)
+        DBConnection.DBCursor.Close()
+        If LoadVersions.Count = 0 Then Throw New IllegalVersionException("Version table exists, but no version found. Database invalid.")
+    End Function
+
+    Private Function ExtractVersions(cursor As DbDataReader) As ICollection(Of Properties.DBVersion)
         Dim versions As New List(Of Properties.DBVersion)
-        Dim command As String = "SELECT [Version], [Date], [Description] FROM DBVersion"
-        DBConnection.ExecuteReader(command, Array.Empty(Of Object))
         Do While DBConnection.DBCursor.Read()
             Dim versionString As String = DBConnection.SecureGetString(0)
             Dim introduced As Date = DBConnection.SecureGetDateTime(1)
@@ -48,7 +68,6 @@ Public Class PropertiesDao
             Dim version As New Properties.DBVersion(major, minor, introduced, description)
             versions.Add(version)
         Loop
-        DBConnection.DBCursor.Close()
         versions.Sort()
         Return versions
     End Function

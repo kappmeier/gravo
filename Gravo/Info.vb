@@ -15,8 +15,8 @@ Public Class Info
         lblVersion.Text = "Version: " & Application.ProductVersion
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPathLoc)
-        Dim man As New xlsManagement(db)
-        lblDBVersion.Text = "DB-Version: " & man.DatabaseVersionNeeded
+        Dim dbManagement As New ManagementDao(db)
+        lblDBVersion.Text = "DB-Version: " & dbManagement.LatestVersion.Major & "." & dbManagement.LatestVersion.Minor
     End Sub
 
     Public Overrides Sub LocalizationChanged()

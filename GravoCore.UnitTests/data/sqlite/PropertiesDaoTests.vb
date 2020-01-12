@@ -56,4 +56,36 @@ Public Class PropertiesDaoTests
 
         p.Verion.Should.BeEquivalentTo(expectedVersion)
     End Sub
+
+    <Test>
+    Public Sub Load_OnEmpty_Returns()
+        Dim emptyDb As IDataBaseOperation = CreateEmptyTestDb()
+
+        Dim fixture As New PropertiesDao(emptyDb)
+
+        fixture.LoadVersions().Should.BeEmpty()
+
+        emptyDb.Close()
+    End Sub
+
+    <Test>
+    Public Sub Load_EmptyVersionTable_Throws()
+        Dim emptyDb As IDataBaseOperation = CreateEmptyTestDb()
+
+        Dim createValidTAbleCommand = "CREATE TABLE [DBVersion] ([Version] TEXT(5) NOT NULL, [Date] DATETIME NOT NULL, [Description] TEXT(80) NOT NULL);"
+        emptyDb.ExecuteNonQuery(createValidTAbleCommand, Array.Empty(Of Object))
+
+        Dim fixture As New PropertiesDao(emptyDb)
+
+        Assert.Throws(Of IllegalVersionException)(Sub() fixture.LoadVersions())
+
+        emptyDb.Close()
+    End Sub
+
+    Public Shared Function CreateEmptyTestDb() As IDataBaseOperation
+        Dim emptyDbPath = Path.GetTempFileName
+        SQLiteConnection.CreateFile(emptyDbPath)
+        CreateEmptyTestDb = New SQLiteDataBaseOperation()
+        CreateEmptyTestDb.Open(emptyDbPath)
+    End Function
 End Class
