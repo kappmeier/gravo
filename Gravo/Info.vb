@@ -9,7 +9,7 @@ Public Class Info
         Me.Text = AppTitleLong & " info"
         lblDisclaimer.Text = "Working with this version of " & Application.ProductName & " should be possible without problems, however, some smaller errors could occur. We recommend you to save your database whenever you've added some vocabulary and non change database manually. This software is distributed ""as is"", we are neither responisble for anything that happens using this software nor responsible for the correct function of this piece of software."
         lblCopyrightOld.Text = "based on Vokabeltrainer, © 1995-2007"
-        lblCopyright.Text = "© 1995-2019"
+        lblCopyright.Text = "© 1995-2020"
         lblCopyrightName.Text = "Jan-Philipp Kappmeier"
         lblProductName.Text = Application.ProductName
         lblVersion.Text = "Version: " & Application.ProductVersion
