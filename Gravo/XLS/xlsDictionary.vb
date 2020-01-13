@@ -1,11 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports Gravo.AccessDatabaseOperation
 
-Public Structure xlsWordAndMainIndex
-    Dim Word As String
-    Dim MainIndex As Integer
-End Structure
-
 Public Class xlsDictionary
     Inherits xlsBase
     ' Grundlegende Informationen über die Datenbank und die vorhandenen Vokabeln:
@@ -83,14 +78,6 @@ Public Class xlsDictionary
         Throw New EntryExistsException("Es existiert bereits ein Wort unter diesem Eintrag.")
     End Sub
 
-    Public Function GetMaxEntryIndex() As Integer
-        Return GetMaxIndex("DictionaryMain")
-    End Function
-
-    Public Function GetMaxSubEntryIndex() As Integer
-        Return GetMaxIndex("DictionaryWords")
-    End Function
-
     ' as GetMainEntry in dictionarydao
     Public Function GetEntryName(ByVal Index As Integer) As String
         Dim command As String = "SELECT WordEntry FROM DictionaryMain WHERE [Index] = " & Index & ";"
@@ -102,25 +89,10 @@ Public Class xlsDictionary
         Return ret
     End Function
 
-    Public Function GetSubEntry(ByVal index As Integer) As xlsDictionaryEntry
-        Dim a As New xlsDictionaryEntry(DBConnection, index)
-        Return a
-    End Function
-
     Public Function GetEntryLanguage(ByVal MainIndex As Integer) As String
         Dim command As String = "SELECT LanguageName FROM DictionaryMain WHERE [Index] = " & MainIndex
         DBConnection.ExecuteReader(command)
         If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("The Entry with index " & MainIndex & " does not exist.")
-        DBConnection.DBCursor.Read()
-        Dim ret As String = DBConnection.SecureGetString(0)
-        DBConnection.DBCursor.Close()
-        Return ret
-    End Function
-
-    Public Function GetEntryMainLanguage(ByVal Index As Integer) As String
-        Dim command As String = "SELECT MainLanguage FROM DictionaryMain WHERE [Index] = " & Index
-        DBConnection.ExecuteReader(command)
-        If DBConnection.DBCursor.HasRows = False Then Throw New EntryNotFoundException("Der Eintrag existiert nicht.")
         DBConnection.DBCursor.Read()
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()

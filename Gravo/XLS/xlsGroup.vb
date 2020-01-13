@@ -23,30 +23,6 @@ Public Class xlsGroup
         Return ret
     End Function
 
-    Public ReadOnly Property WordCount() As Integer
-        Get
-            Dim command As String = "SELECT COUNT([Index]) FROM [" & EscapeSingleQuotes(groupTableName) & "];"
-            DBConnection.ExecuteReader(command)
-            DBConnection.DBCursor.Read()
-            Dim ret As Integer = DBConnection.SecureGetInt32(0)
-            DBConnection.DBCursor.Close()
-            Return ret
-        End Get
-    End Property
-
-    Public ReadOnly Property LanguageCount() As Integer
-        Get
-            Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & EscapeSingleQuotes(groupTableName) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex= M.[Index];"
-            DBConnection.ExecuteReader(command)
-            Dim count As Integer = 0
-            Do While DBConnection.DBCursor.Read
-                count += 1
-            Loop
-            DBConnection.DBCursor.Close()
-            Return count
-        End Get
-    End Property
-
     Public Function GetIndices() As Collection(Of Integer)
         If DBConnection Is Nothing Then Throw New xlsException("Datenbank ist nicht verbunden")
         Dim indices As New Collection(Of Integer)
