@@ -26,13 +26,13 @@ Public Class GroupDaoTests
             MyBase.New(index, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular)
         End Sub
     End Class
-    Private ReadOnly word1 = New MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
-    Private ReadOnly testWord1 As TestWord = New MockTestWord(word1, True, "")
-    Private ReadOnly testWord2 = New MockTestWord(New MockWordEntry(2, "word2", "", "", WordType.Verb, "", "", False), True, "An example.")
-    Private ReadOnly testWord29 = New MockTestWord(New MockWordEntry(29, "wordx", "", "", WordType.Adjective, "", "", True), False, "")
+    Public Shared ReadOnly word1 = New MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
+    Public Shared ReadOnly testWord1 As TestWord = New MockTestWord(word1, True, "")
+    Public Shared ReadOnly testWord2 = New MockTestWord(New MockWordEntry(2, "word2", "", "", WordType.Verb, "", "", False), True, "An example.")
+    Public Shared ReadOnly testWord29 = New MockTestWord(New MockWordEntry(29, "wordx", "", "", WordType.Adjective, "", "", True), False, "")
 
-    Private ReadOnly word3 = New MockWordEntry(3, "some word", "", "", WordType.Verb, "with a meaning", "", True)
-    Private ReadOnly word4 = New MockWordEntry(4, "word4", "", "", WordType.Adjective, "test", "info", False)
+    Public Shared ReadOnly word3 = New MockWordEntry(3, "some word", "", "", WordType.Verb, "with a meaning", "", True)
+    Public Shared ReadOnly word4 = New MockWordEntry(4, "word4", "", "", WordType.Adjective, "test", "info", False)
 
     Dim exampleGroup = New GroupEntry(123, "Test-Example", "Subgroup1", "GroupTest-Example01")
     Dim emptyGroup = New GroupEntry(123, "Test-Example", "Empty subgroup", "GroupTest-Example02")

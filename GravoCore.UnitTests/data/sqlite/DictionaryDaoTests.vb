@@ -172,6 +172,24 @@ Public Class DictionaryDaoTests
         Dim expectedResult = New List(Of WordEntry) From {wordWithoutSubwords, newWord}
 
         updatedWords.Should.BeEquivalentTo(expectedResult)
+
+        AssertCardCreated()
+    End Sub
+
+    Private Sub AssertCardCreated()
+        Dim command As String = "SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain FROM Cards WHERE [Index] = ?"
+        _db.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {newWordIndex}))
+        _db.DBCursor.Read()
+        Dim testInterval As Integer = _db.SecureGetInt32(0)
+        Dim counter As Integer = _db.SecureGetInt32(1)
+        Dim testIntervalMain As Integer = _db.SecureGetInt32(3)
+        Dim counterMain As Integer = _db.SecureGetInt32(4)
+        _db.DBCursor.Close()
+
+        testInterval.Should.Be(1)
+        counter.Should.Be(1)
+        testIntervalMain.Should.Be(1)
+        counterMain.Should.Be(1)
     End Sub
 
     <Test>

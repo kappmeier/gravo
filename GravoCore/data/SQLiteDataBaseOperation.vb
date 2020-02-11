@@ -115,4 +115,9 @@ Public Class SQLiteDataBaseOperation
         '    Return Date.Parse(d)
         'End Try
     End Function
+
+    Shared Function NowDB() As String
+        Return DateTime.Now.ToString("yyyy-MM-dd")
+    End Function
+
 End Class

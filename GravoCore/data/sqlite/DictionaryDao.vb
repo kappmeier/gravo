@@ -124,9 +124,9 @@ Public Class DictionaryDao
         DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {mainIndex, Entry.Word, Entry.Pre, Entry.Post, Entry.WordType, Entry.Meaning, Entry.AdditionalTargetLangInfo, If(Entry.Irregular, 1, 0)}))
 
         ' Card-Status hinzufügen
-        'Dim card As New xlsCards(DBConnection)
+        Dim card As New CardsDao(DBConnection)
         Dim subEntryIndex As Integer = GetSubEntryIndex(mainIndex, Entry.Word, Entry.Meaning)
-        'card.AddNewEntry(subEntryIndex)
+        card.AddNewEntry(subEntryIndex)
         Entry.Index = subEntryIndex
     End Sub
 

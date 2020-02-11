@@ -5,6 +5,7 @@ Public Class xlsTestGroup
     Inherits xlsTestBase
 
     Dim group As String
+    Dim groupEntry As GroupEntry
     ' Abfragen von Vokabeln
     ' unterstützt (nur) Gruppen
 
@@ -55,14 +56,14 @@ Public Class xlsTestGroup
 
         ' Update des Gruppen-Cards-Systems, falls nötig
         If UseCards And firstTest Then
-            Dim cards As New xlsCards(TestFormerLanguage, DBConnection)
+            Dim cards As New CardsDao(DBConnection)
             If res = TestResult.NoError Then
                 ' Update der Group-Cards-Einstellungen
-                cards.Update(group, TestDictionaryEntry.WordIndex, True)
+                cards.UpdateSuccess(groupEntry, CurrentTestWord, Me.QueryLanguage)
                 firstTest = False
             ElseIf res = TestResult.Wrong Then
                 ' Update der Group-Cards-Einstellungen
-                cards.Update(group, TestDictionaryEntry.WordIndex, False)
+                cards.UpdateFailure(groupEntry, CurrentTestWord, Me.QueryLanguage)
                 firstTest = False
             End If
         End If

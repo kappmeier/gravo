@@ -164,7 +164,7 @@ Public Class ManagementDao
                 indices.Add(index)
             End While
 
-            Dim dict As New DictionaryDao(Me.DBConnection)
+            Dim dict As New CardsDao(Me.DBConnection)
             For Each index As Integer In indices
                 command = "SELECT Marked FROM [DictionaryWords] WHERE [Index] = ?"
                 DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {index}))
@@ -238,7 +238,7 @@ Public Class ManagementDao
                 indices.Add(index)
             End While
 
-            Dim dictionary As New DictionaryDao(DBConnection)
+            Dim dictionary As New CardsDao(DBConnection)
             For Each index As Integer In indices
                 command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
                 Dim o As Object = index
@@ -391,16 +391,13 @@ Public Class ManagementDao
             indices.Add(DBConnection.SecureGetInt32(0))
         Loop
         DBConnection.DBCursor.Close()
+        Dim cards As New CardsDao(DBConnection)
         For Each index As Integer In indices
             command = "SELECT TestInterval FROM Cards WHERE [Index] = ?"
             DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {index}))
             If Not DBConnection.DBCursor.HasRows Then
                 DBConnection.DBCursor.Close()
-                'command = "INSERT INTO Cards ([Index], [], [], [], []) VALUES(" & index & ")"
-                'command = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])VALUES (" & index & ", 1, 1, '01.01.1900', 1, 1)"
-                'Dim cards As New CardsDao(DBConnection)
-                'cards.AddNewEntry(index)
-                'DBConnection.ExecuteNonQuery(command)
+                cards.AddNewEntry(index)
                 ErrorCount += 1
             Else
                 DBConnection.DBCursor.Close()

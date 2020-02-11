@@ -1483,7 +1483,7 @@ Public Class VocabularyExplorer
             If res = MsgBoxResult.Yes Then
                 Try
                     DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
-                Catch ex2 As xlsExceptionInput
+                Catch ex2 As Exception When TypeOf ex2 Is LanguageNotFoundException OrElse TypeOf ex2 Is EntryNotFoundException
                     MsgBox(ex2.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
                 End Try
                 ' Untereintrag hinzufügen

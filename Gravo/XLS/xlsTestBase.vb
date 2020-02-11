@@ -1,4 +1,5 @@
 Imports System.Collections.ObjectModel
+Imports Gravo
 Imports Gravo.AccessDatabaseOperation
 
 Public Enum TestResult
@@ -21,6 +22,7 @@ Public Class xlsTestBase
 
     ' Wörter, die abgefragt werden sollen
     Private testWords As Collection(Of Integer) = New Collection(Of Integer)
+    Private testWordEntries As Collection(Of TestWord)
     Private nextWords As Collection(Of Integer) = New Collection(Of Integer)
 
     ' Abfragedetails, wie oft, welches Wort usw.
@@ -28,7 +30,8 @@ Public Class xlsTestBase
     Protected firstRun As Boolean = True
     Private deleted As Boolean
     Private iTestIndex As Integer
-    Protected TestDictionaryEntry As xlsDictionaryEntry
+    Protected TestDictionaryEntry As WordEntry
+    Protected CurrentTestWord As TestWord
     Private iTestCurrentWord As Integer = -1
 
     ' Zähler
@@ -41,7 +44,8 @@ Public Class xlsTestBase
     Private m_testStyle As xlsTestStyle = xlsTestStyle.RandomTestAgain
     Private m_useCards As Boolean = True          ' soll das Karteikarten-System benutzt werden?
     Private m_testSetPhrases As Boolean = True
-    Private m_testFormerLanguage As Boolean = True
+    Private m_testFormerLanguage As Boolean = True ' Remove and use m_queryLanguage instead
+    Private m_queryLanguage As QueryLanguage = QueryLanguage.TargetLanguage
 
     Public Sub New()
         MyBase.New()
@@ -114,11 +118,10 @@ Public Class xlsTestBase
         If UseCards = False Then
             ' Ein Wort aus der liste zufällig aussuchen und auf jeden fall übernehmen
             iTestCurrentWord = CInt(Int((testWords.Count * Rnd()))) ' zufälliges wort bestimmen
-            iTestIndex = testWords.Item(iTestCurrentWord)
-            TestDictionaryEntry = New xlsDictionaryEntry(DBConnection, iTestIndex)
+            TestDictionaryEntry = testWordEntries.Item(iTestCurrentWord).WordEntry
         Else
             ' das Kartensystem wird genutzt
-            Dim cards As New xlsCards(TestFormerLanguage, DBConnection)
+            Dim cards As New CardsDao(DBConnection)
 
             Do ' solange suchen, bis ein Wort gefunden worden ist, das genommen werden kann
                 ' Index berechnen und beenden falls keine Wörter mehr da sind
@@ -143,28 +146,19 @@ Public Class xlsTestBase
 
                 ' Wenn firstRun nicht true ist, das Wort direkt übernehmen, Cards ist hier an
                 If Not firstRun Then
-                    TestDictionaryEntry = New xlsDictionaryEntry(DBConnection, iTestIndex)
+                    TestDictionaryEntry = testWordEntries.Item(iTestCurrentWord).WordEntry
                     Exit Do
                 End If
 
                 ' Counter für Cards verringern, wenn 1 wird exception ausgelöst
                 Try
-                    cards.Update(iTestIndex)
+                    cards.Skip(testWordEntries.Item(iTestCurrentWord).WordEntry, QueryLanguage)
                     ' verringern hat geklappt, es muß also ein neues Wort gesucht werden
                     DeleteWord() ' und das alte kann gelöscht werden, es wird ja nicht abgefragt
-                Catch ex As xlsExceptionCards
-                    If ex.ErrorCode = 1 Then
-                        ' Schon 1, also Wort übernehmen
-                        TestDictionaryEntry = New xlsDictionaryEntry(DBConnection, iTestIndex)
-                        Exit Do
-                    Else
-                        ' anderer fehler
-                        Throw ex
-                    End If
                 Catch ex As Exception
                     ' anderer fehler
                     MsgBox("Unknon Error! Maybe an error in the Cards-Table?" & vbCrLf & "Error-Message: " & ex.Message, MsgBoxStyle.Critical, "Error")
-                Throw ex
+                    Throw ex
                 End Try
             Loop
         End If
@@ -182,7 +176,8 @@ Public Class xlsTestBase
             If TestDictionaryEntry.Meaning <> input Then  ' Eine Ungleichheit wurde erkannt. Spezifizieren, welche.
                 ' prüfen, ob es die eingegebene bedeutung auch gibt
                 ' zunächst die Sprache herausfinden
-                Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE [Index] =" & TestDictionaryEntry.MainIndex & ";"
+                ' TODO: use dao objects to get information
+                Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE [Index] =" & TestDictionaryEntry.WordIndex & ";"
                 DBConnection.ExecuteReader(command)
                 DBConnection.DBCursor.Read()
                 Dim language As String = DBConnection.SecureGetString(0)
@@ -202,7 +197,8 @@ Public Class xlsTestBase
             If input <> TestDictionaryEntry.Word Then ' Eine Ungleichheit wurde erkannt. Spezifizieren, welche.
                 ' prüfen, ob es das eingegebene Wort auch gibt
                 ' zunächst die Sprache herausfinden
-                Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE Index=" & TestDictionaryEntry.MainIndex & ";"
+                ' TODO: use dao objects to get information
+                Dim command As String = "SELECT LanguageName, MainLanguage FROM DictionaryMain WHERE Index=" & TestDictionaryEntry.WordIndex & ";"
                 DBConnection.ExecuteReader(command)
                 DBConnection.DBCursor.Read()
                 Dim language As String = DBConnection.SecureGetString(0)
@@ -221,12 +217,12 @@ Public Class xlsTestBase
 
         ' Update des cards-systems, falls nötig
         If UseCards And firstTest Then
-            Dim cards As New xlsCards(TestFormerLanguage, DBConnection)
+            Dim cards As New CardsDao(DBConnection)
             If right = TestResult.NoError Then
-                cards.Update(TestDictionaryEntry.WordIndex, True)
+                cards.UpdateSuccess(TestDictionaryEntry, QueryLanguage)
                 firstTest = False
             ElseIf right = TestResult.Wrong Then
-                cards.Update(TestDictionaryEntry.WordIndex, False)
+                cards.UpdateFailure(TestDictionaryEntry, QueryLanguage)
                 firstTest = False
             End If
         End If
@@ -364,5 +360,11 @@ Public Class xlsTestBase
         Set(ByVal value As Boolean)
             m_useCards = value
         End Set
+    End Property
+
+    Public ReadOnly Property QueryLanguage As QueryLanguage
+        Get
+            Return m_queryLanguage
+        End Get
     End Property
 End Class

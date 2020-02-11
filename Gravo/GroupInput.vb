@@ -36,7 +36,7 @@ Public Class GroupInput
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
         GroupsDao = New GroupsDao(db)
-        DictionaryDao = New DictionaryDao(db)
+        DictionaryDao = New CardsDao(db)
         GroupDao = New GroupDao(db)
     End Sub
 
@@ -309,7 +309,7 @@ Public Class GroupInput
             Else
                 If cmbSelectLanguage.Items.Count > 0 Then language = cmbSelectLanguage.Items.Item(0) Else Exit Sub
             End If
-        Catch ex As xlsException
+        Catch ex As LanguageNotFoundException
             ' Sprache nicht da, oder ein schwererer Fehler
             Exit Sub
         End Try

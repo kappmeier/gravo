@@ -28,7 +28,7 @@ Public Class WordInput
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)
-        DictionaryDao = New DictionaryDao(db)
+        DictionaryDao = New CardsDao(db)
         GroupsDao = New GroupsDao(db)
         GroupDao = New GroupDao(db)
 
@@ -124,7 +124,7 @@ Public Class WordInput
                 ' Hinzufügen. Da die nicht-existiert-exception auftrat, kann nicht mehr die existiert-schon-exception auftreten
                 Try
                     DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
-                Catch sex As xlsExceptionInput
+                Catch sex As Exception When TypeOf sex Is LanguageNotFoundException OrElse TypeOf sex Is EntryNotFoundException
                     MsgBox(sex.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
                 End Try
                 ' Erneut den subentry hinzufügen

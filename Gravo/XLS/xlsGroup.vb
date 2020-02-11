@@ -24,7 +24,7 @@ Public Class xlsGroup
     End Function
 
     Public Function GetIndices() As Collection(Of Integer)
-        If DBConnection Is Nothing Then Throw New xlsException("Datenbank ist nicht verbunden")
+        If DBConnection Is Nothing Then Throw New Exception("Datenbank ist nicht verbunden")
         Dim indices As New Collection(Of Integer)
         Dim command As String = "SELECT WordIndex FROM [" & EscapeSingleQuotes(groupTableName) & "];"
         DBConnection.ExecuteReader(command)

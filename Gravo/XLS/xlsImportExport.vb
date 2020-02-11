@@ -23,7 +23,7 @@ Public Class xlsImportExport
     Public Sub ExportGroup(ByVal Group As String, ByVal MainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim xlsGrp As New xlsGroups()
         Dim newdic As New xlsDictionary()
-        Dim newDictionaryDao As IDictionaryDao = New DictionaryDao(dbSource)
+        Dim newDictionaryDao As IDictionaryDao = New CardsDao(dbSource)
         newdic.DBConnection = dbSource
         Dim dic As New xlsDictionary()
         dic.DBConnection = DBConnection
@@ -144,7 +144,7 @@ Public Class xlsImportExport
 
     Public Sub ImportDictionary(ByVal mainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim dicImport As New xlsDictionary(dbSource)
-        Dim importDictionaryDao As IDictionaryDao = New DictionaryDao(dbSource)
+        Dim importDictionaryDao As IDictionaryDao = New CardsDao(dbSource)
         Dim dic As New xlsDictionary(DBConnection)
         ImportedMainEntrys = 0
         ImportedSubEntrys = 0
@@ -182,7 +182,7 @@ Public Class xlsImportExport
     Public Sub ImportGroups(ByVal mainLanguage As String, ByVal dbSource As IDataBaseOperation)
         Dim dicImport As New xlsDictionary(dbSource)
         Dim dic As New xlsDictionary(DBConnection)
-        Dim dictionaryDao As IDictionaryDao = New DictionaryDao(DBConnection)
+        Dim dictionaryDao As IDictionaryDao = New CardsDao(DBConnection)
         Dim xlsGroupsImport As New xlsGroups(dbSource)
         Dim GroupsImportDao As IGroupsDao = New GroupsDao(dbSource)
 

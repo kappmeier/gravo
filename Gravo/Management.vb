@@ -31,7 +31,7 @@ Public Class Management
         db.Open(DBPath)
         GroupsDao = New GroupsDao(db)
         GroupDao = New GroupDao(db)
-        DictionaryDao = New DictionaryDao(db)
+        DictionaryDao = New CardsDao(db)
         ManagementDao = New ManagementDao(db)
 
         ' Anzahl der Zeichen für Textfelder

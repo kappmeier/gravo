@@ -192,7 +192,6 @@
     </Compile>
     <Compile Include="Languages\localization.vb" />
     <Compile Include="XLS\xlsBase.vb" />
-    <Compile Include="XLS\xlsCard.vb" />
     <Compile Include="XLS\xlsCards.vb" />
     <Compile Include="XLS\xlsDictionary.vb" />
     <Compile Include="XLS\xlsDictionaryEntry.vb" />

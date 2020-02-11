@@ -18,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="test-data-cards.s3db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="test-data-management.s3db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

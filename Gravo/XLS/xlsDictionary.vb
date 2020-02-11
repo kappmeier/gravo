@@ -56,8 +56,8 @@ Public Class xlsDictionary
 
     ' Already in IDictionaryDao
     Public Sub AddEntry(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String)
-        If Word = "" Then Throw New xlsExceptionInput(1)
-        If Language = "" Then Throw New xlsExceptionInput(3)
+        If Word = "" Then Throw New EntryPointNotFoundException()
+        If Language = "" Then Throw New LanguageNotFoundException()
         Try
             GetEntryIndex(Word, Language, MainLanguage)
         Catch ex As EntryNotFoundException
