@@ -192,12 +192,8 @@
     </Compile>
     <Compile Include="Languages\localization.vb" />
     <Compile Include="XLS\xlsBase.vb" />
-    <Compile Include="XLS\xlsCards.vb" />
     <Compile Include="XLS\xlsDictionary.vb" />
     <Compile Include="XLS\xlsDictionaryEntry.vb" />
-    <Compile Include="XLS\Exception\xlsException.vb" />
-    <Compile Include="XLS\Exception\xlsExceptionCards.vb" />
-    <Compile Include="XLS\Exception\xlsExceptionInput.vb" />
     <Compile Include="XLS\xlsGroup.vb" />
     <Compile Include="XLS\xlsGroups.vb" />
     <Compile Include="XLS\xlsImportExport.vb" />
