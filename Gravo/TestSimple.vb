@@ -1,19 +1,48 @@
+Imports Gravo
 Imports Gravo.localization
 
+
+''' <summary>
+''' A window for testing vocabulary.
+''' 
+''' How it should work:
+''' - Input: List of words. Computed outside. Also the order of words is computed outside
+''' - Vocabulary checker class checks
+''' - The list is updated. E.g. the word is queued in again for later re-testing
+''' - The database is updated with test result, etc.
+''' 
+''' </summary>
 Public Class TestSimple
     Dim voc As xlsTestBase
     Dim db As New SQLiteDataBaseOperation()
 
     Dim startVal As String
+    Dim controller As TestController
+    Dim checker As Checker
+
+    Private ReadOnly dictionaryDao As IDictionaryDao = New DictionaryDao(db)
+
+    ''' <summary>
+    ''' Initializes the word with given set of test data
+    ''' </summary>
+    ''' <param name="testController"></param>
+    Public Sub New(ByVal testController As TestController)
+
+        ' Dieser Aufruf ist für den Designer erforderlich.
+        InitializeComponent()
+
+        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
+        Me.controller = testController
+    End Sub
 
     Public Sub New(ByVal OneLanguage As Boolean, ByVal Language As String, ByRef Owner As Main)
         ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
         InitializeComponent()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        voc = New xlsTestBase
+        'voc = New xlsTestBase
         db.Open(DBPath)     ' Datenbank öffnen
-        voc.DBConnection = db
+        'voc.DBConnection = db
         If OneLanguage Then
             startVal = Language
         Else
@@ -26,18 +55,19 @@ Public Class TestSimple
         InitializeComponent()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        voc = New xlsTestGroup
+        'voc = New xlsTestGroup
         db.Open(DBPath)     ' Datenbank öffnen
-        voc.DBConnection = db
+        'voc.DBConnection = db
         startVal = GroupName
     End Sub
 
     Private Sub TestSimple_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        lblWord.Text = voc.TestWord
-        lblAdditionalInfo.Text = voc.AdditionalInfo
-        lblTestInformation.Text = ""
-        txtInput.Text = ""
-        lblCount.Text = voc.WordCount
+        ' Take a word from testdata
+
+        checker = controller.GetTestChecker
+        CheckForQuit()
+        DisplayCurrentWord()
+
         txtInput.Focus()
         LocalizationChanged()
     End Sub
@@ -67,33 +97,41 @@ Public Class TestSimple
     End Property
 
     Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
-        Dim result As TestResult = voc.TestControl(txtInput.Text)
-        Select Case result
-            Case TestResult.NoError
-                ' Richtig
-                ' entfernen
-                voc.NextWord()
-                lblWord.Text = voc.TestWord
-                lblAdditionalInfo.Text = voc.AdditionalInfo
-                lblTestInformation.Text = GetLoc.GetText(TEST_CORRECT)
-                txtInput.Text = ""
-                txtInput.Focus()
-                lblCount.Text = voc.WordCount
-            Case TestResult.OtherMeaning
-                ' Richtig, aber nicht die gewünschte Bedeutung
-                lblTestInformation.Text = GetLoc.GetText(TEST_ANOTHER_MEANING)
-                txtInput.SelectAll()
-                txtInput.Focus()
-            Case TestResult.Wrong
-                ' Falsch
-                lblTestInformation.Text = GetLoc.GetText(TEST_WRONG_HINT) & vbCrLf & voc.TestWord & " = " & voc.Answer
+        Dim result As TestResult = checker.Evaluate(txtInput.Text.Trim)
+        Dim oldChecker As Checker = checker
+
+        controller.Update(result)
+        checker = controller.GetTestChecker
+        If Not checker Is Nothing AndAlso checker.Retest Then
+            Select Case result
+                Case TestResult.OtherMeaning
+                    ' Richtig, aber nicht die gewünschte Bedeutung
+                    lblTestInformation.Text = GetLoc.GetText(TEST_ANOTHER_MEANING)
+                    txtInput.SelectAll()
+                Case TestResult.Wrong
+                    lblTestInformation.Text = GetLoc.GetText(TEST_WRONG_HINT) & vbCrLf & checker.Question & " = " & checker.Answer
+                    MsgBox(GetLoc.GetText(TEST_WRONG), MsgBoxStyle.Information, GetLoc.GetText(TEST_ERROR))
+                    txtInput.Text = ""
+                Case TestResult.Misspelled
+                    lblTestInformation.Text = GetLoc.GetText(TEST_TYPE_ERROR)
+            End Select
+        Else
+            If result = TestResult.Wrong Then
+                lblTestInformation.Text = GetLoc.GetText(TEST_WRONG_HINT) & vbCrLf & oldChecker.Question & " = " & oldChecker.Answer
                 MsgBox(GetLoc.GetText(TEST_WRONG), MsgBoxStyle.Information, GetLoc.GetText(TEST_ERROR))
-                txtInput.Text = ""
-                txtInput.Focus()
-            Case TestResult.Misspelled
-                lblTestInformation.Text = GetLoc.GetText(TEST_TYPE_ERROR)
-        End Select
-        CheckForQuit()
+            End If
+            CheckForQuit()
+            DisplayCurrentWord()
+        End If
+        txtInput.Focus()
+    End Sub
+
+    Private Sub DisplayCurrentWord()
+        lblWord.Text = checker.Question()
+        lblAdditionalInfo.Text = checker.Info()
+        lblTestInformation.Text = ""
+        txtInput.Text = ""
+        lblCount.Text = controller.count()
     End Sub
 
     Private Sub cmdExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExit.Click
@@ -102,12 +140,11 @@ Public Class TestSimple
     End Sub
 
     Private Sub CheckForQuit()
-        If voc.WordCount = 0 Then
+        If Not controller.HasWords Then
             lblWord.Text = ""
             lblTestInformation.Text = " "
             lblAdditionalInfo.Text = ""
             MsgBox(GetLoc.GetText(TEST_FINISHED), MsgBoxStyle.Information, TEST_WELL_DONE)
-            voc.StopTest()
             Dim frmMain As Main = Me.Owner
             Close()
             frmMain.TestFinished()

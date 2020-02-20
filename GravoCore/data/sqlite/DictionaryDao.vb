@@ -35,38 +35,31 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Function
 
+    Function GetWords(ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
+        Dim command = "SELECT W.[Index] FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.[Index]"
+
+    End Function
+
+    Private ReadOnly GetWordsSelect As String = "SELECT W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular FROM DictionaryWords AS W"
+    Private ReadOnly GetWordsJoinWithMain As String = ", DictionaryMain AS M WHERE (W.MainIndex = M.[Index])"
+
     Function GetWords(ByVal mainEntry As String, ByVal subEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
         Dim mainIndex As Int32 = GetEntryIndex(mainEntry, language, mainLanguage)
-        Dim command As String = "SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular FROM DictionaryWords WHERE Word = ? AND MainIndex = ?"
+        Dim command As String = GetWordsSelect & " WHERE W.Word = ? AND W.MainIndex = ?"
         DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(subEntry), mainIndex})
+        Return ExtractWordsFromCursor()
+    End Function
 
-        ' No word with the given criteria exists
-        GetWords = New Collection(Of WordEntry)
-        If Not DBConnection.DBCursor.HasRows Then
-            DBConnection.DBCursor.Close()
-        Else
-            Do While DBConnection.DBCursor.Read()
-                Dim wordEntry = GroupDao.Extract(DBConnection)
-                GetWords.Add(wordEntry)
-            Loop
-            DBConnection.DBCursor.Close()
-        End If
+    Function GetWords(ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
+        Dim command = GetWordsSelect & GetWordsJoinWithMain & "  AND (M.LanguageName = ?) AND (M.MainLanguage = ?)"
+        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {language, mainLanguage}))
+        Return ExtractWordsFromCursor()
     End Function
 
     Public Function GetWords(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
-        Dim command As String = "SELECT W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular FROM DictionaryWords AS W, DictionaryMain AS M WHERE (W.MainIndex = M.[Index]) AND (M.LanguageName = ?) AND (M.MainLanguage = ?) AND (W.Word LIKE ?) AND (M.WordEntry LIKE ?) ORDER BY W.[Index]"
-        Dim indices As New Collection(Of Integer)
+        Dim command As String = GetWordsSelect & GetWordsJoinWithMain & " AND (M.LanguageName = ?) AND (M.MainLanguage = ?) AND (W.Word LIKE ?) AND (M.WordEntry LIKE ?) ORDER BY W.[Index]"
         DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {language, mainLanguage, startsWith + "%", startsWith + "%"}))
-        GetWords = New Collection(Of WordEntry)
-        If Not DBConnection.DBCursor.HasRows Then
-            DBConnection.DBCursor.Close()
-        Else
-            Do While DBConnection.DBCursor.Read()
-                Dim wordEntry = GroupDao.Extract(DBConnection)
-                GetWords.Add(wordEntry)
-            Loop
-            DBConnection.DBCursor.Close()
-        End If
+        Return ExtractWordsFromCursor()
     End Function
 
     Function GetSubWords(ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetSubWords
@@ -75,9 +68,32 @@ Public Class DictionaryDao
         Return words
     End Function
 
+    Function GetWordsAndSubWords(ByVal mainEntry As MainEntry) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWordsAndSubWords
+        Return GetWordsAndSubWords(mainEntry.Word, mainEntry.Language, mainEntry.MainLanguage)
+    End Function
+
     Function GetWordsAndSubWords(ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWordsAndSubWords
         GetWordsAndSubWords = GetWords(MainEntry, MainEntry, Language, MainLanguage)
         AddSubWordsToCollection(MainEntry, Language, MainLanguage, GetWordsAndSubWords)
+    End Function
+
+    Function GetWordsWithMeaning(ByVal meaning As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWordsWithMeaning
+        Dim command As String = GetWordsSelect & GetWordsJoinWithMain & " AND W.Meaning = ? AND M.LanguageName = ? AND M.MainLanguage = ?"
+        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {meaning, language, mainLanguage}))
+        Return ExtractWordsFromCursor()
+    End Function
+
+    Private Function ExtractWordsFromCursor() As ICollection(Of WordEntry)
+        ExtractWordsFromCursor = New Collection(Of WordEntry)
+        If Not DBConnection.DBCursor.HasRows Then
+            DBConnection.DBCursor.Close()
+        Else
+            Do While DBConnection.DBCursor.Read()
+                Dim wordEntry = GroupDao.Extract(DBConnection)
+                ExtractWordsFromCursor.Add(wordEntry)
+            Loop
+            DBConnection.DBCursor.Close()
+        End If
     End Function
 
     Public Function AddEntry(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As MainEntry Implements IDictionaryDao.AddEntry

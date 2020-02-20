@@ -79,15 +79,15 @@ Public Class CardsDao
     ''' </summary>
     ''' <param name="GroupTable"></param>
     ''' <param name="WordNumber"></param>
-    Public Sub Skip(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) Implements ICardsDao.Skip
+    Public Function Skip(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) As Boolean Implements ICardsDao.Skip
         Dim tableNameSafe As String = StripSpecialCharacters(group.Table)
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
-            Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", TargetLanguageIntervalName, TargetLanguageCounterName)
+            Return Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", TargetLanguageIntervalName, TargetLanguageCounterName)
         End If
         If queryDirection = QueryLanguage.OriginalLanguage Or queryDirection = QueryLanguage.Both Then
-            Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", OriginalLanguageIntervalName, OriginalLanguageCounterName)
+            Return Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", OriginalLanguageIntervalName, OriginalLanguageCounterName)
         End If
-    End Sub
+    End Function
 
     Public Sub UpdateSuccess(entry As WordEntry, queryDirection As QueryLanguage) Implements ICardsDao.UpdateSuccess
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
@@ -116,25 +116,26 @@ Public Class CardsDao
         DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {interval, interval, SQLiteDataBaseOperation.NowDB(), wordIndex}))
     End Sub
 
-    Public Sub Skip(entry As WordEntry, queryDirection As QueryLanguage) Implements ICardsDao.Skip
+    Public Function Skip(entry As WordEntry, queryDirection As QueryLanguage) As Boolean Implements ICardsDao.Skip
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
-            Skip("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName)
+            Return Skip("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName)
         End If
         If queryDirection = QueryLanguage.OriginalLanguage Or queryDirection = QueryLanguage.Both Then
-            Skip("Cards", entry.Index, "Index", "word entry", OriginalLanguageIntervalName, OriginalLanguageCounterName)
+            Return Skip("Cards", entry.Index, "Index", "word entry", OriginalLanguageIntervalName, OriginalLanguageCounterName)
         End If
-    End Sub
+    End Function
 
-    Private Sub Skip(tableNameSafe As String, wordIndex As Integer, indexColumn As String, what As String, intervalColumn As String, counterColumn As String)
+    Private Function Skip(tableNameSafe As String, wordIndex As Integer, indexColumn As String, what As String, intervalColumn As String, counterColumn As String) As Boolean
         Dim counter As Integer = GetValues(tableNameSafe, wordIndex, indexColumn, what, intervalColumn, counterColumn).Item1
 
         If counter <= 1 Then
-            Return
+            Return False
         End If
 
         Dim command = "UPDATE [" & tableNameSafe & "] SET " & counterColumn & " = ? WHERE [" & indexColumn & "] = ?"
         DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {counter - 1, wordIndex}))
-    End Sub
+        Return True
+    End Function
 
     ''' <summary>
     ''' tableNameSafe must be called with safe table name that is stripped from special characters.

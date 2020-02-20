@@ -330,8 +330,9 @@ Public Class Main
     End Sub
 
     Private Sub AllgemeinToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestGeneralMenuItem.Click
-        ' Abfragen von Vokabeln aus dem Programm, ohne einschränkung, evtl. Sprache
-        Dim frmTest As New TestSimple(True, "italian", Me)
+        Throw New NotSupportedException("Test with language restriction not supported")
+        ' Test without restriction
+        Dim frmTest As New TestSimple(False, "", Me)
         frmTest.Show(Me)
     End Sub
 
@@ -340,8 +341,17 @@ Public Class Main
     End Sub
 
     Private Sub SpracheAbfragenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestLanguageMenuItem.Click
-        ' Abfragen von Vokabeln aus dem Programm, ohne einschränkung
-        Dim frmTest As New TestSimple(False, "", Me)
+        ' Test all Words of a given language
+        Dim db As New SQLiteDataBaseOperation()
+        db.Open(DBPath)
+
+        Dim dictionaryDao As IDictionaryDao = New DictionaryDao(db)
+        Dim cardsDao As ICardsDao = New CardsDao(db)
+        Dim queryLanguage As QueryLanguage = QueryLanguage.OriginalLanguage
+
+        Dim testData As TestData = TestDataFactory.Create(dictionaryDao, cardsDao, "italian", True, queryLanguage)
+        Dim controller As TestController = New TestController(testData, queryLanguage, db)
+        Dim frmTest As New TestSimple(controller)
         frmTest.Show(Me)
     End Sub
 
@@ -412,6 +422,8 @@ Public Class Main
     End Sub
 
     Public Sub TestFinished()
+        Throw New NotSupportedException("Test finished not supported")
+
         Dim frmSelect As New TestSelect
         If Trim(programSettings.LastGroup) <> "" Then frmSelect.LastGroup = programSettings.LastGroup
         If Trim(programSettings.LastSubGroup) <> "" Then frmSelect.LastSubGroup = programSettings.LastSubGroup
