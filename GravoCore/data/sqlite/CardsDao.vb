@@ -81,12 +81,14 @@ Public Class CardsDao
     ''' <param name="WordNumber"></param>
     Public Function Skip(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) As Boolean Implements ICardsDao.Skip
         Dim tableNameSafe As String = StripSpecialCharacters(group.Table)
+        Dim result = True
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
-            Return Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", TargetLanguageIntervalName, TargetLanguageCounterName)
+            result = result And Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", TargetLanguageIntervalName, TargetLanguageCounterName)
         End If
         If queryDirection = QueryLanguage.OriginalLanguage Or queryDirection = QueryLanguage.Both Then
-            Return Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", OriginalLanguageIntervalName, OriginalLanguageCounterName)
+            result = result And Skip(tableNameSafe, testWord.WordIndex, "WordIndex", "test word", OriginalLanguageIntervalName, OriginalLanguageCounterName)
         End If
+        Return result
     End Function
 
     Public Sub UpdateSuccess(entry As WordEntry, queryDirection As QueryLanguage) Implements ICardsDao.UpdateSuccess
@@ -117,12 +119,14 @@ Public Class CardsDao
     End Sub
 
     Public Function Skip(entry As WordEntry, queryDirection As QueryLanguage) As Boolean Implements ICardsDao.Skip
+        Dim result As Boolean = True
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
-            Return Skip("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName)
+            result = result And Skip("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName)
         End If
         If queryDirection = QueryLanguage.OriginalLanguage Or queryDirection = QueryLanguage.Both Then
-            Return Skip("Cards", entry.Index, "Index", "word entry", OriginalLanguageIntervalName, OriginalLanguageCounterName)
+            result = result And Skip("Cards", entry.Index, "Index", "word entry", OriginalLanguageIntervalName, OriginalLanguageCounterName)
         End If
+        Return result
     End Function
 
     Private Function Skip(tableNameSafe As String, wordIndex As Integer, indexColumn As String, what As String, intervalColumn As String, counterColumn As String) As Boolean

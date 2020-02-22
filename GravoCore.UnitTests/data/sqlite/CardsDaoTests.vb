@@ -84,30 +84,26 @@ Public Class CardsDaoTests
     End Sub
 
     <Test>
-    Public Sub Skip_GroupEntry_ReducesCounter()
-        _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.TargetLanguage)
+    Public Sub SkipTargetLanguage1_GroupEntry_ReducesCounter()
+        Dim skipPossible As Boolean = _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.TargetLanguage)
+        Assert.IsTrue(skipPossible)
         AssertValue("GroupTest-Example01", "Counter", 1, 3)
         AssertValue("GroupTest-Example01", "TestInterval", 1, 4)
         AssertValue("GroupTest-Example01", "LastDate", 1, New Date(2019, 4, 19))
     End Sub
 
     <Test>
-    Public Sub Skip_GroupEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.TargetLanguage)
-        AssertValue("GroupTest-Example01", "Counter", 3, 1)
-        AssertValue("GroupTest-Example01", "TestInterval", 3, 1)
-    End Sub
-
-    <Test>
-    Public Sub SkipSourceLanguage_GroupEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.OriginalLanguage)
+    Public Sub SkipOriginalLanguage_GroupEntry_DoesNotReduceBelow1()
+        Dim skipPossible As Boolean = _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.OriginalLanguage)
+        Assert.IsFalse(skipPossible)
         AssertValue("GroupTest-Example01", "CounterMain", 3, 1)
         AssertValue("GroupTest-Example01", "TestIntervalMain", 3, 1)
     End Sub
 
     <Test>
     Public Sub SkipBoth_GroupEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both)
+        Dim skipPossible As Boolean = _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both)
+        Assert.IsFalse(skipPossible)
         AssertValue("GroupTest-Example01", "Counter", 3, 1)
         AssertValue("GroupTest-Example01", "TestInterval", 3, 1)
         AssertValue("GroupTest-Example01", "CounterMain", 3, 1)
@@ -169,21 +165,24 @@ Public Class CardsDaoTests
 
     <Test>
     Public Sub SkipTargetLanguage_WordEntry_ReducesCounter()
-        _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)
+        Assert.IsTrue(skipPossible)
         AssertValue("Cards", "Counter", 1, 3)
         AssertValue("GroupTest-Example01", "TestInterval", 1, 4)
     End Sub
 
     <Test>
     Public Sub SkipOriginalLanguage_WordEntry_ReducesCounter()
-        _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.OriginalLanguage)
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.OriginalLanguage)
+        Assert.IsTrue(skipPossible)
         AssertValue("Cards", "CounterMain", 1, 3)
         AssertValue("GroupTest-Example01", "TestIntervalMain", 1, 1)
     End Sub
 
     <Test>
     Public Sub SkipBoth_WordEntry_ReducesCounter()
-        _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.Both)
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.Both)
+        Assert.IsTrue(skipPossible)
         AssertValue("Cards", "Counter", 1, 3)
         AssertValue("GroupTest-Example01", "TestInterval", 1, 4)
         AssertValue("Cards", "CounterMain", 1, 3)
@@ -192,21 +191,24 @@ Public Class CardsDaoTests
 
     <Test>
     Public Sub SkipTargetLanguage_WordEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.TargetLanguage)
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.TargetLanguage)
+        Assert.IsFalse(skipPossible)
         AssertValue("Cards", "Counter", 3, 1)
         AssertValue("GroupTest-Example01", "TestInterval", 1, 4)
     End Sub
 
     <Test>
-    Public Sub SkipSourceLanguage_WordEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.OriginalLanguage)
+    Public Sub SkipOriginalLanguage_WordEntry_DoesNotReduceBelow1()
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.OriginalLanguage)
+        Assert.IsFalse(skipPossible)
         AssertValue("Cards", "CounterMain", 3, 1)
         AssertValue("GroupTest-Example01", "TestIntervalMain", 1, 1)
     End Sub
 
     <Test>
     Public Sub SkipBoth_WordEntry_DoesNotReduceBelow1()
-        _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.Both)
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word3, QueryLanguage.Both)
+        Assert.IsFalse(skipPossible)
         AssertValue("Cards", "Counter", 3, 1)
         AssertValue("GroupTest-Example01", "TestInterval", 1, 4)
         AssertValue("Cards", "CounterMain", 3, 1)
