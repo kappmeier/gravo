@@ -13,7 +13,7 @@ Public Class Settings
 
     ' Test-Einstellungen
     Dim m_testSetPhrases As Boolean
-    Dim m_testFormerLanguage As Boolean
+    Dim m_queryLanguage As QueryLanguage
     Dim m_useCards As Boolean
     Dim m_CardsInitialInterval As Integer
 
@@ -65,7 +65,7 @@ Public Class Settings
     End Sub
 
     Public Sub LoadSettings()
-        TestFormerLanguage = LoadBool("TestFormerLanguage")
+        QueryLanguage = If(LoadBool("TestTargetLanguage"), QueryLanguage.TargetLanguage, QueryLanguage.OriginalLanguage)
         TestSetPhrases = LoadBool("TestSetPhrases")
         SaveWindowPosition = LoadBool("SaveWindowPosition")
         LastGroup = LoadString("LastGroup")
@@ -81,7 +81,16 @@ Public Class Settings
     End Sub
 
     Public Sub SaveSettings()
-        StoreBool("TestFormerLanguage", TestFormerLanguage)
+        Dim targetLanguage As Boolean
+        Select Case QueryLanguage
+            Case QueryLanguage.OriginalLanguage
+                targetLanguage = False
+            Case QueryLanguage.TargetLanguage
+                targetLanguage = True
+            Case Else
+                Throw New ArgumentException("Query type " & QueryLanguage & " not supported.")
+        End Select
+        StoreBool("TestTargetLanguage", targetLanguage)
         StoreBool("TestSetPhrases", TestSetPhrases)
         StoreBool("SaveWindowPosition", SaveWindowPosition)
         StoreString("LastGroup", LastGroup)
@@ -234,12 +243,12 @@ Public Class Settings
     End Sub
 
     ' Eigenschaften zum Abrufen der Einstellungen
-    Public Property TestFormerLanguage() As Boolean
+    Public Property QueryLanguage() As QueryLanguage
         Get
-            Return m_testFormerLanguage
+            Return m_queryLanguage
         End Get
-        Set(ByVal value As Boolean)
-            m_testFormerLanguage = value
+        Set(ByVal value As QueryLanguage)
+            m_queryLanguage = value
         End Set
     End Property
 

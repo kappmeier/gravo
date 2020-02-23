@@ -6,7 +6,7 @@ Public Class TestDataFactory
     ''' Creates a test data set containing _all_ entries.
     ''' </summary>
     ''' <returns></returns>
-    Public Shared Function Create(dictionary As IDictionaryDao, testPhrases As Boolean) As TestData
+    Public Shared Function Create(dictionary As IDictionaryDao, cards As ICardsDao, testPhrases As Boolean, queryLanguage As QueryLanguage) As TestData
         Throw New NotImplementedException
     End Function
 
@@ -28,7 +28,13 @@ Public Class TestDataFactory
     ''' </summary>
     ''' <param name="group"></param>
     ''' <returns></returns>
-    Public Shared Function Create(group As GroupEntry, testPhrases As Boolean, testMarked As Boolean) As TestData
-        Throw New NotImplementedException
+    Public Shared Function Create(groupDao As IGroupDao, cards As ICardsDao, group As GroupEntry, testPhrases As Boolean, testMarked As Boolean, queryLanguage As QueryLanguage) As TestData
+        Dim groupDto = groupDao.Load(group)
+        ' TODO: filter
+        Dim words As ICollection(Of WordEntry) = New List(Of WordEntry)
+        For Each word As TestWord In groupDto.Entries
+            words.Add(word.WordEntry)
+        Next
+        Return New TestData(cards, words, queryLanguage)
     End Function
 End Class

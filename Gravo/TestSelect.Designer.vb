@@ -29,7 +29,7 @@ Partial Class TestSelect
     Me.cmdOK = New System.Windows.Forms.Button
     Me.cmdCancel = New System.Windows.Forms.Button
     Me.chkTestMarked = New System.Windows.Forms.CheckBox
-    Me.chkTestSetPhrases = New System.Windows.Forms.CheckBox
+    Me.chkTestPhrases = New System.Windows.Forms.CheckBox
     Me.chkRandomOrder = New System.Windows.Forms.CheckBox
     Me.TableLayoutPanel1.SuspendLayout()
     Me.SuspendLayout()
@@ -134,13 +134,13 @@ Partial Class TestSelect
     '
     'chkTestSetPhrases
     '
-    Me.chkTestSetPhrases.AutoSize = True
-    Me.chkTestSetPhrases.Location = New System.Drawing.Point(12, 151)
-    Me.chkTestSetPhrases.Name = "chkTestSetPhrases"
-    Me.chkTestSetPhrases.Size = New System.Drawing.Size(153, 17)
-    Me.chkTestSetPhrases.TabIndex = 4
-    Me.chkTestSetPhrases.Text = "Frage Redewendungen ab"
-    Me.chkTestSetPhrases.UseVisualStyleBackColor = True
+    Me.chkTestPhrases.AutoSize = True
+    Me.chkTestPhrases.Location = New System.Drawing.Point(12, 151)
+    Me.chkTestPhrases.Name = "chkTestSetPhrases"
+    Me.chkTestPhrases.Size = New System.Drawing.Size(153, 17)
+    Me.chkTestPhrases.TabIndex = 4
+    Me.chkTestPhrases.Text = "Frage Redewendungen ab"
+    Me.chkTestPhrases.UseVisualStyleBackColor = True
     '
     'chkRandomOrder
     '
@@ -160,7 +160,7 @@ Partial Class TestSelect
     Me.CancelButton = Me.cmdCancel
     Me.ClientSize = New System.Drawing.Size(258, 240)
     Me.Controls.Add(Me.chkRandomOrder)
-    Me.Controls.Add(Me.chkTestSetPhrases)
+    Me.Controls.Add(Me.chkTestPhrases)
     Me.Controls.Add(Me.chkTestMarked)
     Me.Controls.Add(Me.TableLayoutPanel1)
     Me.Controls.Add(Me.chkTestDirection)
@@ -189,6 +189,6 @@ Partial Class TestSelect
   Friend WithEvents cmdOK As System.Windows.Forms.Button
   Friend WithEvents cmdCancel As System.Windows.Forms.Button
   Friend WithEvents chkTestMarked As System.Windows.Forms.CheckBox
-  Friend WithEvents chkTestSetPhrases As System.Windows.Forms.CheckBox
+  Friend WithEvents chkTestPhrases As System.Windows.Forms.CheckBox
   Friend WithEvents chkRandomOrder As System.Windows.Forms.CheckBox
 End Class
