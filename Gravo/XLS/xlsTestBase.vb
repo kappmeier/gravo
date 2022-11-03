@@ -2,12 +2,6 @@ Imports System.Collections.ObjectModel
 Imports Gravo
 Imports Gravo.AccessDatabaseOperation
 
-Public Enum TestResult
-    NoError
-    OtherMeaning
-    Wrong
-    Misspelled
-End Enum
 
 Public Enum xlsTestStyle
     TestOnce
@@ -170,6 +164,8 @@ Public Class xlsTestBase
         ' im anderen Fall wird geprüft, ob die Bedeutung die richtige ist. wenn nicht, wird getestet, ob es
         ' diese Bedeutung auch gibt.
 
+        ' TestFormerLanguage: Abfrage italienisches wort, Eingabe deutsch
+        ' TestOriginalLanguage: Abfrage deutsches wort, Eingabe italienisches wort
         Dim right As TestResult = TestResult.NoError
         If TestFormerLanguage Then
             ' testen, ob die bedeutung übereinstimmt
