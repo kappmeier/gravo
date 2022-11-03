@@ -309,7 +309,7 @@ Public Class Main
 
     Private Sub OptionsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OptionsMenuItem.Click
         Dim dlgOptions As New Options()
-        dlgOptions.TestFormerLanguage = programSettings.TestFormerLanguage
+        dlgOptions.queryLanguage = programSettings.QueryLanguage
         dlgOptions.TestSetPhrases = programSettings.TestSetPhrases
         dlgOptions.SaveWindowPosition = programSettings.SaveWindowPosition
         dlgOptions.UseCards = programSettings.UseCards
@@ -317,7 +317,7 @@ Public Class Main
         Dim res As DialogResult = dlgOptions.ShowDialog(Me)
         If res = Windows.Forms.DialogResult.OK Then
             ' Einstellungen speichern
-            programSettings.TestFormerLanguage = dlgOptions.TestFormerLanguage
+            programSettings.QueryLanguage = dlgOptions.queryLanguage
             programSettings.TestSetPhrases = dlgOptions.TestSetPhrases
             programSettings.SaveWindowPosition = dlgOptions.SaveWindowPosition
             programSettings.UseCards = dlgOptions.UseCards
@@ -337,7 +337,21 @@ Public Class Main
     End Sub
 
     Private Sub GruppenAbfragenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestGroupsMenuItem.Click
-        TestFinished()
+        ' Test all Words of a given language
+        Dim db As New SQLiteDataBaseOperation()
+        db.Open(DBPath)
+
+        Dim groupDao As IGroupDao = New GroupDao(db)
+        Dim cardsDao As ICardsDao = New CardsDao(db)
+        Dim queryLanguage As QueryLanguage = QueryLanguage.OriginalLanguage
+
+        Dim groupInfo As (group As GroupEntry, queryLanguage As QueryLanguage,
+            testPhrases As Boolean, testMarked As Boolean, randomOrder As Boolean) = SelectGroup()
+
+        Dim testData As TestData = TestDataFactory.Create(groupDao, cardsDao, groupInfo.group, groupInfo.testPhrases, groupInfo.testMarked, queryLanguage)
+        Dim controller As TestController = New TestController(testData, queryLanguage, db)
+        Dim frmTest As New TestSimple(controller)
+        frmTest.Show(Me)
     End Sub
 
     Private Sub SpracheAbfragenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestLanguageMenuItem.Click
@@ -421,15 +435,38 @@ Public Class Main
         programSettings.SaveSettings()
     End Sub
 
+    ''' <summary>
+    ''' Returns a selected group, or nothing if user deicdes to cancel.
+    ''' </summary>
+    ''' <returns></returns>
+    Private Function SelectGroup() As (group As GroupEntry, queryLanguage As QueryLanguage,
+        testPhrases As Boolean, testMarked As Boolean, randomOrder As Boolean)
+        Dim frmSelect As New TestSelect
+        If Trim(programSettings.LastGroup) <> "" Then frmSelect.LastGroup = programSettings.LastGroup
+        If Trim(programSettings.LastSubGroup) <> "" Then frmSelect.LastSubGroup = programSettings.LastSubGroup
+        frmSelect.TestPhrases = programSettings.TestSetPhrases
+        frmSelect.QueryLanguage = programSettings.QueryLanguage
+        Dim frmTest As TestSimple = Nothing
+        Dim res As DialogResult = frmSelect.ShowDialog(Me)
+        If res = Windows.Forms.DialogResult.Cancel Then Return Nothing
+        programSettings.LastGroup = frmSelect.LastGroup
+        programSettings.LastSubGroup = frmSelect.LastSubGroup
+        programSettings.SaveSettings()
+
+         Return (group:=frmSelect.SelectedGroup, QueryLanguage:=frmSelect.QueryLanguage,
+            testPhrases:=frmSelect.TestPhrases, testMarked:=frmSelect.TestMarked,
+            randomOrder:=frmSelect.RandomOrder)
+    End Function
+
     Public Sub TestFinished()
         Throw New NotSupportedException("Test finished not supported")
 
         Dim frmSelect As New TestSelect
         If Trim(programSettings.LastGroup) <> "" Then frmSelect.LastGroup = programSettings.LastGroup
         If Trim(programSettings.LastSubGroup) <> "" Then frmSelect.LastSubGroup = programSettings.LastSubGroup
-        frmSelect.TestSetPhrases = programSettings.TestSetPhrases
-        frmSelect.TestFormerLanguage = programSettings.TestFormerLanguage
-        Dim group As GroupDto
+        frmSelect.TestPhrases = programSettings.TestSetPhrases
+        frmSelect.QueryLanguage = programSettings.QueryLanguage
+        Dim group As GroupEntry
         Dim frmTest As TestSimple = Nothing
         Do
             Dim res As DialogResult = frmSelect.ShowDialog(Me)
@@ -440,10 +477,11 @@ Public Class Main
             group = frmSelect.SelectedGroup
             If group Is Nothing Then Continue Do
             frmSelect.Hide()
-            frmTest = New TestSimple(group.GroupTable, Me)
-            frmTest.TestFormerLanguage = frmSelect.TestFormerLanguage
+            frmTest = New TestSimple("", Me)
+            'frmTest = New TestSimple(group.GroupTable, Me)
+            frmTest.TestFormerLanguage = frmSelect.QueryLanguage
             frmTest.UseCards = programSettings.UseCards
-            frmTest.TestSetPhrases = frmSelect.TestSetPhrases
+            frmTest.TestSetPhrases = frmSelect.TestPhrases
             frmTest.TestMarked = frmSelect.TestMarked
             frmTest.RandomOrder = frmSelect.RandomOrder
             frmTest.Start()

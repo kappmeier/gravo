@@ -22,7 +22,7 @@ Partial Class Options
     Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel
     Me.cmdOK = New System.Windows.Forms.Button
     Me.cmdCancel = New System.Windows.Forms.Button
-    Me.chkTestFormerLanguage = New System.Windows.Forms.CheckBox
+    Me.chkTestTargetLanguage = New System.Windows.Forms.CheckBox
     Me.chkTestSetPhrases = New System.Windows.Forms.CheckBox
     Me.Label1 = New System.Windows.Forms.Label
     Me.chkSaveWindowPosition = New System.Windows.Forms.CheckBox
@@ -73,13 +73,13 @@ Partial Class Options
     '
     'chkTestFormerLanguage
     '
-    Me.chkTestFormerLanguage.AutoSize = True
-    Me.chkTestFormerLanguage.Location = New System.Drawing.Point(12, 25)
-    Me.chkTestFormerLanguage.Name = "chkTestFormerLanguage"
-    Me.chkTestFormerLanguage.Size = New System.Drawing.Size(195, 17)
-    Me.chkTestFormerLanguage.TabIndex = 1
-    Me.chkTestFormerLanguage.Text = "Frage Wörter in fremder Sprache ab"
-    Me.chkTestFormerLanguage.UseVisualStyleBackColor = True
+    Me.chkTestTargetLanguage.AutoSize = True
+    Me.chkTestTargetLanguage.Location = New System.Drawing.Point(12, 25)
+    Me.chkTestTargetLanguage.Name = "chkTestFormerLanguage"
+    Me.chkTestTargetLanguage.Size = New System.Drawing.Size(195, 17)
+    Me.chkTestTargetLanguage.TabIndex = 1
+    Me.chkTestTargetLanguage.Text = "Frage Wörter in fremder Sprache ab"
+    Me.chkTestTargetLanguage.UseVisualStyleBackColor = True
     '
     'chkTestSetPhrases
     '
@@ -192,7 +192,7 @@ Partial Class Options
     Me.Controls.Add(Me.chkSaveWindowPosition)
     Me.Controls.Add(Me.Label1)
     Me.Controls.Add(Me.chkTestSetPhrases)
-    Me.Controls.Add(Me.chkTestFormerLanguage)
+    Me.Controls.Add(Me.chkTestTargetLanguage)
     Me.Controls.Add(Me.TableLayoutPanel1)
     Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
     Me.MaximizeBox = False
@@ -210,7 +210,7 @@ Partial Class Options
   Friend WithEvents TableLayoutPanel1 As System.Windows.Forms.TableLayoutPanel
   Friend WithEvents cmdOK As System.Windows.Forms.Button
   Friend WithEvents cmdCancel As System.Windows.Forms.Button
-  Friend WithEvents chkTestFormerLanguage As System.Windows.Forms.CheckBox
+  Friend WithEvents chkTestTargetLanguage As System.Windows.Forms.CheckBox
   Friend WithEvents chkTestSetPhrases As System.Windows.Forms.CheckBox
   Friend WithEvents Label1 As System.Windows.Forms.Label
   Friend WithEvents chkSaveWindowPosition As System.Windows.Forms.CheckBox

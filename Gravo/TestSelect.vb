@@ -6,7 +6,8 @@ Public Class TestSelect
     ''' Data access for groups.
     ''' </summary>
     Dim GroupsDao As IGroupsDao
-    Dim group As GroupDto = Nothing
+    Dim groupEntry As GroupEntry
+    ''Dim group As GroupDto = Nothing
     ''' <summary>
     ''' Loading group data.
     ''' </summary>
@@ -16,8 +17,10 @@ Public Class TestSelect
         InitializeComponent()
 
         Dim db As New SQLiteDataBaseOperation
-        db.Open(DBPath)     ' Datenbank öffnen
+        db.Open(DBPath)
+
         GroupsDao = New GroupsDao(db)
+        GroupDao = New GroupDao(db)
 
         ' Gruppen in die Liste einfügen
         cmbGroup.Items.Clear()
@@ -29,12 +32,15 @@ Public Class TestSelect
     End Sub
 
     Private Sub TestSelect_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        ' Position
+        Center()
+        LocalizationChanged()
+    End Sub
+
+    Private Sub Center()
         Me.Left = Me.Owner.Left + Me.Owner.Width / 2 - Me.Width / 2
         Me.Top = Me.Owner.Top + Me.Owner.Height / 2 - Me.Height / 2
         If Me.Top < 0 Then Me.Top = 0
         If Me.Left < 0 Then Me.Left = 0
-        LocalizationChanged()
     End Sub
 
     ' Lokalisierung
@@ -45,7 +51,7 @@ Public Class TestSelect
         chkRandomOrder.Text = GetLoc.GetText(TEST_SELECT_RANDOM_ORDER)
         chkTestDirection.Text = GetLoc.GetText(TEST_SELECT_TEST_DIRECTION)
         chkTestMarked.Text = GetLoc.GetText(TEST_SELECT_ONLY_MARKED)
-        chkTestSetPhrases.Text = GetLoc.GetText(TEST_SELECT_PHRASES)
+        chkTestPhrases.Text = GetLoc.GetText(TEST_SELECT_PHRASES)
         cmdOK.Text = GetLoc.GetText(BUTTON_OK)
         cmdCancel.Text = GetLoc.GetText(BUTTON_CANCEL)
     End Sub
@@ -60,15 +66,20 @@ Public Class TestSelect
         If cmbSubGroup.Items.Count > 0 Then cmbSubGroup.SelectedIndex = 0
     End Sub
 
-    Public ReadOnly Property SelectedGroup() As GroupDto
+    ''' <summary>
+    ''' Returns the currently selected group.
+    ''' </summary>
+    ''' <returns>The selected group</returns>
+    Public ReadOnly Property SelectedGroup() As GroupEntry
         Get
-            Return group
+            Return groupEntry
         End Get
     End Property
 
     Private Sub cmbSubGroup_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbSubGroup.SelectedIndexChanged
-        Dim groupEntry = GroupsDao.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
-        group = GroupDao.Load(groupEntry)
+        groupEntry = GroupsDao.GetGroup(cmbGroup.SelectedItem, cmbSubGroup.SelectedItem)
+        ' TODO: not required to load all data just to show the count
+        Dim group = GroupDao.Load(groupEntry)
         Dim t As String = group.WordCount & IIf(group.WordCount = 1, " Vokabel abzufragen.", " Vokabeln abzufragen.")
         lblWordCount.Text = t
     End Sub
@@ -80,7 +91,7 @@ Public Class TestSelect
 
     Private Sub cmdCancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
         DialogResult = System.Windows.Forms.DialogResult.Cancel
-        group = Nothing
+        groupEntry = Nothing
     End Sub
 
     Public Property LastGroup() As String
@@ -108,21 +119,28 @@ Public Class TestSelect
         End Set
     End Property
 
-    Public Property TestFormerLanguage() As Boolean
+    Public Property QueryLanguage() As QueryLanguage
         Get
-            Return chkTestDirection.Checked
+            Return If(chkTestDirection.Checked, QueryLanguage.TargetLanguage, QueryLanguage.TargetLanguage)
         End Get
-        Set(ByVal value As Boolean)
-            chkTestDirection.Checked = value
+        Set(ByVal value As QueryLanguage)
+            Select Case value
+                Case QueryLanguage.TargetLanguage
+                    chkTestDirection.Checked = True
+                Case QueryLanguage.OriginalLanguage
+                    chkTestDirection.Checked = False
+                Case Else
+                    Throw New ArgumentException("Direction " & value & " not supported")
+            End Select
         End Set
     End Property
 
-    Public Property TestSetPhrases() As Boolean
+    Public Property TestPhrases() As Boolean
         Get
-            Return chkTestSetPhrases.Checked
+            Return chkTestPhrases.Checked
         End Get
         Set(ByVal value As Boolean)
-            chkTestSetPhrases.Checked = value
+            chkTestPhrases.Checked = value
         End Set
     End Property
 
