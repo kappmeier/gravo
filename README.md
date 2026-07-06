@@ -1,4 +1,4 @@
-![.NET Core](https://github.com/kappmeier/gravo/workflows/.NET%20Core/badge.svg)
+![.NET](https://github.com/kappmeier/gravo/actions/workflows/dotnetcore.yml/badge.svg)
 
 # gravo
 Learn a language.
