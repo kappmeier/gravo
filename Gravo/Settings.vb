@@ -50,6 +50,7 @@ Public Class Settings
         ' Erzeuge die benötigten Werte mit Standardeinstellungen
         SecureStoreBool("TestSetPhrases", False)
         SecureStoreBool("TestFormerLanguage", True)
+        SecureStoreBool("TestTargetLanguage", True)
         SecureStoreBool("SaveWindowPosition", False)
         SecureStoreString("LastGroup", "")
         SecureStoreString("LastSubGroup", "")
