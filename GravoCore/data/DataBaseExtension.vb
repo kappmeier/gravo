@@ -37,7 +37,7 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Function IsEmpty(ByRef dataBaseOperation As IDataBaseOperation)
+    Function IsEmpty(ByRef dataBaseOperation As IDataBaseOperation) As Boolean
         Dim command As String = "SELECT count(*) FROM sqlite_master"
         dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
         dataBaseOperation.DBCursor.Read()
@@ -47,7 +47,7 @@ Public Module DataBaseExtension
     End Function
 
     <Extension()>
-    Public Function ExistsTable(dataBaseOperation As IDataBaseOperation, tableName As String)
+    Public Function ExistsTable(dataBaseOperation As IDataBaseOperation, tableName As String) As Boolean
         Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
         dataBaseOperation.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {tableName}))
         ExistsTable = dataBaseOperation.DBCursor.HasRows

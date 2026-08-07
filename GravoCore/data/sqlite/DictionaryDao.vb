@@ -208,7 +208,7 @@ Public Class DictionaryDao
     End Sub
 
 
-    Friend Shared Function GetU(wordEntry As WordEntry, field As WordEntryFields)
+    Friend Shared Function GetU(wordEntry As WordEntry, field As WordEntryFields) As Object
         Select Case field
             Case WordEntryFields.Word
                 GetU = wordEntry.Word

@@ -5,8 +5,8 @@ Public Interface IDictionaryDao
 
     Class UpdateData
         Private _word As String = Nothing
-        Private _pre = Nothing
-        Private _post = Nothing
+        Private _pre As String = Nothing
+        Private _post As String = Nothing
         Private _wordType As Nullable(Of WordType) = Nothing
         Private _meaning As String = Nothing
         Private _additionalTargetLangInfo As String = Nothing
@@ -25,11 +25,11 @@ Public Interface IDictionaryDao
             Return If(_word, entry.Word)
         End Function
 
-        Public Property Pre As Object
+        Public Property Pre As String
             Get
                 Return _pre
             End Get
-            Set(value As Object)
+            Set(value As String)
                 _pre = value
             End Set
         End Property
@@ -38,11 +38,11 @@ Public Interface IDictionaryDao
             Return If(_pre, entry.Pre)
         End Function
 
-        Public Property Post As Object
+        Public Property Post As String
             Get
                 Return _post
             End Get
-            Set(value As Object)
+            Set(value As String)
                 _post = value
             End Set
         End Property
