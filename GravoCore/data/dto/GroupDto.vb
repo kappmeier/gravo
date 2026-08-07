@@ -61,7 +61,7 @@ Public Class GroupDto
         Return _entries.Where(Function(entry) entry.Word = word)
     End Function
 
-    Shared Function IsMarked(ByRef group As GroupDto, wordIndex As Integer)
+    Shared Function IsMarked(ByRef group As GroupDto, wordIndex As Integer) As Boolean
         Dim testWord As TestWord = group.GetWord(wordIndex)
         IsMarked = testWord.Marked
     End Function
