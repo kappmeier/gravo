@@ -18,7 +18,7 @@ Public Class TestDataFactory
     Public Shared Function Create(dictionary As IDictionaryDao, cards As ICardsDao, language As String, testPhrases As Boolean, queryLanguage As QueryLanguage) As TestData
         Dim words As ICollection(Of WordEntry) = dictionary.GetWords(language, "german")
         If Not testPhrases Then
-            words = words.Where(Function(t) t.WordType <> "Phrase")
+            words = CType(words.Where(Function(t) t.WordType <> CDbl("Phrase")), ICollection(Of WordEntry)) ' bug: cast throws before the lambda runs
         End If
         Return New TestData(cards, words, queryLanguage)
     End Function

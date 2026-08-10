@@ -53,7 +53,7 @@ Public Class GroupDao
         Do While DBConnection.DBCursor.Read()
             Dim wordEntry = Extract(DBConnection)
 
-            Dim marked As String = DBConnection.SecureGetBool(9)
+            Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
             Dim example As String = DBConnection.SecureGetString(10)
 
             Dim testword As TestWord = New TestWord(wordEntry, marked, example)
@@ -73,7 +73,7 @@ Public Class GroupDao
         DBConnection.DBCursor.Read()
         Dim wordEntry = Extract(DBConnection)
 
-        Dim marked As String = DBConnection.SecureGetBool(9)
+        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
         Dim example As String = DBConnection.SecureGetString(10)
 
         Load = New TestWord(wordEntry, marked, example)
@@ -104,7 +104,7 @@ Public Class GroupDao
         Dim meaning = dbConnection.SecureGetString(5)
         Dim additionalTargetLangInfo = dbConnection.SecureGetString(6)
         Dim irregular = dbConnection.SecureGetBool(7)
-        Extract = New WordEntry(index, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular)
+        Extract = New WordEntry(index, word, pre, post, CType(wordType, WordType), meaning, additionalTargetLangInfo, irregular)
     End Function
 
     Sub UpdateMarked(ByRef group As GroupEntry, ByRef word As TestWord, ByVal marked As Boolean) Implements IGroupDao.UpdateMarked
@@ -132,11 +132,11 @@ Public Class GroupDao
         ' TODO: check consistency regarding marked and comment?
         ' Should also be possible to delete data that is not there actually to re-establish consitency
         Dim command As String = "DELETE FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
-        Dim parameters = New List(Of String) From {entry.WordIndex}
+        Dim parameters As IEnumerable(Of Object) = New List(Of String) From {CStr(entry.WordIndex)}
         DBConnection.ExecuteNonQuery(command, parameters)
     End Sub
 
-    Private Function Exists(ByRef group As GroupEntry, ByRef data As IWordReference) As Boolean
+    Private Function Exists(ByRef group As GroupEntry, ByVal data As IWordReference) As Boolean
         Dim command As String = "SELECT [WordIndex] FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
         DBConnection.ExecuteReader(command, Enumerable.Repeat(CStr(data.WordIndex), 1))
         Exists = DBConnection.DBCursor.HasRows
@@ -184,8 +184,8 @@ Public Class GroupDao
         DBConnection.DBCursor.Read()
         Dim wordEntry = Extract(DBConnection)
 
-        Dim index As String = DBConnection.SecureGetInt32(0)
-        Dim marked As String = DBConnection.SecureGetBool(9)
+        Dim index As Int32 = CInt(DBConnection.SecureGetInt32(0))
+        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
         Dim example As String = DBConnection.SecureGetString(10)
 
         GetTestWord = New TestWord(wordEntry, marked, example)

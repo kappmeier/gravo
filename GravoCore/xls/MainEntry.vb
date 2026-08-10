@@ -20,7 +20,7 @@ Public Class MainEntry
         _mainLanguage = mainLanguage
     End Sub
 
-    Friend ReadOnly Property Index As String
+    Friend ReadOnly Property Index As Integer
         Get
             Return _index
         End Get

@@ -28,6 +28,6 @@ Public Class WordTypes
     End Function
 
     Public Function GetWordType(name As String) As WordType
-        Return wordTypes(name)
+        Return CType(wordTypes(name), WordType)
     End Function
 End Class

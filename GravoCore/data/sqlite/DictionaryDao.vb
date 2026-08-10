@@ -46,7 +46,7 @@ Public Class DictionaryDao
     Function GetWords(ByVal mainEntry As String, ByVal subEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
         Dim mainIndex As Int32 = GetEntryIndex(mainEntry, language, mainLanguage)
         Dim command As String = GetWordsSelect & " WHERE W.Word = ? AND W.MainIndex = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(subEntry), mainIndex})
+        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(subEntry), CStr(mainIndex)})
         Return ExtractWordsFromCursor()
     End Function
 
@@ -63,7 +63,7 @@ Public Class DictionaryDao
     End Function
 
     Function GetSubWords(ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetSubWords
-        Dim words As New Collection(Of WordEntry)
+        Dim words As ICollection(Of WordEntry) = New Collection(Of WordEntry)
         AddSubWordsToCollection(mainEntry, language, mainLanguage, words)
         Return words
     End Function
@@ -131,7 +131,7 @@ Public Class DictionaryDao
 
         ' Check, if there is already the exact same entry (i.e. word and meaning are the same)
         Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE MainIndex = ? AND Word = ? AND Meaning = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {mainIndex, EscapeSingleQuotes(Entry.Word), EscapeSingleQuotes(Entry.Meaning)})
+        DBConnection.ExecuteReader(command, New List(Of String) From {CStr(mainIndex), EscapeSingleQuotes(Entry.Word), EscapeSingleQuotes(Entry.Meaning)})
         FailIfExists(DBConnection, Function() As Exception
                                        Throw New EntryExistsException("The entry exists already with the same meaning for the main entry.")
                                    End Function)
@@ -243,7 +243,7 @@ Public Class DictionaryDao
         Dim mainIndex As Int32 = GetEntryIndex(MainEntry, Language, MainLanguage)
         Dim command As String
         command = "SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular FROM DictionaryWords WHERE (NOT Word= ? ) AND MainIndex = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(MainEntry), mainIndex})
+        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(MainEntry), CStr(mainIndex)})
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Exit Sub
@@ -274,7 +274,7 @@ Public Class DictionaryDao
 
     Private Function GetMainEntry(ByVal mainIndex As Int32) As MainEntry
         Dim command As String = "SELECT [Index], WordEntry, LanguageName, MainLanguage FROM DictionaryMain WHERE [Index] = ?"
-        DBConnection.ExecuteReader(command, Enumerable.Repeat(EscapeSingleQuotes(mainIndex), 1))
+        DBConnection.ExecuteReader(command, Enumerable.Repeat(EscapeSingleQuotes(CStr(mainIndex)), 1))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("No main entry found for given entry.")
                                   End Function)
@@ -286,7 +286,7 @@ Public Class DictionaryDao
 
     Private Function GetMainIndex(word As WordEntry) As Int32
         Dim command As String = "SELECT [MainIndex] FROM [DictionaryWords] WHERE [Index] = ?"
-        DBConnection.ExecuteReader(command, Enumerable.Repeat(EscapeSingleQuotes(word.WordIndex), 1))
+        DBConnection.ExecuteReader(command, Enumerable.Repeat(EscapeSingleQuotes(CStr(word.WordIndex)), 1))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("Data for word not in database.")
                                   End Function)
@@ -414,7 +414,7 @@ Public Class DictionaryDao
 
     Public Function GetSubEntryIndex(ByVal MainIndex As Integer, ByVal Word As String, ByVal Meaning As String) As Integer
         Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE Word = ? AND Meaning = ? AND MainIndex= ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(Word), EscapeSingleQuotes(Meaning), MainIndex})
+        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(Word), EscapeSingleQuotes(Meaning), CStr(MainIndex)})
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("There is no entry for the given word/meaning.")
                                   End Function)

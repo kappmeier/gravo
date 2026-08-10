@@ -457,7 +457,7 @@ Public Class ManagementDao
     End Function
 
     Private Function GetVersionIndex(version As DBVersion) As Int16
-        GetVersionIndex = Array.IndexOf(supportedVersions, version)
+        GetVersionIndex = CShort(Array.IndexOf(supportedVersions, version))
     End Function
 
     ''' <summary>
@@ -465,7 +465,7 @@ Public Class ManagementDao
     ''' </summary>
     ''' <param name="fileName"></param>
     Public Shared Sub CreateNewVocabularyDatabase(ByVal fileName As String)
-        Dim db As New SQLiteDataBaseOperation()
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(fileName)
         Dim man = New ManagementDao(db)
         man.Initialize()
