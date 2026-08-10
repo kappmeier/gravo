@@ -11,7 +11,7 @@ Public Class CardsDao
     Private ReadOnly OriginalLanguageIntervalName As String = "[TestIntervalMain]"
     Private ReadOnly OriginalLanguageCounterName As String = "[CounterMain]"
     Shared ReadOnly Success As Func(Of Integer, Integer) = Function(interval) interval * 2
-    Shared ReadOnly Failure As Func(Of Integer, Integer) = Function(interval) Math.Max((interval / 2), 1)
+    Shared ReadOnly Failure As Func(Of Integer, Integer) = Function(interval) CInt(Math.Max((interval / 2), 1))
 
     Sub New(ByRef db As IDataBaseOperation)
         DBConnection = db

@@ -63,7 +63,7 @@ Public Class TestControllerTests
         Dim controller As TestController = CreateController(words, cardsMock, QueryLanguage.TargetLanguage)
 
         controller.HasWords().Should.Be(True)
-        controller.Count().Should.Be("2")
+        controller.Count().Should.Be(2)
         controller.GetTestChecker().Question.Should.Be(GroupDaoTests.word1.Word)
         controller.GetTestChecker().Retest.Should.Be(False)
         cardsMock.Verify(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage), Times.Exactly(2))
@@ -78,7 +78,7 @@ Public Class TestControllerTests
 
         controller.HasWords().Should.Be(False)
         controller.GetTestChecker().Should.BeNull()
-        controller.Count().Should.Be("0")
+        controller.Count().Should.Be(0)
     End Sub
 
     <Test>
@@ -117,7 +117,7 @@ Public Class TestControllerTests
 
         controller.HasWords().Should.Be(False)
         controller.GetTestChecker().Should.BeNull()
-        controller.Count().Should.Be("0")
+        controller.Count().Should.Be(0)
         ReadCardColumn("Counter", 1).Should.Be(8)
     End Sub
 

@@ -83,9 +83,9 @@ Public Class PropertiesDao
     ''' </summary>
     ''' <returns></returns>
     Function LoadWordTypes() As WordTypes Implements IPropertiesDao.LoadWordTypes
-        Dim foundWordTypes As New Dictionary(Of String, WordType)
+        Dim foundWordTypes As IDictionary(Of String, WordType) = New Dictionary(Of String, WordType)
 
-        Dim wordTypes As New Dictionary(Of String, Integer)
+        Dim wordTypes As IDictionary(Of String, Integer) = New Dictionary(Of String, Integer)
 
         Dim dbVersion As Properties.DBVersion = LoadVersions().Last
         ' Erst möglich, ab version 1.07 der Datenbank

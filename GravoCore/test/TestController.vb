@@ -56,7 +56,7 @@ Public Class TestController
         End If
     End Sub
 
-    Public Function Count() As String
+    Public Function Count() As Integer
         Count = testData.Count
     End Function
 

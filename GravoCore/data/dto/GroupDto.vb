@@ -24,7 +24,7 @@ Public Class GroupDto
 
     Public ReadOnly Property Entries As ReadOnlyCollection(Of TestWord)
         Get
-            Return New ReadOnlyCollection(Of TestWord)(_entries)
+            Return New ReadOnlyCollection(Of TestWord)(CType(_entries, IList(Of TestWord)))
         End Get
     End Property
 

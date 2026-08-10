@@ -92,7 +92,7 @@ Public Interface IDictionaryDao
 
         Public Property Irregular As Boolean
             Get
-                Return _irregular
+                Return CBool(_irregular)
             End Get
             Set(value As Boolean)
                 _irregular = value
