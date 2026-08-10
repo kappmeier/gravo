@@ -10,8 +10,8 @@ Imports NUnit.Compatibility
 
 <TestFixture>
 Public Class ManagementDaoTests
-    Private ReadOnly ResourceFile = "test-data-management.s3db"
-    Private ReadOnly IllegalResourceFile = "test-data-meta.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-management.s3db"
+    Private ReadOnly IllegalResourceFile As String = "test-data-meta.s3db"
     Private _managementDao As ManagementDao
     Private _tempDb As String
     Private _db As IDataBaseOperation

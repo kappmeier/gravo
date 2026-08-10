@@ -5,7 +5,7 @@ Imports System.Data.SQLite
 Imports System.IO
 
 Public Class PropertiesDaoTests
-    Private ReadOnly ResourceFile = "test-data-meta.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-meta.s3db"
     Private _propertiesDao As PropertiesDao
     Private _tempDb As String
     Private _db As IDataBaseOperation

@@ -6,10 +6,10 @@ Imports FluentAssertions
 Imports GravoCore.UnitTests.DictionaryDaoTests
 
 Public Class DataToolsTests
-    ReadOnly groupName = "groupName"
-    ReadOnly group1 = New GroupEntry(0, groupName, "sub1", "sub1table")
-    ReadOnly group2 = New GroupEntry(0, groupName, "sub2", "sub2table")
-    ReadOnly group3 = New GroupEntry(0, groupName, "sub3", "sub3table")
+    ReadOnly groupName As String = "groupName"
+    ReadOnly group1 As GroupEntry = New GroupEntry(0, groupName, "sub1", "sub1table")
+    ReadOnly group2 As GroupEntry = New GroupEntry(0, groupName, "sub2", "sub2table")
+    ReadOnly group3 As GroupEntry = New GroupEntry(0, groupName, "sub3", "sub3table")
     ReadOnly subGroups As ICollection(Of GroupEntry) = New List(Of GroupEntry) From {group1, group2, group3}
 
     <Test>
