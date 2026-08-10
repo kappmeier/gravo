@@ -13,7 +13,7 @@ Imports GravoCore.UnitTests.GroupDaoTests
 ''' </summary>
 <TestFixture>
 Public Class TestControllerTests
-    Private ReadOnly ResourceFile = "test-data-cards.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-cards.s3db"
     Private _tempDb As String
     Private _db As IDataBaseOperation
 

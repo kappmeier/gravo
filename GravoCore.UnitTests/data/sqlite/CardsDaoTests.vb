@@ -8,7 +8,7 @@ Imports GravoCore.UnitTests.GroupDaoTests
 <TestFixture>
 Public Class CardsDaoTests
 
-    Private ReadOnly ResourceFile = "test-data-cards.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-cards.s3db"
     Private _cardsDao As CardsDao
     Private _tempDb As String
     Private _db As IDataBaseOperation
@@ -17,9 +17,9 @@ Public Class CardsDaoTests
     Private Shared ReadOnly Failure As Func(Of Integer, Integer) = Function(x As Integer) x / 2
     Private Shared ReadOnly FailureKeep As Func(Of Integer, Integer) = Function(x As Integer) x
 
-    ReadOnly ExampleGroup = New GroupEntry(123, "", "", "GroupTest-Example01")
-    ReadOnly EmptyGroup = New GroupEntry(123, "", "", "GroupTest-Example02")
-    Private Shared ReadOnly testWord4NotExisting = New MockTestWord(GroupDaoTests.word4, False, "")
+    ReadOnly ExampleGroup As GroupEntry = New GroupEntry(123, "", "", "GroupTest-Example01")
+    ReadOnly EmptyGroup As GroupEntry = New GroupEntry(123, "", "", "GroupTest-Example02")
+    Private Shared ReadOnly testWord4NotExisting As MockTestWord = New MockTestWord(GroupDaoTests.word4, False, "")
 
     <SetUp>
     Public Sub Setup()

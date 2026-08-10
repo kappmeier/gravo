@@ -18,7 +18,7 @@ Imports NUnit.Framework
 ''' </summary>
 <TestFixture>
 Public Class GroupsDaoTests
-    Private ReadOnly ResourceFile = "test-data-simple.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-simple.s3db"
     Private _groupsDao As GroupsDao
     Private _tempDb As String
     Private _db As IDataBaseOperation

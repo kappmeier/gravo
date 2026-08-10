@@ -2,7 +2,7 @@
 
 Module DaoUtils
 
-    Public Function GetSqliteResource(ByVal name As String)
+    Public Function GetSqliteResource(ByVal name As String) As String
         Dim assemblyLocation As String = System.Reflection.Assembly.GetExecutingAssembly().Location
         Dim executionPath As String = Path.GetDirectoryName(assemblyLocation)
         Return Path.Combine(executionPath, name)

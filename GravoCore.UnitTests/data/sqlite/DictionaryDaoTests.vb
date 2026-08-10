@@ -7,34 +7,34 @@ Imports FluentAssertions
 
 <TestFixture>
 Public Class DictionaryDaoTests
-    Private ReadOnly ResourceFile = "test-data-dictionary.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-dictionary.s3db"
     Private _dictionaryDao As DictionaryDao
     Private _tempDb As String
     Private _db As IDataBaseOperation
 
-    Private ReadOnly language = "lang"
-    Private ReadOnly targetLanguage = "targetLang"
-    Private ReadOnly word1MainEntry = New MockMainEntry(1, "word1", language, targetLanguage)
-    Private ReadOnly word1entry1 = New GroupDaoTests.MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
-    Private ReadOnly word1entry1a = New GroupDaoTests.MockWordEntry(33, "word1a", "pre", "post", WordType.Verb, "m", "l", False)
-    Private ReadOnly word1entry2 = New WordEntry("word1", "", "", WordType.Verb, "with a meaning", "", True)
+    Private ReadOnly language As String = "lang"
+    Private ReadOnly targetLanguage As String = "targetLang"
+    Private ReadOnly word1MainEntry As MockMainEntry = New MockMainEntry(1, "word1", language, targetLanguage)
+    Private ReadOnly word1entry1 As GroupDaoTests.MockWordEntry = New GroupDaoTests.MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
+    Private ReadOnly word1entry1a As GroupDaoTests.MockWordEntry = New GroupDaoTests.MockWordEntry(33, "word1a", "pre", "post", WordType.Verb, "m", "l", False)
+    Private ReadOnly word1entry2 As WordEntry = New WordEntry("word1", "", "", WordType.Verb, "with a meaning", "", True)
     ''' <summary>
     ''' A word for the same main entry (word1), but with a sub entry that is not equal.
     ''' </summary>
-    Private ReadOnly word1Variance = New WordEntry("word1 variance", "", "", WordType.Verb, "", "", False)
+    Private ReadOnly word1Variance As WordEntry = New WordEntry("word1 variance", "", "", WordType.Verb, "", "", False)
     ''' <summary>
     ''' A word for which only the main entry exists in the database.
     ''' </summary>
-    Private ReadOnly wordWithoutSubwords = New WordEntry("wordx", "", "", WordType.Adjective, "", "", True)
+    Private ReadOnly wordWithoutSubwords As WordEntry = New WordEntry("wordx", "", "", WordType.Adjective, "", "", True)
 
-    Private ReadOnly newWordIndex = 34
+    Private ReadOnly newWordIndex As Integer = 34
     ''' <summary>
     ''' A new word that can be added to an existing main index without violating the rules
     ''' </summary>
-    Private ReadOnly newWord = New WordEntry("wordx", "", "", WordType.Adjective, "new meaning", "", True)
-    Private ReadOnly nonExistingMainEntry = New MockMainEntry(9, "", "", "")
-    Private ReadOnly lang2MainEntry = New MockMainEntry(2, "some word", "lang2", "targetLang")
-    Private ReadOnly lang2AnotherMainEntry = New MockMainEntry(4, "another", "lang2", "targetLang")
+    Private ReadOnly newWord As WordEntry = New WordEntry("wordx", "", "", WordType.Adjective, "new meaning", "", True)
+    Private ReadOnly nonExistingMainEntry As MockMainEntry = New MockMainEntry(9, "", "", "")
+    Private ReadOnly lang2MainEntry As MockMainEntry = New MockMainEntry(2, "some word", "lang2", "targetLang")
+    Private ReadOnly lang2AnotherMainEntry As MockMainEntry = New MockMainEntry(4, "another", "lang2", "targetLang")
 
     Public Class MockMainEntry
         Inherits MainEntry

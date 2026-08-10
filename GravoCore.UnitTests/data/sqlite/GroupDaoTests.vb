@@ -6,7 +6,7 @@ Imports FluentAssertions
 
 <TestFixture>
 Public Class GroupDaoTests
-    Private ReadOnly ResourceFile = "test-data-groups.s3db"
+    Private ReadOnly ResourceFile As String = "test-data-groups.s3db"
     Private _groupDao As GroupDao
     Private _tempDb As String
     Private _db As IDataBaseOperation
@@ -26,17 +26,17 @@ Public Class GroupDaoTests
             MyBase.New(index, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular)
         End Sub
     End Class
-    Public Shared ReadOnly word1 = New MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
+    Public Shared ReadOnly word1 As MockWordEntry = New MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "m", "l", False)
     Public Shared ReadOnly testWord1 As TestWord = New MockTestWord(word1, True, "")
-    Public Shared ReadOnly testWord2 = New MockTestWord(New MockWordEntry(2, "word2", "", "", WordType.Verb, "", "", False), True, "An example.")
-    Public Shared ReadOnly testWord29 = New MockTestWord(New MockWordEntry(29, "wordx", "", "", WordType.Adjective, "", "", True), False, "")
+    Public Shared ReadOnly testWord2 As MockTestWord = New MockTestWord(New MockWordEntry(2, "word2", "", "", WordType.Verb, "", "", False), True, "An example.")
+    Public Shared ReadOnly testWord29 As MockTestWord = New MockTestWord(New MockWordEntry(29, "wordx", "", "", WordType.Adjective, "", "", True), False, "")
 
-    Public Shared ReadOnly word3 = New MockWordEntry(3, "some word", "", "", WordType.Verb, "with a meaning", "", True)
-    Public Shared ReadOnly word4 = New MockWordEntry(4, "word4", "", "", WordType.Adjective, "test", "info", False)
+    Public Shared ReadOnly word3 As MockWordEntry = New MockWordEntry(3, "some word", "", "", WordType.Verb, "with a meaning", "", True)
+    Public Shared ReadOnly word4 As MockWordEntry = New MockWordEntry(4, "word4", "", "", WordType.Adjective, "test", "info", False)
 
-    Dim exampleGroup = New GroupEntry(123, "Test-Example", "Subgroup1", "GroupTest-Example01")
-    Dim emptyGroup = New GroupEntry(123, "Test-Example", "Empty subgroup", "GroupTest-Example02")
-    Dim multiLanguageGroup = New GroupEntry(123, "Test-Example", "Multiple languages", "GroupTest-MultipleLanguages01")
+    Dim exampleGroup As GroupEntry = New GroupEntry(123, "Test-Example", "Subgroup1", "GroupTest-Example01")
+    Dim emptyGroup As GroupEntry = New GroupEntry(123, "Test-Example", "Empty subgroup", "GroupTest-Example02")
+    Dim multiLanguageGroup As GroupEntry = New GroupEntry(123, "Test-Example", "Multiple languages", "GroupTest-MultipleLanguages01")
 
     <SetUp>
     Public Sub Setup()
