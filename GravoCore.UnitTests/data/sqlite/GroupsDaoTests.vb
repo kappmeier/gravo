@@ -66,7 +66,7 @@ Public Class GroupsDaoTests
 
     <Test>
     Public Sub GetAllSubGroups_OnValidDatabase_ReturnsCorrectGroups()
-        Dim result As Collection(Of GroupEntry) = _groupsDao.GetSubGroups("Other Group")
+        Dim result As Collection(Of GroupEntry) = CType(_groupsDao.GetSubGroups("Other Group"), Collection(Of GroupEntry))
 
         Dim expectedResult = New List(Of GroupEntry) From {
             New GroupEntry(3, "Other Group", "Some Words", "GroupOtherGroup01")
@@ -77,7 +77,7 @@ Public Class GroupsDaoTests
 
     <Test>
     Public Sub GetAllSubGroups_WithNonExistingGroup_Empty()
-        Dim result As Collection(Of GroupEntry) = _groupsDao.GetSubGroups("Non Existing Group")
+        Dim result As Collection(Of GroupEntry) = CType(_groupsDao.GetSubGroups("Non Existing Group"), Collection(Of GroupEntry))
 
         CollectionAssert.IsEmpty(result, "result list not empty")
     End Sub
@@ -102,7 +102,7 @@ Public Class GroupsDaoTests
     Public Sub AddGroup_ToExistingGroup_CreatesTable()
         _groupsDao.AddGroup("Language Book", "Unit 3")
 
-        Dim verification As Collection(Of GroupEntry) = _groupsDao.GetSubGroups("Language Book")
+        Dim verification As Collection(Of GroupEntry) = CType(_groupsDao.GetSubGroups("Language Book"), Collection(Of GroupEntry))
 
         Dim expectedResult = New List(Of GroupEntry) From {
             New GroupEntry(1, "Language Book", "Unit 1", "GroupOtherGroup01"),
@@ -117,7 +117,7 @@ Public Class GroupsDaoTests
     Public Sub AddGroup_CompletelyNew_CreatesTable()
         _groupsDao.AddGroup("Another Group", "First Sub")
 
-        Dim verification As Collection(Of GroupEntry) = _groupsDao.GetSubGroups("Another Group")
+        Dim verification As Collection(Of GroupEntry) = CType(_groupsDao.GetSubGroups("Another Group"), Collection(Of GroupEntry))
 
         Dim expectedResult = New List(Of GroupEntry) From {
             New GroupEntry(5, "Another Group", "First Sub", "GroupAnotherGroup01")
@@ -239,7 +239,7 @@ Public Class GroupsDaoTests
     Public Sub EditSubGroup_NewName_IsRenamed()
         _groupsDao.EditSubGroup("Language Book", "Unit 2", "New Name")
 
-        Dim result As Collection(Of GroupEntry) = _groupsDao.GetSubGroups("Language Book")
+        Dim result As Collection(Of GroupEntry) = CType(_groupsDao.GetSubGroups("Language Book"), Collection(Of GroupEntry))
 
         Dim expectedResult = New List(Of GroupEntry) From {
             New GroupEntry(1, "Language Book", "Unit 1", "GroupOtherGroup01"),
