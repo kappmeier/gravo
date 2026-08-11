@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Gravo</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <OptionStrict>On</OptionStrict>
   </PropertyGroup>
 
   <ItemGroup>
