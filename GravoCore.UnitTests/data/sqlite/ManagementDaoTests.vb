@@ -78,7 +78,7 @@ Public Class ManagementDaoTests
 
     <Test>
     Public Sub UpdateVersion_WithIllegalData_Throws()
-        Dim illegalDb As SQLiteDataBaseOperation = CreateIllegalDb()
+        Dim illegalDb As IDataBaseOperation = CreateIllegalDb()
         Dim fixture As ManagementDao = New ManagementDao(illegalDb)
         Assert.Throws(Of IllegalVersionException)(Sub() fixture.UpdateDatabaseVersion())
 
@@ -186,7 +186,7 @@ Public Class ManagementDaoTests
 
     <Test>
     Public Sub Next_WithIllegalData_Throws()
-        Dim illegalDb As SQLiteDataBaseOperation = CreateIllegalDb()
+        Dim illegalDb As IDataBaseOperation = CreateIllegalDb()
         Dim fixture As ManagementDao = New ManagementDao(illegalDb)
         Assert.Throws(Of IllegalVersionException)(Sub() fixture.GetNextVersion())
 
@@ -209,7 +209,7 @@ Public Class ManagementDaoTests
         Dim tempRealDataBase = Path.GetTempFileName
         File.Copy(DaoUtils.GetSqliteResource(realDataBaseResource), tempRealDataBase, True)
 
-        Dim realDataBase = New SQLiteDataBaseOperation()
+        Dim realDataBase As IDataBaseOperation = New SQLiteDataBaseOperation()
         realDataBase.Open(tempRealDataBase)
 
         Dim fixture = New ManagementDao(realDataBase)
@@ -225,7 +225,7 @@ Public Class ManagementDaoTests
         CreateIllegalDb.Open(tempIllegalDb)
     End Function
 
-    Private Sub CloseIllegalDb(illegalDb As SQLiteDataBaseOperation)
+    Private Sub CloseIllegalDb(illegalDb As IDataBaseOperation)
         illegalDb.Close()
         SQLiteConnection.ClearAllPools()
     End Sub

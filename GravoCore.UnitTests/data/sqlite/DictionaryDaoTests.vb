@@ -127,7 +127,7 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub WordsAndSubwords_AdditionalSubwords_ListReturned()
-        Dim words As Collection(Of WordEntry) = _dictionaryDao.GetWordsAndSubWords("word1", language, targetLanguage)
+        Dim words As Collection(Of WordEntry) = CType(_dictionaryDao.GetWordsAndSubWords("word1", language, targetLanguage), Collection(Of WordEntry))
 
         Dim expectedResult = New List(Of WordEntry) From {word1entry1, word1entry2, word1Variance, word1entry1a}
 
@@ -136,7 +136,7 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub WordsAndSubwords_NoAdditionalSubwords_ListReturned()
-        Dim words As Collection(Of WordEntry) = _dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage)
+        Dim words As Collection(Of WordEntry) = CType(_dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage), Collection(Of WordEntry))
 
         Dim expectedResult = New List(Of WordEntry) From {wordWithoutSubwords}
 
@@ -168,7 +168,7 @@ Public Class DictionaryDaoTests
 
         Assert.AreEqual(newWordIndex, newWord.index)
 
-        Dim updatedWords As Collection(Of WordEntry) = _dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage)
+        Dim updatedWords As Collection(Of WordEntry) = CType(_dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage), Collection(Of WordEntry))
         Dim expectedResult = New List(Of WordEntry) From {wordWithoutSubwords, newWord}
 
         updatedWords.Should.BeEquivalentTo(expectedResult)
@@ -291,7 +291,7 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub GetMainEntry_NoMainEntryForWord_Fails()
-        Dim nonExisting = New GroupDaoTests.MockWordEntry(5, "", "", "", WordType.Verb, "", "", False)
+        Dim nonExisting As WordEntry = New GroupDaoTests.MockWordEntry(5, "", "", "", WordType.Verb, "", "", False)
         Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.GetMainEntry(nonExisting))
     End Sub
 
@@ -338,9 +338,9 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub ChangeEntry_NonConflictingWord_Successful()
-        Dim oldMainEntry = New MockMainEntry(1, "word1", "lang", "targetLang")
-        Dim modifiedEntry = _dictionaryDao.ChangeMainEntry(oldMainEntry, "word new")
-        Dim expectedEntry = New MockMainEntry(1, "word new", "lang", "targetLang")
+        Dim oldMainEntry As MainEntry = New MockMainEntry(1, "word1", "lang", "targetLang")
+        Dim modifiedEntry As MainEntry = _dictionaryDao.ChangeMainEntry(oldMainEntry, "word new")
+        Dim expectedEntry As MainEntry = New MockMainEntry(1, "word new", "lang", "targetLang")
 
         modifiedEntry.Should.BeEquivalentTo(expectedEntry)
     End Sub
@@ -364,13 +364,13 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub ChangeEntry_NewWordExisting_Fails()
-        Dim oldMainEntry = New MockMainEntry(1, "word1", "lang", "targetLang")
+        Dim oldMainEntry As MainEntry = New MockMainEntry(1, "word1", "lang", "targetLang")
         Assert.Throws(Of EntryExistsException)(Sub() _dictionaryDao.ChangeMainEntry(oldMainEntry, "wordx"))
     End Sub
 
     <Test>
     Public Sub AdaptSubEntries_ForMainEntry_ModifiesSubEntries()
-        Dim newMainEntry = New MockMainEntry(1, "word1 update", "lang", "targetLang")
+        Dim newMainEntry As MainEntry = New MockMainEntry(1, "word1 update", "lang", "targetLang")
         _dictionaryDao.AdaptSubEntries(newMainEntry, "word1")
 
         Dim updatedWords = _dictionaryDao.GetWords(language, targetLanguage, "w")

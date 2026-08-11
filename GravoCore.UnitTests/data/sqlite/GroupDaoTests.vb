@@ -132,7 +132,7 @@ Public Class GroupDaoTests
 
     <Test>
     Public Sub UpdateMarked_Throws_NonExistingWord()
-        Dim nonExisting = New MockTestWord(word3, False, "some text")
+        Dim nonExisting As TestWord = New MockTestWord(word3, False, "some text")
         Assert.Throws(Of EntryNotFoundException)(Sub() _groupDao.UpdateMarked(exampleGroup, nonExisting, True))
     End Sub
 
@@ -147,7 +147,7 @@ Public Class GroupDaoTests
 
     <Test>
     Public Sub Delete_NonExisting_Throws()
-        Dim nonExisting = New MockTestWord(word3, False, "some text")
+        Dim nonExisting As TestWord = New MockTestWord(word3, False, "some text")
         Assert.Throws(Of EntryNotFoundException)(Sub() _groupDao.Delete(exampleGroup, nonExisting))
     End Sub
 

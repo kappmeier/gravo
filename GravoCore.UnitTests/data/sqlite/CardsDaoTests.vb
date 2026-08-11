@@ -14,7 +14,7 @@ Public Class CardsDaoTests
     Private _db As IDataBaseOperation
 
     Private Shared ReadOnly Success As Func(Of Integer, Integer) = Function(x As Integer) x * 2
-    Private Shared ReadOnly Failure As Func(Of Integer, Integer) = Function(x As Integer) x / 2
+    Private Shared ReadOnly Failure As Func(Of Integer, Integer) = Function(x As Integer) CInt(x / 2)
     Private Shared ReadOnly FailureKeep As Func(Of Integer, Integer) = Function(x As Integer) x
 
     ReadOnly ExampleGroup As GroupEntry = New GroupEntry(123, "", "", "GroupTest-Example01")
@@ -250,7 +250,7 @@ Public Class CardsDaoTests
 
     Private Sub AssertValue(table As String, column As String, row As Integer, expected As Integer)
         Dim command = "SELECT " & column & " FROM [" & table & "] WHERE [Index] = ?"
-        _db.ExecuteReader(command, row)
+        _db.ExecuteReader(command, CStr(row))
         _db.DBCursor.Read()
         Dim value As Integer = _db.SecureGetInt32(0)
         _db.DBCursor.Close()
@@ -259,7 +259,7 @@ Public Class CardsDaoTests
 
     Private Sub AssertValue(table As String, column As String, row As Integer, expected As Date)
         Dim command = "SELECT " & column & " FROM [" & table & "] WHERE [Index] = ?"
-        _db.ExecuteReader(command, row)
+        _db.ExecuteReader(command, CStr(row))
         _db.DBCursor.Read()
         Dim value As DateTime = _db.SecureGetDateTime(0)
         _db.DBCursor.Close()
