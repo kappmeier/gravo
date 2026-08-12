@@ -5,7 +5,7 @@ Public Class SQLiteDataBaseOperation
     Implements IDataBaseOperation
 
     Dim connection As New SQLiteConnection()
-    Dim connected As Boolean = False
+    Dim connected As Boolean
     Dim SQLreader As SQLiteDataReader
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open

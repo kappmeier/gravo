@@ -296,7 +296,7 @@ Public Class GroupsDao
         DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName2, CStr(index1)})
     End Sub
 
-    Private Function CreateRenameTableCommand(existingTable As String, newTableName As String) As String
+    Private Shared Function CreateRenameTableCommand(existingTable As String, newTableName As String) As String
         If StripSpecialCharacters(newTableName) <> newTableName Then
             Throw New ArgumentException("Table name not stripped")
         End If
@@ -305,7 +305,7 @@ Public Class GroupsDao
         CreateRenameTableCommand = String.Format(renamePattern, existingTable, newTableName)
     End Function
 
-    Private Function CreateGroupBaseTableName(groupName As String) As String
+    Private Shared Function CreateGroupBaseTableName(groupName As String) As String
         Return "Group" & StripSpecialCharacters(groupName)
     End Function
 

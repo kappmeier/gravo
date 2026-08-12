@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OptionStrict>On</OptionStrict>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!--
+        CA1707: Given_When_Then underscores are the test naming convention (217 occurrences). -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>

@@ -66,7 +66,7 @@ Public Class GroupDto
         IsMarked = testWord.Marked
     End Function
 
-    Private Class AnonymousEnumerable
+    Private NotInheritable Class AnonymousEnumerable
         Implements IEnumerable(Of String)
 
         Private ReadOnly innerEnumerable As IEnumerable(Of TestWord)
@@ -84,7 +84,7 @@ Public Class GroupDto
         End Function
     End Class
 
-    Private Class AnonymousEnumerator
+    Private NotInheritable Class AnonymousEnumerator
         Implements IEnumerator(Of String)
 
         Private innerEnumerator As IEnumerator(Of TestWord)

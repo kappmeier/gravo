@@ -7,7 +7,7 @@ Public Enum TestResult
     Misspelled
 End Enum
 
-Class TestEntry
+NotInheritable Class TestEntry
     Friend ReadOnly word As WordEntry
     Friend ReadOnly firstTest As Boolean
 
