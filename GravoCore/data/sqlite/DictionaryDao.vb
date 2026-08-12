@@ -310,7 +310,7 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Function
 
-    Private Function ExtractMainEntries(DBConnection As IDataBaseOperation, language As String, mainLanguage As String) As ICollection(Of MainEntry)
+    Private Shared Function ExtractMainEntries(DBConnection As IDataBaseOperation, language As String, mainLanguage As String) As ICollection(Of MainEntry)
         ExtractMainEntries = New Collection(Of MainEntry)
         Do While DBConnection.DBCursor.Read()
             Dim wordEntry = ExtractMainEntry(DBConnection, language, mainLanguage)

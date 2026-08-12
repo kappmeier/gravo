@@ -35,7 +35,7 @@ Public Class DataToolsTests
         Assert.AreEqual(15, result)
     End Sub
 
-    Private Function CreateFakeTestWord() As TestWord
+    Private Shared Function CreateFakeTestWord() As TestWord
         Return New TestWord(New WordEntry("", "", "", WordType.Verb, "", "", False), True, "")
     End Function
 

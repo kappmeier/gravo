@@ -4,13 +4,13 @@ Imports Gravo
 Public Interface IDictionaryDao
 
     Class UpdateData
-        Private _word As String = Nothing
-        Private _pre As String = Nothing
-        Private _post As String = Nothing
-        Private _wordType As Nullable(Of WordType) = Nothing
-        Private _meaning As String = Nothing
-        Private _additionalTargetLangInfo As String = Nothing
-        Private _irregular As Boolean? = Nothing
+        Private _word As String
+        Private _pre As String
+        Private _post As String
+        Private _wordType As Nullable(Of WordType)
+        Private _meaning As String
+        Private _additionalTargetLangInfo As String
+        Private _irregular As Boolean?
 
         Public Property Word As String
             Get

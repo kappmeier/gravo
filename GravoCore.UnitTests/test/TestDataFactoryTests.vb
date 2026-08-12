@@ -45,7 +45,7 @@ Public Class TestDataFactoryTests
         Assert.Throws(Of InvalidCastException)(Sub() TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, "english", False, QueryLanguage.OriginalLanguage))
     End Sub
 
-    Private Function CreateGroupDto(group As GroupEntry) As GroupDto
+    Private Shared Function CreateGroupDto(group As GroupEntry) As GroupDto
         Dim phraseWord As TestWord = New TestWord(New WordEntry("phraseWord", "", "", WordType.SetPhrase, "meaningPhrase", "", False), False, "")
         Dim markedWord As TestWord = New TestWord(New WordEntry("markedWord", "", "", WordType.Verb, "meaningMarked", "", False), True, "")
         Return New GroupDto(group, New List(Of TestWord) From {phraseWord, markedWord})

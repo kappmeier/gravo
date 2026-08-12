@@ -235,7 +235,7 @@ Public Class CardsDaoTests
     ''' </summary>
     ''' <param name="action"></param>
     ''' <returns>Tuple of day of execution and weather first execution was on same day.</returns>
-    Private Function ExecuteOnSameDay(action As Action) As Tuple(Of Date, Boolean)
+    Private Shared Function ExecuteOnSameDay(action As Action) As Tuple(Of Date, Boolean)
         Dim startDate = Date.Now.Date
         action()
         Dim endDate As Date = Date.Now.Date

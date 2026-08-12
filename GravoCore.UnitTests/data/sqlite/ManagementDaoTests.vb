@@ -51,7 +51,7 @@ Public Class ManagementDaoTests
         Dim fixture = New ManagementDao(emptyDb)
         fixture.Initialize()
 
-        Dim lastIndex = fixture.supportedVersions.Count() - 1
+        Dim lastIndex = fixture.supportedVersions.Length - 1
         For Each version As Properties.DBVersion In fixture.supportedVersions.Take(lastIndex)
             fixture.IsVersionUpToDate().Should.BeFalse()
             fixture.UpdateDatabaseSingle()
@@ -85,7 +85,7 @@ Public Class ManagementDaoTests
         CloseIllegalDb(illegalDb)
     End Sub
 
-    Private Class FixedVersionManagementDao
+    Private NotInheritable Class FixedVersionManagementDao
         Inherits ManagementDao
 
         Private ReadOnly version As DBVersion
@@ -164,7 +164,7 @@ Public Class ManagementDaoTests
         fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
     End Sub
 
-    Private Sub AssertTableExists(db As IDataBaseOperation, table As String)
+    Private Shared Sub AssertTableExists(db As IDataBaseOperation, table As String)
         Dim result As Boolean = db.ExistsTable(table)
         result.Should().BeTrue()
     End Sub
@@ -225,7 +225,7 @@ Public Class ManagementDaoTests
         CreateIllegalDb.Open(tempIllegalDb)
     End Function
 
-    Private Sub CloseIllegalDb(illegalDb As IDataBaseOperation)
+    Private Shared Sub CloseIllegalDb(illegalDb As IDataBaseOperation)
         illegalDb.Close()
         SQLiteConnection.ClearAllPools()
     End Sub
