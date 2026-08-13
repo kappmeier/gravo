@@ -16,7 +16,20 @@ jobs:
     - name: Build with dotnet
       run: dotnet build GravoCore -c Release
     - name: Unit Tests
-      run: dotnet test GravoCore.UnitTests -c Release --collect:"XPlat Code Coverage" --results-directory TestResults
+      # Run tests, and ensure that the tests are actually executed.
+      # `dotnet test` exits 0 when no tests are discovered, this can easily happen after
+      # adapter/framework bumps. Enforce a passed-count floor.
+      # `shell: bash` is also required: it enables pipefail, required to correctly propagate
+      # errors when piping `tee`.
+      # Bump TEST_FLOOR (below in `env`) when tests are added or intentionally removed.
+      shell: bash
+      run: |
+        dotnet test GravoCore.UnitTests -c Release --collect:"XPlat Code Coverage" --results-directory TestResults | tee test.log
+        passed=$(grep -oP 'Passed:\s*\K[0-9]+' test.log | tail -1)
+        echo "Tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
+        [ "${passed:-0}" -ge "$TEST_FLOOR" ]
+      env:
+        TEST_FLOOR: 233
     - name: Coverage report
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10
