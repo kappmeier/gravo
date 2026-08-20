@@ -36,8 +36,8 @@ Public Class GroupInput
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
         GroupsDao = New GroupsDao(db)
-        DictionaryDao = New CardsDao(db)
-        GroupDao = New GroupDao(db)
+        dictionaryDao = New DictionaryDao(db)
+        groupDao = New GroupDao(db)
     End Sub
 
     Private Sub GroupInput_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
