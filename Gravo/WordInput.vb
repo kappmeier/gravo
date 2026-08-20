@@ -28,7 +28,7 @@ Public Class WordInput
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)
-        DictionaryDao = New CardsDao(db)
+        DictionaryDao = New DictionaryDao(db)
         GroupsDao = New GroupsDao(db)
         GroupDao = New GroupDao(db)
 
