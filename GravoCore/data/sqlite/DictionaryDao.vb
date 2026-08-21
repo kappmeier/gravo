@@ -35,11 +35,6 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Function
 
-    Function GetWords(ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
-        Dim command = "SELECT W.[Index] FROM DictionaryWords AS W, DictionaryMain AS M WHERE W.MainIndex = M.[Index]"
-
-    End Function
-
     Private ReadOnly GetWordsSelect As String = "SELECT W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular FROM DictionaryWords AS W"
     Private ReadOnly GetWordsJoinWithMain As String = ", DictionaryMain AS M WHERE (W.MainIndex = M.[Index])"
 

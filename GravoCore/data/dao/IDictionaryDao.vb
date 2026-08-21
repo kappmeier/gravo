@@ -106,8 +106,6 @@ Public Interface IDictionaryDao
 
     Function GetEntry(mainEntry As MainEntry, word As String, meaning As String) As WordEntry
 
-    Function GetWords(ByVal mainLanguage As String) As ICollection(Of WordEntry)
-
     Function GetWords(ByVal mainEntry As String, ByVal subEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry)
 
     Function GetWords(ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry)
