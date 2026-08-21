@@ -285,9 +285,9 @@ Public Class GroupsDao
         Dim table2 As String = group.Table
 
         ' Swap the tables
-        CreateRenameTableCommand(table1, table1 & "_")
-        CreateRenameTableCommand(table2, table1)
-        CreateRenameTableCommand(table1 & "_", table2)
+        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table1, table1 & "_"))
+        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table2, table1))
+        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table1 & "_", table2))
 
         ' Swap the names
         command = "UPDATE Groups SET [GroupSubName] = ? WHERE [Index] = ?"

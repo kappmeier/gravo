@@ -268,6 +268,23 @@ Public Class GroupsDaoTests
         Assert.True(TableExists("GroupOtherGroup01"))
     End Sub
 
+    <Test>
+    Public Sub SwapGroups_Existing_TableContentsAreSwapped()
+        ' The fixture's group tables are empty; insert a marker row to track the physical table across the swap.
+        _db.ExecuteNonQuery("INSERT INTO GroupLanguageBook01 ([Index]) VALUES (7)", Array.Empty(Of Object))
+
+        _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2")
+
+        Assert.False(TableHasRows("GroupLanguageBook01"), "table 01 should hold the former (empty) contents of table 02")
+        Assert.True(TableHasRows("GroupLanguageBook02"), "the marker row should move to table 02 with the physical table")
+    End Sub
+
+    Private Function TableHasRows(tableName As String) As Boolean
+        _db.ExecuteReader("SELECT [Index] FROM [" & tableName & "]", Array.Empty(Of Object))
+        TableHasRows = _db.DBCursor.HasRows
+        _db.CloseReader()
+    End Function
+
     Private Function TableExists(tableName As String) As Boolean
         'Dim sinsertSQL = New SQLiteCommand("INSERT INTO Book (Id, Title, Language, PublicationDate, Publisher, Edition, OfficialUrl, Description, EBookFormat) VALUES (?,?,?,?,?,?,?,?)", _db)
         Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
