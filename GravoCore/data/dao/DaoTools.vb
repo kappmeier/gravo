@@ -1,11 +1,13 @@
-﻿Public Module DaoTools
+﻿Imports System.Globalization
+
+Public Module DaoTools
 
     Public Function GetDBEntry(ByVal text As String) As String
         Return "'" & EscapeSingleQuotes(text) & "'"
     End Function
 
     Public Function GetDBEntry(ByVal value As Integer) As String
-        Return "'" & value.ToString & "'"
+        Return "'" & value.ToString(CultureInfo.InvariantCulture) & "'"
     End Function
 
     Public Function GetDBEntry(ByVal value As Boolean) As Integer
@@ -33,7 +35,7 @@
         sTemp2 = Text
         sTemp = ""
         Do
-            i = sTemp2.IndexOf("'")
+            i = sTemp2.IndexOf("'", StringComparison.Ordinal)
 
             If i >= 0 Then
                 sTemp = sTemp & sTemp2.Substring(0, i + 1) & "'"

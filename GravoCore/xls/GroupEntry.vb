@@ -1,4 +1,5 @@
-﻿Imports Gravo
+﻿Imports System.Globalization
+Imports Gravo
 
 Public Class GroupEntry
     Private ReadOnly _Index As Integer
@@ -54,6 +55,6 @@ Public Class GroupEntry
 
     Public Overrides Function ToString() As String
         Dim format = "GroupEntry: {{{0}, {1}, {2}}}"
-        Return String.Format(format, _GroupName, _SubName, _Table)
+        Return String.Format(CultureInfo.InvariantCulture, format, _GroupName, _SubName, _Table)
     End Function
 End Class

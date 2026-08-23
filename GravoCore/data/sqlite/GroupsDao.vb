@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Globalization
 Imports Gravo
 
 Public Class GroupsDao
@@ -302,7 +303,7 @@ Public Class GroupsDao
         End If
 
         Const renamePattern = "ALTER TABLE [{0}] RENAME TO [{1}]"
-        CreateRenameTableCommand = String.Format(renamePattern, existingTable, newTableName)
+        CreateRenameTableCommand = String.Format(CultureInfo.InvariantCulture, renamePattern, existingTable, newTableName)
     End Function
 
     Private Shared Function CreateGroupBaseTableName(groupName As String) As String

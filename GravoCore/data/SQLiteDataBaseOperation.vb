@@ -1,5 +1,6 @@
 ﻿Imports System.Data.Common
 Imports System.Data.SQLite
+Imports System.Globalization
 
 Public Class SQLiteDataBaseOperation
     Implements IDataBaseOperation
@@ -117,7 +118,7 @@ Public Class SQLiteDataBaseOperation
     End Function
 
     Shared Function NowDB() As String
-        Return DateTime.Now.ToString("yyyy-MM-dd")
+        Return DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
     End Function
 
 End Class

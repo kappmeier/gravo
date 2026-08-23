@@ -1,4 +1,5 @@
-﻿Imports Gravo.Properties
+﻿Imports System.Globalization
+Imports Gravo.Properties
 
 Public Class ManagementDao
     Implements IManagementDao
@@ -293,8 +294,8 @@ Public Class ManagementDao
     ''' <param name="version">The DBVersion for the new version</param>
     Private Sub UpdateToVersion(version As DBVersion)
         Dim command As String = "INSERT INTO [DBVersion] ([Version], [Date], [Description]) VALUES(?, ?, ?)"
-        Dim versionString As String = version.Major & "." & version.Minor.ToString("00")
-        Dim versionParameters = New List(Of Object) From {versionString, version.Introduction.ToString("yyyy-MM-dd"), version.Description}
+        Dim versionString As String = version.Major & "." & version.Minor.ToString("00", CultureInfo.InvariantCulture)
+        Dim versionParameters = New List(Of Object) From {versionString, version.Introduction.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), version.Description}
         DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(versionParameters))
     End Sub
 
