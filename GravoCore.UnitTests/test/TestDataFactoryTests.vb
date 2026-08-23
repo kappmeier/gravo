@@ -29,20 +29,23 @@ Public Class TestDataFactoryTests
     End Sub
 
     ''' <summary>
-    ''' Testing a failure in the current implementation of TestDataFactory.vb
-    ''' which assigns the IEnumerable(Of WordEntry) returned by words.Where(...) to a variable
-    ''' declared As ICollection(Of WordEntry). Throwing an InvalidCastException.
+    ''' When testPhrases is set to False, set phrases only are excluded. Example entries stay in.
+    ''' So the excluded member is identified exactly.
     ''' </summary>
-    <Test>
-    Public Sub Create_LanguageOverloadWithoutPhrases_ThrowsInvalidCastException()
+    <TestCase(WordType.SetPhrase, 0)>
+    <TestCase(WordType.Example, 1)>
+    <TestCase(WordType.Verb, 1)>
+    Public Sub Create_LanguageOverloadWithoutPhrases_FiltersSetPhrasesOnly(wordType As WordType, expectedCount As Integer)
         Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         Dim words As ICollection(Of WordEntry) = New List(Of WordEntry) From {
-            New WordEntry("word1", "", "", WordType.Verb, "m1", "", False)
+            New WordEntry("word1", "", "", wordType, "m1", "", False)
         }
         dictionaryMock.Setup(Function(x) x.GetWords("english", "german")).Returns(words)
 
-        Assert.Throws(Of InvalidCastException)(Sub() TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, "english", False, QueryLanguage.OriginalLanguage))
+        Dim data As TestData = TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, "english", False, QueryLanguage.OriginalLanguage)
+
+        data.Count().Should.Be(expectedCount)
     End Sub
 
     Private Shared Function CreateGroupDto(group As GroupEntry) As GroupDto
