@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Data.Common
 Imports System.Data.SQLite
+Imports System.Globalization
 Imports Gravo
 
 Public Class PropertiesDao
@@ -63,8 +64,8 @@ Public Class PropertiesDao
             Dim description As String = DBConnection.SecureGetString(2)
 
             Dim splits = versionString.Split(".".ToCharArray(), 2)
-            Dim major As UInt16 = Convert.ToUInt16(splits(0))
-            Dim minor As UInt16 = Convert.ToUInt16(splits(1))
+            Dim major As UInt16 = Convert.ToUInt16(splits(0), CultureInfo.InvariantCulture)
+            Dim minor As UInt16 = Convert.ToUInt16(splits(1), CultureInfo.InvariantCulture)
             Dim version As New Properties.DBVersion(major, minor, introduced, description)
             versions.Add(version)
         Loop
