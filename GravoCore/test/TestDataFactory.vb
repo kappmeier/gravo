@@ -14,9 +14,12 @@ Public Class TestDataFactory
     ''' Creates a test data set containing all entries for a given language.
     ''' </summary>
     ''' <param name="language"></param>
+    ''' <param name="mainLanguage">The target language the user is training.</param>
     ''' <returns></returns>
-    Public Shared Function Create(dictionary As IDictionaryDao, cards As ICardsDao, language As String, testPhrases As Boolean, queryLanguage As QueryLanguage) As TestData
-        Dim words As ICollection(Of WordEntry) = dictionary.GetWords(language, "german")
+    Public Shared Function Create(dictionary As IDictionaryDao, cards As ICardsDao, language As String,
+                                  testPhrases As Boolean, queryLanguage As QueryLanguage,
+                                  Optional mainLanguage As String = "german") As TestData
+        Dim words As ICollection(Of WordEntry) = dictionary.GetWords(language, mainLanguage)
         If Not testPhrases Then
             words = words.Where(Function(t) t.WordType <> WordType.SetPhrase).ToList()
         End If

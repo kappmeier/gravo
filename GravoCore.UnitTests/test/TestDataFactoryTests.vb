@@ -14,7 +14,7 @@ Public Class TestDataFactoryTests
     End Sub
 
     <Test>
-    Public Sub Create_LanguageOverloadWithPhrases_WrapsWordsAndPinsHardcodedGerman()
+    Public Sub Create_LanguageOverloadWithPhrases_DefaultsMainLanguageToGerman()
         Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         Dim words As ICollection(Of WordEntry) = New List(Of WordEntry) From {
@@ -26,6 +26,21 @@ Public Class TestDataFactoryTests
         Dim data As TestData = TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, "english", True, QueryLanguage.OriginalLanguage)
 
         data.Count().Should.Be(2)
+    End Sub
+
+    <Test>
+    Public Sub Create_LanguageOverloadWithExplicitMainLanguage_QueriesThatMainLanguage()
+        Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
+        Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
+        Dim words As ICollection(Of WordEntry) = New List(Of WordEntry) From {
+            New WordEntry("word1", "", "", WordType.Verb, "m1", "", False)
+        }
+        dictionaryMock.Setup(Function(x) x.GetWords("english", "french")).Returns(words)
+
+        Dim data As TestData = TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, "english", True,
+                                                      QueryLanguage.OriginalLanguage, "french")
+
+        data.Count().Should.Be(1)
     End Sub
 
     ''' <summary>
