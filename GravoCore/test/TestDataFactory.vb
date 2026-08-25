@@ -3,14 +3,6 @@
 ''' </summary>
 Public Class TestDataFactory
     ''' <summary>
-    ''' Creates a test data set containing _all_ entries.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Shared Function Create(dictionary As IDictionaryDao, cards As ICardsDao, testPhrases As Boolean, queryLanguage As QueryLanguage) As TestData
-        Throw New NotImplementedException
-    End Function
-
-    ''' <summary>
     ''' Creates a test data set containing all entries for a given language.
     ''' </summary>
     ''' <param name="language"></param>
