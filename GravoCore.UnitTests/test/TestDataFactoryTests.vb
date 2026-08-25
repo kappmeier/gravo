@@ -63,29 +63,67 @@ Public Class TestDataFactoryTests
         data.Count().Should.Be(expectedCount)
     End Sub
 
-    Private Shared Function CreateGroupDto(group As GroupEntry) As GroupDto
-        Dim phraseWord As TestWord = New TestWord(New WordEntry("phraseWord", "", "", WordType.SetPhrase, "meaningPhrase", "", False), False, "")
-        Dim markedWord As TestWord = New TestWord(New WordEntry("markedWord", "", "", WordType.Verb, "meaningMarked", "", False), True, "")
-        Return New GroupDto(group, New List(Of TestWord) From {phraseWord, markedWord})
+    Private Shared Function CreateTestWord(wordType As WordType, marked As Boolean) As TestWord
+        Return New TestWord(New WordEntry("word" & wordType.ToString(), "", "", wordType, "m" & wordType.ToString(), "", False), marked, "")
+    End Function
+
+    Private Shared Function CreateGroupDto(group As GroupEntry, ParamArray entries As TestWord()) As GroupDto
+        Return New GroupDto(group, New List(Of TestWord)(entries))
     End Function
 
     ''' <summary>
-    ''' Tests the not implemented flags in the overloaded TestDataFactory.Create function.
-    ''' Any flag combination returns every entry from the group.
+    ''' Tests filtering of marked words. Two cases are supported:
+    ''' testMarked:=True restricts the test to marked words
+    ''' testMarked:=False takes all words.
+    ''' The test uses single-word cases to evaluate the filter exactly.
     ''' </summary>
-    <TestCase(True, True)>
-    <TestCase(True, False)>
-    <TestCase(False, True)>
-    <TestCase(False, False)>
-    Public Sub Create_GroupOverloadWithAnyFlagCombination_ReturnsAllEntries(testPhrases As Boolean, testMarked As Boolean)
+    <TestCase(True, True, 1)>
+    <TestCase(False, True, 0)>
+    <TestCase(True, False, 1)>
+    <TestCase(False, False, 1)>
+    Public Sub Create_GroupOverloadWithMarkedFlag_TestsOnlyMarkedWords(marked As Boolean, testMarked As Boolean, expectedCount As Integer)
         Dim groupDaoMock As New Mock(Of IGroupDao)(MockBehavior.Strict)
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         Dim group As GroupEntry = New GroupEntry(1, "group", "sub", "table")
-        groupDaoMock.Setup(Function(x) x.Load(group)).Returns(CreateGroupDto(group))
+        groupDaoMock.Setup(Function(x) x.Load(group)).Returns(CreateGroupDto(group, CreateTestWord(WordType.Verb, marked)))
 
-        Dim data As TestData = TestDataFactory.Create(groupDaoMock.Object, cardsMock.Object, group, testPhrases, testMarked, QueryLanguage.OriginalLanguage)
+        Dim data As TestData = TestDataFactory.Create(groupDaoMock.Object, cardsMock.Object, group, True, testMarked, QueryLanguage.OriginalLanguage)
 
-        data.Count().Should.Be(2)
+        data.Count().Should.Be(expectedCount)
+    End Sub
+
+    ''' <summary>
+    ''' testPhrases:=False excludes set phrases only.
+    ''' </summary>
+    <TestCase(WordType.SetPhrase, False, 0)>
+    <TestCase(WordType.Example, False, 1)>
+    <TestCase(WordType.Verb, False, 1)>
+    <TestCase(WordType.SetPhrase, True, 1)>
+    Public Sub Create_GroupOverloadWithPhrasesFlag_FiltersSetPhrasesOnly(wordType As WordType, testPhrases As Boolean, expectedCount As Integer)
+        Dim groupDaoMock As New Mock(Of IGroupDao)(MockBehavior.Strict)
+        Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
+        Dim group As GroupEntry = New GroupEntry(1, "group", "sub", "table")
+        groupDaoMock.Setup(Function(x) x.Load(group)).Returns(CreateGroupDto(group, CreateTestWord(wordType, False)))
+
+        Dim data As TestData = TestDataFactory.Create(groupDaoMock.Object, cardsMock.Object, group, testPhrases, False, QueryLanguage.OriginalLanguage)
+
+        data.Count().Should.Be(expectedCount)
+    End Sub
+
+    <Test>
+    Public Sub Create_GroupOverloadWithBothFilters_AppliesBoth()
+        Dim groupDaoMock As New Mock(Of IGroupDao)(MockBehavior.Strict)
+        Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
+        Dim group As GroupEntry = New GroupEntry(1, "group", "sub", "table")
+        groupDaoMock.Setup(Function(x) x.Load(group)).Returns(CreateGroupDto(group,
+            CreateTestWord(WordType.Verb, True),
+            CreateTestWord(WordType.Verb, False),
+            CreateTestWord(WordType.SetPhrase, True),
+            CreateTestWord(WordType.SetPhrase, False)))
+
+        Dim data As TestData = TestDataFactory.Create(groupDaoMock.Object, cardsMock.Object, group, False, True, QueryLanguage.OriginalLanguage)
+
+        data.Count().Should.Be(1)
     End Sub
 
     <Test>
