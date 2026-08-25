@@ -33,11 +33,14 @@ Public Class TestDataFactory
     ''' <returns></returns>
     Public Shared Function Create(groupDao As IGroupDao, cards As ICardsDao, group As GroupEntry, testPhrases As Boolean, testMarked As Boolean, queryLanguage As QueryLanguage) As TestData
         Dim groupDto = groupDao.Load(group)
-        ' TODO: filter
-        Dim words As ICollection(Of WordEntry) = New List(Of WordEntry)
-        For Each word As TestWord In groupDto.Entries
-            words.Add(word.WordEntry)
-        Next
+        Dim entries As IEnumerable(Of TestWord) = groupDto.Entries
+        If testMarked Then
+            entries = entries.Where(Function(t) t.Marked)
+        End If
+        If Not testPhrases Then
+            entries = entries.Where(Function(t) t.WordType <> WordType.SetPhrase)
+        End If
+        Dim words As ICollection(Of WordEntry) = entries.Select(Function(t) t.WordEntry).ToList()
         Return New TestData(cards, words, queryLanguage)
     End Function
 End Class
