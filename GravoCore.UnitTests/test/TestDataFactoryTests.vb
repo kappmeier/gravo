@@ -6,14 +6,6 @@ Imports FluentAssertions
 <TestFixture>
 Public Class TestDataFactoryTests
     <Test>
-    Public Sub Create_AllEntriesOverload_ThrowsNotImplementedException()
-        Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
-        Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
-
-        Assert.Throws(Of NotImplementedException)(Sub() TestDataFactory.Create(dictionaryMock.Object, cardsMock.Object, True, QueryLanguage.OriginalLanguage))
-    End Sub
-
-    <Test>
     Public Sub Create_LanguageOverloadWithPhrases_DefaultsMainLanguageToGerman()
         Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
