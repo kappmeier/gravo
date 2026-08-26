@@ -4,9 +4,7 @@ Imports NUnit.Framework
 Imports FluentAssertions
 
 ''' <summary>
-''' Tests the GravoCore/test/TestData.vb class behavior. Parts of the interfaces is not finally
-''' defined, so this tests ensure the current behavior. Needs to be adapted when the class is
-''' finalized.
+''' Tests the GravoCore/test/TestData.vb class behavior.
 ''' </summary>
 <TestFixture>
 Public Class TestDataTests
@@ -83,23 +81,23 @@ Public Class TestDataTests
     End Sub
 
     <Test>
-    Public Sub Update_NoErrorOnEmptyData_ThrowsNullReferenceExceptionAndStaysEmpty()
+    Public Sub Update_NoErrorOnEmptyData_ThrowsInvalidOperationExceptionAndStaysEmpty()
         Dim words As New List(Of WordEntry)
         Dim data As New TestData(cardsMock.Object, words, QueryLanguage.TargetLanguage)
 
-        Assert.Throws(Of NullReferenceException)(Sub() data.Update(TestResult.NoError))
+        Assert.Throws(Of InvalidOperationException)(Sub() data.Update(TestResult.NoError))
 
         words.Should.BeEmpty()
     End Sub
 
     <Test>
-    Public Sub Update_NoErrorWithAllSkippableWords_ThrowsNullReferenceExceptionAndDrainsList()
+    Public Sub Update_NoErrorWithAllSkippableWords_ThrowsInvalidOperationExceptionAndDrainsList()
         Dim words As New List(Of WordEntry) From {wordA, wordB}
         cardsMock.Setup(Function(x) x.Skip(wordA, QueryLanguage.TargetLanguage)).Returns(True)
         cardsMock.Setup(Function(x) x.Skip(wordB, QueryLanguage.TargetLanguage)).Returns(True)
         Dim data As New TestData(cardsMock.Object, words, QueryLanguage.TargetLanguage)
 
-        Assert.Throws(Of NullReferenceException)(Sub() data.Update(TestResult.NoError))
+        Assert.Throws(Of InvalidOperationException)(Sub() data.Update(TestResult.NoError))
 
         words.Should.BeEmpty()
     End Sub

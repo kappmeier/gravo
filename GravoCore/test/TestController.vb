@@ -35,6 +35,9 @@ Public Class TestController
     ''' Offer a test result status.
     ''' </summary>
     Public Sub Update(result As TestResult)
+        If currentTestEntry Is Nothing Then
+            Throw New InvalidOperationException("The test has ended; there is no current word to update.")
+        End If
         testData.Update(result)
         If useCards AndAlso currentTestEntry.firstTest Then
             UpdateCards(result)
@@ -51,7 +54,10 @@ Public Class TestController
             currentChecker = Nothing
         Else
             Dim entry As TestEntry = testData.Current()
-            If currentTestEntry IsNot Nothing AndAlso entry.word.Equals(currentTestEntry.word) Then
+            If entry Is Nothing Then
+                currentTestEntry = Nothing
+                currentChecker = Nothing
+            ElseIf currentTestEntry IsNot Nothing AndAlso entry.word.Equals(currentTestEntry.word) Then
                 currentChecker.Retest = True
             Else
                 currentTestEntry = entry

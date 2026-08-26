@@ -82,15 +82,17 @@ Public Class TestControllerTests
     End Sub
 
     <Test>
-    Public Sub Ctor_WithAllSkippableWords_ThrowsNullReferenceException()
+    Public Sub Ctor_WithAllSkippableWords_EndsTestImmediately()
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)).Returns(True)
         Dim words As New List(Of WordEntry) From {GroupDaoTests.word1}
         Dim testData As New TestData(cardsMock.Object, words, QueryLanguage.TargetLanguage)
 
-        Assert.Throws(Of NullReferenceException)(Sub()
-                                                      Dim controller As TestController = New TestController(testData, QueryLanguage.TargetLanguage, _db)
-                                                  End Sub)
+        Dim controller As TestController = New TestController(testData, QueryLanguage.TargetLanguage, _db)
+
+        controller.HasWords().Should.Be(False)
+        controller.GetTestChecker().Should.BeNull()
+        controller.Count().Should.Be(0)
     End Sub
 
     <Test>
@@ -161,12 +163,32 @@ Public Class TestControllerTests
         ReadCardColumn("TestInterval", 1).Should.Be(4)
     End Sub
 
-    <Test>
-    Public Sub Update_AfterTestEnded_ThrowsNullReferenceException()
+    <TestCase(TestResult.NoError)>
+    <TestCase(TestResult.Wrong)>
+    Public Sub Update_AfterTestEnded_ThrowsInvalidOperationException(result As TestResult)
         Dim controller As TestController = CreateWord1Controller(QueryLanguage.TargetLanguage)
         controller.Update(TestResult.NoError) ' drains the only word and ends the test
 
-        Assert.Throws(Of NullReferenceException)(Sub() controller.Update(TestResult.NoError))
+        Assert.Throws(Of InvalidOperationException)(Sub() controller.Update(result))
+    End Sub
+
+    ''' <summary>
+    ''' A word answered correctly can leave only skippable words behind; the test then ends cleanly.
+    ''' </summary>
+    <Test>
+    Public Sub Update_NoErrorWithRemainingWordsSkippable_EndsTest()
+        Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
+        cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)).Returns(False)
+        cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word3, QueryLanguage.TargetLanguage)).Returns(True)
+        Dim words As New List(Of WordEntry) From {GroupDaoTests.word1, GroupDaoTests.word3}
+        Dim controller As TestController = CreateController(words, cardsMock, QueryLanguage.TargetLanguage)
+
+        controller.Update(TestResult.NoError)
+
+        controller.HasWords().Should.Be(False)
+        controller.GetTestChecker().Should.BeNull()
+        controller.Count().Should.Be(0)
+        ReadCardColumn("Counter", 1).Should.Be(8)
     End Sub
 
     ''' <summary>
