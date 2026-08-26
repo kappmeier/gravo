@@ -78,7 +78,11 @@ Public Class TestData
 
     Public Sub Update(result As TestResult)
         If result = TestResult.NoError Then
-            words.Remove(Current.word)
+            Dim entry As TestEntry = Current()
+            If entry Is Nothing Then
+                Throw New InvalidOperationException("There is no current word to update.")
+            End If
+            words.Remove(entry.word)
         End If
     End Sub
 
