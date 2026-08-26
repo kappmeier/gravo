@@ -170,20 +170,49 @@ Public Class TestControllerTests
     End Sub
 
     ''' <summary>
-    ''' Ensures the current behavior of TestEntry.firstTest which hardcoded to True on every TestData.Current()
-    ''' call and is never flipped for a retest. As a result, repeated Wrong answers for the very same word
-    ''' keep calling UpdateCards and keep halving the interval instead of leaving it alone after the first failure.
+    ''' The cards are updated at most once per word: the first Wrong consumes firstTest,
+    ''' so repeated Wrong answers for the very same word halve the interval only once.
     ''' </summary>
     <Test>
-    Public Sub Update_WrongTwiceOnSameWord_KeepsHalvingIntervalBecauseFirstTestNeverFlips()
+    Public Sub Update_WrongTwiceOnSameWord_HalvesIntervalOnlyOnce()
         Dim controller As TestController = CreateWord1Controller(QueryLanguage.TargetLanguage)
 
         controller.Update(TestResult.Wrong)
         ReadCardColumn("Counter", 1).Should.Be(2)
 
         controller.Update(TestResult.Wrong)
-        ReadCardColumn("Counter", 1).Should.Be(1)
+        ReadCardColumn("Counter", 1).Should.Be(2)
 
         controller.GetTestChecker().Retest.Should.Be(True)
+    End Sub
+
+    ''' <summary>
+    ''' A correct answer on a retest after Wrong does not move the card again.
+    ''' </summary>
+    <Test>
+    Public Sub Update_NoErrorAfterWrong_DoesNotUpdateCardAgain()
+        Dim controller As TestController = CreateWord1Controller(QueryLanguage.TargetLanguage)
+
+        controller.Update(TestResult.Wrong)
+        controller.Update(TestResult.NoError)
+
+        ReadCardColumn("Counter", 1).Should.Be(2)
+        ReadCardColumn("TestInterval", 1).Should.Be(2)
+        controller.HasWords().Should.Be(False)
+    End Sub
+
+    ''' <summary>
+    ''' Misspelled does not consume firstTest, so the following correct answer still updates the card.
+    ''' </summary>
+    <Test>
+    Public Sub Update_NoErrorAfterMisspelled_StillUpdatesCard()
+        Dim controller As TestController = CreateWord1Controller(QueryLanguage.TargetLanguage)
+
+        controller.Update(TestResult.Misspelled)
+        controller.Update(TestResult.NoError)
+
+        ReadCardColumn("Counter", 1).Should.Be(8)
+        ReadCardColumn("TestInterval", 1).Should.Be(8)
+        controller.HasWords().Should.Be(False)
     End Sub
 End Class
