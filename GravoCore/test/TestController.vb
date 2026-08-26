@@ -47,11 +47,12 @@ Public Class TestController
             currentTestEntry = Nothing
             currentChecker = Nothing
         Else
-            If testData.Current.Equals(currentTestEntry) Then
+            Dim entry As TestEntry = testData.Current()
+            If entry.Equals(currentTestEntry) Then
                 currentChecker.Retest = True
             Else
-                currentTestEntry = testData.Current()
-                currentChecker = New Checker(dictionaryDao, queryLanguage, currentTestEntry.word)
+                currentTestEntry = entry
+                currentChecker = New Checker(dictionaryDao, queryLanguage, entry.word)
             End If
         End If
     End Sub

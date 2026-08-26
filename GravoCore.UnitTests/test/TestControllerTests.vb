@@ -55,7 +55,7 @@ Public Class TestControllerTests
     End Function
 
     <Test>
-    Public Sub Ctor_WithWords_PresentsHeadWordAndSkipsHeadTwice()
+    Public Sub Ctor_WithWords_PresentsHeadWordAndChecksSkipOnce()
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)).Returns(False)
         Dim words As New List(Of WordEntry) From {GroupDaoTests.word1, GroupDaoTests.word3}
@@ -66,7 +66,7 @@ Public Class TestControllerTests
         controller.Count().Should.Be(2)
         controller.GetTestChecker().Question.Should.Be(GroupDaoTests.word1.Word)
         controller.GetTestChecker().Retest.Should.Be(False)
-        cardsMock.Verify(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage), Times.Exactly(2))
+        cardsMock.Verify(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage), Times.Exactly(1))
     End Sub
 
     <Test>
