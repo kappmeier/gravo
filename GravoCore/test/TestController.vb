@@ -20,7 +20,7 @@ Public Class TestController
     End Sub
 
     ''' <summary>
-    ''' Checks wheather more words are to be tested until the test is over.
+    ''' Checks whether more words are to be tested until the test is over.
     ''' </summary>
     ''' <returns>true if more words are to test</returns>
     Public Function HasWords() As Boolean
@@ -38,6 +38,9 @@ Public Class TestController
         testData.Update(result)
         If useCards AndAlso currentTestEntry.firstTest Then
             UpdateCards(result)
+            If result = TestResult.NoError OrElse result = TestResult.Wrong Then
+                currentTestEntry = New TestEntry(currentTestEntry.word, False)
+            End If
         End If
         NextWord()
     End Sub
@@ -48,7 +51,7 @@ Public Class TestController
             currentChecker = Nothing
         Else
             Dim entry As TestEntry = testData.Current()
-            If entry.Equals(currentTestEntry) Then
+            If currentTestEntry IsNot Nothing AndAlso entry.word.Equals(currentTestEntry.word) Then
                 currentChecker.Retest = True
             Else
                 currentTestEntry = entry
