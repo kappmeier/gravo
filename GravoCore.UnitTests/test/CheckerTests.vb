@@ -69,13 +69,13 @@ Public Class CheckerTests
     End Sub
 
     <Test>
-    Public Sub Evaluate_ActiveCaseDifferingSynonym_ReturnsWrong()
+    Public Sub Evaluate_ActiveCaseDifferingSynonym_ReturnsOtherMeaning()
         SetUpSynonymWord("SYNONYM")
         Dim checker As Checker = CreateFixture(QueryLanguage.OriginalLanguage)
 
         Dim result As TestResult = checker.Evaluate("synonym")
 
-        result.Should.Be(TestResult.Wrong)
+        result.Should.Be(TestResult.OtherMeaning)
     End Sub
 
     <Test>
@@ -117,13 +117,13 @@ Public Class CheckerTests
     End Sub
 
     <Test>
-    Public Sub Evaluate_PassiveCaseDifferingSynonym_ReturnsWrong()
+    Public Sub Evaluate_PassiveCaseDifferingSynonym_ReturnsOtherMeaning()
         SetUpSynonymMeaning("SYNONYMMEANING")
         Dim checker As Checker = CreateFixture(QueryLanguage.TargetLanguage)
 
         Dim result As TestResult = checker.Evaluate("synonymmeaning")
 
-        result.Should.Be(TestResult.Wrong)
+        result.Should.Be(TestResult.OtherMeaning)
     End Sub
 
     <Test>
