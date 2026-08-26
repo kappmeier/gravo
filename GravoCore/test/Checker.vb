@@ -46,7 +46,7 @@ Public Class Checker
             Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(Current)
             Dim words As ICollection(Of WordEntry) = DictionaryDao.GetWordsWithMeaning(Current.Meaning, mainEntry.Language, mainEntry.MainLanguage)
             For Each word In words
-                If input = word.Word Then
+                If input.ToUpper = word.Word.ToUpper Then
                     Return TestResult.OtherMeaning
                 End If
             Next word
@@ -70,7 +70,7 @@ Public Class Checker
             Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(Current)
             Dim words As ICollection(Of WordEntry) = DictionaryDao.GetWordsAndSubWords(mainEntry)
             For Each word In words
-                If input = word.Meaning Then
+                If input.ToUpper = word.Meaning.ToUpper Then
                     Return TestResult.OtherMeaning
                 End If
             Next word
