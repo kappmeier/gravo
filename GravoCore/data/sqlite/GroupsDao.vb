@@ -65,7 +65,7 @@ Public Class GroupsDao
 
         If DBConnection.DBCursor.Read Then
             DBConnection.DBCursor.Close()
-            Throw New Exception("Database inconsistent")
+            Throw New DataInvalidException("Database inconsistent")
         End If
         DBConnection.DBCursor.Close()
     End Function

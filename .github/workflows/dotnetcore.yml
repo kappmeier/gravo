@@ -29,7 +29,7 @@ jobs:
         echo "Tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
         [ "${passed:-0}" -ge "$TEST_FLOOR" ]
       env:
-        TEST_FLOOR: 244
+        TEST_FLOOR: 245
     - name: Coverage report
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10

@@ -249,6 +249,19 @@ Public Class GroupsDaoTests
         CollectionAssert.AreEquivalent(expectedResult, result, "new subgroups incorrect")
     End Sub
 
+    ''' <summary>
+    ''' Groups are unique by (name, sub name), enforced by the unique index [Group]. The
+    ''' guard defends against a corrupted database where the index is gone and a duplicate
+    ''' pair sneaked in.
+    ''' </summary>
+    <Test>
+    Public Sub GetGroup_DuplicateGroupRows_ThrowsDataInvalidException()
+        _db.ExecuteNonQuery("DROP INDEX [Group]", Array.Empty(Of Object))
+        _db.ExecuteNonQuery("INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES ('Language Book', 'Unit 1', 'GroupLanguageBook01')", Array.Empty(Of Object))
+
+        Assert.Throws(Of DataInvalidException)(Sub() CType(_groupsDao, IGroupsDao).GetGroup("Language Book", "Unit 1"))
+    End Sub
+
     <Test>
     Public Sub SwapGroups_Existing_AreSwapped()
         _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2")
