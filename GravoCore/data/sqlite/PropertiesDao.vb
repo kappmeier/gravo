@@ -49,7 +49,7 @@ Public Class PropertiesDao
             If ex.ErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
                 Return ImmutableList(Of Properties.DBVersion).Empty
             End If
-            Throw ex
+            Throw
         End Try
         LoadVersions = ExtractVersions(DBConnection.DBCursor)
         DBConnection.DBCursor.Close()

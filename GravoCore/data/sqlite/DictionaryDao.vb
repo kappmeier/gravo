@@ -108,7 +108,7 @@ Public Class DictionaryDao
             Return GetMainEntry(Word, Language, MainLanguage)
         Catch ex As Exception
             ' Etwas anderes ist schiefgegangen. Weiterleiten
-            Throw ex
+            Throw
         End Try
         ' Nichts schiefgegangen, das heißt es gibt ein Wort mit diesem Index
         Throw New EntryExistsException("Entry for " & Word & " already exists")
@@ -121,7 +121,7 @@ Public Class DictionaryDao
         Catch ex As LanguageNotFoundException
             Throw New EntryNotFoundException("Main entry not found for languages", ex)
         Catch ex As EntryNotFoundException
-            Throw ex
+            Throw
         End Try
 
         ' Check, if there is already the exact same entry (i.e. word and meaning are the same)
