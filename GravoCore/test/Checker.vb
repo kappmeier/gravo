@@ -40,13 +40,13 @@ Public Class Checker
             Return TestResult.NoError
         Else
             ' The input was not literally correct. Investigate further.
-            If input.ToUpper = Current.Word.ToUpper Then
+            If String.Equals(input, Current.Word, StringComparison.OrdinalIgnoreCase) Then
                 Return TestResult.Misspelled
             End If
             Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(Current)
             Dim words As ICollection(Of WordEntry) = DictionaryDao.GetWordsWithMeaning(Current.Meaning, mainEntry.Language, mainEntry.MainLanguage)
             For Each word In words
-                If input.ToUpper = word.Word.ToUpper Then
+                If String.Equals(input, word.Word, StringComparison.OrdinalIgnoreCase) Then
                     Return TestResult.OtherMeaning
                 End If
             Next word
@@ -64,13 +64,13 @@ Public Class Checker
             Return TestResult.NoError
         Else
             ' The input was not literally correct. Investigate further.
-            If input.ToUpper = Current.Meaning.ToUpper Then
+            If String.Equals(input, Current.Meaning, StringComparison.OrdinalIgnoreCase) Then
                 Return TestResult.Misspelled
             End If
             Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(Current)
             Dim words As ICollection(Of WordEntry) = DictionaryDao.GetWordsAndSubWords(mainEntry)
             For Each word In words
-                If input.ToUpper = word.Meaning.ToUpper Then
+                If String.Equals(input, word.Meaning, StringComparison.OrdinalIgnoreCase) Then
                     Return TestResult.OtherMeaning
                 End If
             Next word
