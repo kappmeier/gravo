@@ -26,7 +26,7 @@ Public Class Checker
         ElseIf queryLanguage = QueryLanguage.TargetLanguage Then
             Return EvaluatePassive(input)
         Else
-            Throw New ArgumentException()
+            Throw New ArgumentException("Query language must be OriginalLanguage or TargetLanguage, but was " & queryLanguage.ToString() & ".")
         End If
     End Function
 
@@ -86,7 +86,8 @@ Public Class Checker
             ElseIf queryLanguage = QueryLanguage.TargetLanguage Then
                 Return current.Word
             Else
-                Throw New ArgumentException()
+                Throw New ArgumentException("Query language must be OriginalLanguage or TargetLanguage, but was "
+                & queryLanguage.ToString() & ".")
             End If
         End Get
     End Property
@@ -98,7 +99,8 @@ Public Class Checker
             ElseIf queryLanguage = QueryLanguage.TargetLanguage Then
                 Return current.Meaning
             Else
-                Throw New ArgumentException()
+                Throw New ArgumentException("Query language must be OriginalLanguage or TargetLanguage, but was "
+                & queryLanguage.ToString() & ".")
             End If
         End Get
     End Property
