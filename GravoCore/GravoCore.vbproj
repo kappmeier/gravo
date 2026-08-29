@@ -6,16 +6,14 @@
     <OptionStrict>On</OptionStrict>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- Currently do not fix the following warnings as changes semantics:
-           CA2218: adding GetHashCode changes hash semantics (MainEntry/TestEntry).
-         API surface:
+    <!-- API surface:
            CA1707: ManagementDao DB_VERSION_* constants;
            CA1725: interface/impl parameter-name mismatches
            CA1051: public fields in ManagementDao
            CA1036: DBVersion operators
            CA1001: SQLiteDataBaseOperation lifecycle
            CA1859: concrete return types on Private helpers (perf-only). -->
-    <NoWarn>$(NoWarn);CA1001;CA1036;CA1051;CA1707;CA1725;CA1859;CA2218</NoWarn>
+    <NoWarn>$(NoWarn);CA1001;CA1036;CA1051;CA1707;CA1725;CA1859</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
