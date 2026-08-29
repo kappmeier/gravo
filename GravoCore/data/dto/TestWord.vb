@@ -94,6 +94,7 @@ Public Class TestWord
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return (_wordEntry, _marked, _example).GetHashCode()
+        ' Normalize Nothing to "", fitting to the Equals implementation.
+        Return (_wordEntry, _marked, If(_example, "")).GetHashCode()
     End Function
 End Class
