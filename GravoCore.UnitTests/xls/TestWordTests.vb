@@ -106,4 +106,12 @@ Public Class TestWordTests
 
         testWordA.GetHashCode().Should.Be(testWordB.GetHashCode())
     End Sub
+
+    <Test>
+    Public Sub GetHashCode_NothingAndEmptyString_ReturnsEqualHashCodes()
+        Dim testWordA As New TestWord(wordEntry, True, Nothing)
+        Dim testWordB As New TestWord(wordEntry, True, "")
+
+        testWordA.GetHashCode().Should.Be(testWordB.GetHashCode())
+    End Sub
 End Class

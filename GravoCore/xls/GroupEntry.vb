@@ -22,7 +22,8 @@ Public Class GroupEntry
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return (_GroupName, _SubName).GetHashCode()
+        ' Normalize Nothing to "", fitting to the Equals comparison.
+        Return (If(_GroupName, ""), If(_SubName, "")).GetHashCode()
     End Function
 
     Public ReadOnly Property Index() As Integer
