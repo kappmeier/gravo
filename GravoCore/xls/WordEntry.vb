@@ -23,15 +23,11 @@ Public Class WordEntry
         _irregular = irregular
     End Sub
 
+    ''' <summary>
+    ''' Creates an entry that is not yet stored in the database; it's index is initialized to 0.
+    ''' </summary>
     Public Sub New(word As String, pre As String, post As String, wordType As WordType, meaning As String, additionalTargetLangInfo As String, irregular As Boolean)
-        _index = Index
-        _word = word
-        _pre = pre
-        _post = post
-        _wordType = wordType
-        _meaning = meaning
-        _additionalTargetLangInfo = additionalTargetLangInfo
-        _irregular = irregular
+        Me.New(0, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular)
     End Sub
 
     Public Property Index As Integer

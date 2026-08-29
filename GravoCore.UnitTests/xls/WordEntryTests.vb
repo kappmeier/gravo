@@ -3,12 +3,10 @@ Imports NUnit.Framework
 Imports FluentAssertions
 
 ''' <summary>
-''' Tests the GravoCore/xls/WordEntry.vb class. For the simple data holder the
+''' Tests the GravoCore/xls/WordEntry class. For the simple data holder the
 ''' construction, typed-Equals, and GetHashCode behavior is tested.
-''' Tests include that the public constructor assigns `_index = Index`, a self-assignment
-''' reading the not-yet-initialized field through its own getter, so a publicly constructed
-''' WordEntry always reports Index = 0 and WordIndex = 0.
-''' This is probably a design flaw.
+''' A publicly constructed WordEntry is not yet stored in the database and reports
+''' Index = 0 and WordIndex = 0.
 ''' </summary>
 <TestFixture>
 Public Class WordEntryTests
