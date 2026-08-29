@@ -86,4 +86,23 @@ Public Class WordEntryTests
 
         entryA.GetHashCode().Should.Be(entryB.GetHashCode())
     End Sub
+
+    <Test>
+    Public Sub GetHashCode_NothingVersusEmptyStringField_ReturnsEqualHashCodes()
+        ' Equals treats Nothing and "" as equal (VB standard = comparison)
+        Dim entryA As New WordEntry("word", Nothing, "post", WordType.Verb, "meaning", "info", True)
+        Dim entryB As New WordEntry("word", "", "post", WordType.Verb, "meaning", "info", True)
+
+        entryA.GetHashCode().Should.Be(entryB.GetHashCode())
+    End Sub
+
+    <Test>
+    Public Sub GetHashCode_DifferingIndexOnly_ReturnsEqualHashCodes()
+        ' Equals ignores _index
+        Dim entryA As New GroupDaoTests.MockWordEntry(1, "word", "pre", "post", WordType.Verb, "meaning", "info", True)
+        Dim entryB As New GroupDaoTests.MockWordEntry(2, "word", "pre", "post", WordType.Verb, "meaning", "info", True)
+
+        entryA.Equals(entryB).Should.Be(True)
+        entryA.GetHashCode().Should.Be(entryB.GetHashCode())
+    End Sub
 End Class

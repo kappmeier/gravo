@@ -106,6 +106,8 @@ Public Class WordEntry
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return (_index, _word, _pre, _post, _wordType, _meaning, _additionalTargetLangInfo, _irregular).GetHashCode()
+        ' Hash exactly the fields Equals compares without _index and normalized comparison
+        Return (If(_word, ""), If(_pre, ""), If(_post, ""), _wordType, If(_meaning, ""),
+            If(_additionalTargetLangInfo, ""), _irregular).GetHashCode()
     End Function
 End Class
