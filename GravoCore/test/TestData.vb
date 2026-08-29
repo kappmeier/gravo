@@ -27,9 +27,7 @@ NotInheritable Class TestEntry
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        ' WordEntry.GetHashCode includes _index, which WordEntry.Equals ignores.
-        ' hash on the word's name instead so equal entries hash equally.
-        Return (If(word.Word, ""), firstTest).GetHashCode()
+        Return (word, firstTest).GetHashCode()
     End Function
 End Class
 
