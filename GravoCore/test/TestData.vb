@@ -25,6 +25,12 @@ NotInheritable Class TestEntry
             entry.word.Equals(word) AndAlso
             firstTest = entry.firstTest
     End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        ' WordEntry.GetHashCode includes _index, which WordEntry.Equals ignores.
+        ' hash on the word's name instead so equal entries hash equally.
+        Return (If(word.Word, ""), firstTest).GetHashCode()
+    End Function
 End Class
 
 ''' <summary>

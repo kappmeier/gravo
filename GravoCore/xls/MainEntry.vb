@@ -52,4 +52,8 @@ Public Class MainEntry
                _language = entry._language AndAlso
                _mainLanguage = entry._mainLanguage
     End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return (_index, If(_word, ""), If(_language, ""), If(_mainLanguage, "")).GetHashCode()
+    End Function
 End Class
