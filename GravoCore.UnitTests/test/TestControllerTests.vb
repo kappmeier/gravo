@@ -55,7 +55,7 @@ Public Class TestControllerTests
     End Function
 
     <Test>
-    Public Sub Ctor_WithWords_PresentsHeadWordAndChecksSkipOnce()
+    Public Sub Constructor_WithWords_PresentsHeadWordAndChecksSkipOnce()
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)).Returns(False)
         Dim words As New List(Of WordEntry) From {GroupDaoTests.word1, GroupDaoTests.word3}
@@ -70,7 +70,7 @@ Public Class TestControllerTests
     End Sub
 
     <Test>
-    Public Sub Ctor_WithEmptyTestData_HasNoCheckerAndCountIsZero()
+    Public Sub Constructor_WithEmptyTestData_HasNoCheckerAndCountIsZero()
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         Dim words As New List(Of WordEntry)
 
@@ -82,7 +82,7 @@ Public Class TestControllerTests
     End Sub
 
     <Test>
-    Public Sub Ctor_WithAllSkippableWords_EndsTestImmediately()
+    Public Sub Constructor_WithAllSkippableWords_EndsTestImmediately()
         Dim cardsMock As New Mock(Of ICardsDao)(MockBehavior.Strict)
         cardsMock.Setup(Function(x) x.Skip(GroupDaoTests.word1, QueryLanguage.TargetLanguage)).Returns(True)
         Dim words As New List(Of WordEntry) From {GroupDaoTests.word1}
