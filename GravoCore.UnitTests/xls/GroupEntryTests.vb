@@ -19,7 +19,7 @@ Public Class GroupEntryTests
     End Sub
 
     <Test>
-    Public Sub GetHashCode_SameCtorArgs_ReturnsEqualHashCodes()
+    Public Sub GetHashCode_SameConstructorArgs_ReturnsEqualHashCodes()
         Dim entryA As New GroupEntry(1, "group", "sub", "table")
         Dim entryB As New GroupEntry(1, "group", "sub", "table")
 
