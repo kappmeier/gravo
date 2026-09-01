@@ -1,5 +1,7 @@
 ﻿Module GravoCmd
-    Private DBPath As String = System.IO.Path.GetDirectoryName(Environment.GetCommandLineArgs()(0)) & "\voc.s3db"
+    Private DBPath As String = If(Environment.GetCommandLineArgs().Length > 1,
+                                   Environment.GetCommandLineArgs()(1),
+                                   System.IO.Path.Combine(AppContext.BaseDirectory, "voc.s3db"))
 
     Sub Main()
         Console.WriteLine("Gravo Command Line Edition (pre-release)")
@@ -37,8 +39,7 @@
 
         If (TargetGroup Is Nothing) Then
             Console.WriteLine("Invalid entry")
-        Else
-
+            Return
         End If
         Dim Groups = GroupsDao.GetSubGroups(TargetGroup)
         Console.WriteLine(TargetGroup & ":")
