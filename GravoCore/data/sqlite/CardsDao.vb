@@ -18,7 +18,7 @@ Public Class CardsDao
     End Sub
 
     Public Function Load(wordNumber As Integer) As Card Implements ICardsDao.Load
-        Dim command As String = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?" & wordNumber
+        Dim command As String = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
         DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {wordNumber}))
         If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("Entry " & wordNumber & " not found in global cards-system. If you Expect to have it, try to reorganize the database.")
 

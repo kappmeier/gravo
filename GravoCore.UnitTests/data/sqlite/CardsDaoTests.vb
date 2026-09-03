@@ -220,6 +220,22 @@ Public Class CardsDaoTests
         Assert.Throws(Of EntryNotFoundException)(Sub() _cardsDao.Skip(GroupDaoTests.word4, QueryLanguage.TargetLanguage))
     End Sub
 
+    <Test>
+    Public Sub Load_ExistingIndex_ReturnsCard()
+        Dim card As Card = _cardsDao.Load(2)
+
+        card.TestInterval.Should.Be(4)
+        card.Counter.Should.Be(2)
+        card.LastDate.Should.Be(New Date(2019, 9, 7))
+        card.TestIntervalMain.Should.Be(4)
+        card.CounterMain.Should.Be(2)
+    End Sub
+
+    <Test>
+    Public Sub Load_MissingIndex_Throws()
+        Assert.Throws(Of EntryNotFoundException)(Sub() _cardsDao.Load(999))
+    End Sub
+
     Private Sub Test(updateAction As Action, table As String, columnSuffix As String, baseInterval As Integer, updateInterval As Func(Of Integer, Integer))
         Dim executionData = ExecuteOnSameDay(updateAction)
         Dim expectedInterval As Integer = If(executionData.Item2, updateInterval(baseInterval), updateInterval(updateInterval(baseInterval)))
