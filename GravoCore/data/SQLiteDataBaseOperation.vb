@@ -1,9 +1,18 @@
 ﻿Imports System.Data.Common
 Imports System.Data.SQLite
 Imports System.Globalization
+Imports System.Text.RegularExpressions
 
 Public Class SQLiteDataBaseOperation
     Implements IDataBaseOperation
+
+    Private Const SingleQuotedLiteral As String = "'(?:[^']|'')*'"          ' '…' with '' escapes
+    Private Const DoubleQuotedIdentifier As String = """(?:[^""]|"""")*"""  ' "…" with "" escapes
+    Private Const BracketedIdentifier As String = "\[[^\]]*\]"              ' […]
+
+    ' Regex to replace placeholders (?), built from three quoted patterns
+    Private Shared ReadOnly QuotedRegionOrPlaceholder As New Regex(
+        SingleQuotedLiteral & "|" & DoubleQuotedIdentifier & "|" & BracketedIdentifier & "|\?")
 
     Dim connection As New SQLiteConnection()
     Dim connected As Boolean
@@ -49,14 +58,7 @@ Public Class SQLiteDataBaseOperation
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
-        Dim command As SQLiteCommand
-        command = connection.CreateCommand
-        command.CommandText = CommandText
-        Dim count As Integer = 0
-        For Each parameter As String In values
-            command.Parameters.AddWithValue("param" & count, parameter)
-            count += 1
-        Next parameter
+        Dim command As SQLiteCommand = CreateParameterizedCommand(CommandText, values)
         command.ExecuteNonQuery()
         command.Dispose()
     End Function
@@ -73,16 +75,9 @@ Public Class SQLiteDataBaseOperation
     End Function
 
     Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader Implements IDataBaseOperation.ExecuteReader
-        Dim sqlCommand As SQLiteCommand
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
-        sqlCommand = connection.CreateCommand
-        sqlCommand.CommandText = commandText
-        Dim count As Integer = 0
-        For Each value As String In values
-            sqlCommand.Parameters.AddWithValue("param" & count, value)
-            count += 1
-        Next value
+        Dim sqlCommand As SQLiteCommand = CreateParameterizedCommand(commandText, values)
         SQLreader = sqlCommand.ExecuteReader()
         currentCommand = sqlCommand
         Return SQLreader
@@ -110,6 +105,47 @@ Public Class SQLiteDataBaseOperation
             currentCommand = Nothing
         End If
     End Sub
+
+    ''' <summary>
+    ''' Creates a command from <paramref name="commandText"/> with potential ? placeholders rewritten to
+    ''' named @paramN parameters. Each value of <paramref name="values"/> is bound to the corresponding named
+    ''' parameter.
+    ''' During replacement every value is bound through the VB Object-to-String conversion, as the DAOs rely on
+    ''' (e.g. Date becomes a culture-general string).
+    ''' </summary>
+    Private Function CreateParameterizedCommand(commandText As String, values As IEnumerable(Of Object)) As SQLiteCommand
+        Dim command As SQLiteCommand = connection.CreateCommand()
+        Dim count As Integer = 0
+        For Each value As String In values
+            command.Parameters.AddWithValue("@param" & count, value)
+            count += 1
+        Next value
+        command.CommandText = NameParameters(commandText, count)
+        Return command
+    End Function
+
+    ''' <summary>
+    ''' Replaces each positional ? placeholder to a named @paramN parameter. Quoted segments are matched
+    ''' as units and kept verbatim, as user-derived group names and table names may contain '?'. Matched
+    ''' groups include '…' string literals (honoring '' escapes), [.…] and "…" quoted identifiers.
+    ''' Throws if the placeholder count does not match the supplied value count.
+    ''' </summary>
+    Private Shared Function NameParameters(commandText As String, expectedCount As Integer) As String
+        Dim count As Integer = 0
+        Dim result As String = QuotedRegionOrPlaceholder.Replace(
+            commandText,
+            Function(m)
+                If m.Value <> "?" Then Return m.Value
+                Dim name As String = "@param" & count
+                count += 1
+                Return name
+            End Function)
+        If count <> expectedCount Then
+            Throw New ArgumentException("Found " & count & " parameter placeholders but got " &
+                                        expectedCount & " values for command: " & commandText)
+        End If
+        Return result
+    End Function
 
     Public Function SecureGetBool(Index As Integer) As Boolean Implements IDataBaseOperation.SecureGetBool
         If TypeOf (SQLreader.GetValue(Index)) Is DBNull Then Return False Else Return SQLreader.GetBoolean(Index)
