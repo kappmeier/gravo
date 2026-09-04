@@ -8,6 +8,8 @@ Public Class SQLiteDataBaseOperation
     Dim connection As New SQLiteConnection()
     Dim connected As Boolean
     Dim SQLreader As SQLiteDataReader
+    ' The currently active (most recent) SQL command, kept as state to allow reading without disposal.
+    Dim currentCommand As SQLiteCommand
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If connected Then Close()
@@ -27,6 +29,7 @@ Public Class SQLiteDataBaseOperation
     Public Function ExecuteNonQuery(CommandText As String) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
+        DisposePreviousCommand()
         Dim command As SQLiteCommand
         command = connection.CreateCommand
         command.CommandText = CommandText
@@ -45,6 +48,7 @@ Public Class SQLiteDataBaseOperation
     Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of Object)) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
+        DisposePreviousCommand()
         Dim command As SQLiteCommand
         command = connection.CreateCommand
         command.CommandText = CommandText
@@ -60,16 +64,18 @@ Public Class SQLiteDataBaseOperation
     Public Function ExecuteReader(CommandText As String) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         Dim SQLcommand As SQLiteCommand
         If Not SQLreader Is Nothing Then SQLreader.Close()
+        DisposePreviousCommand()
         SQLcommand = connection.CreateCommand
         SQLcommand.CommandText = CommandText
         SQLreader = SQLcommand.ExecuteReader()
-        SQLcommand.Dispose()
+        currentCommand = SQLcommand
         Return SQLreader
     End Function
 
     Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         Dim sqlCommand As SQLiteCommand
         If Not SQLreader Is Nothing Then SQLreader.Close()
+        DisposePreviousCommand()
         sqlCommand = connection.CreateCommand
         sqlCommand.CommandText = commandText
         Dim count As Integer = 0
@@ -78,7 +84,7 @@ Public Class SQLiteDataBaseOperation
             count += 1
         Next value
         SQLreader = sqlCommand.ExecuteReader()
-        sqlCommand.Dispose()
+        currentCommand = sqlCommand
         Return SQLreader
     End Function
 
@@ -88,6 +94,21 @@ Public Class SQLiteDataBaseOperation
 
     Public Sub CloseReader() Implements IDataBaseOperation.CloseReader
         If Not SQLreader Is Nothing Then SQLreader.Close()
+        DisposePreviousCommand()
+    End Sub
+
+    ''' <summary>
+    ''' Disposes the previously executed SQL command, if any. Must be called before a new command is created. In each
+    ''' procedure and function.
+    ''' </summary>
+    ''' <remarks>
+    ''' This is necessary to prevent the disposal of the command from invalidating the active reader.
+    ''' </remarks>
+    Private Sub DisposePreviousCommand()
+        If currentCommand IsNot Nothing Then
+            currentCommand.Dispose()
+            currentCommand = Nothing
+        End If
     End Sub
 
     Public Function SecureGetBool(Index As Integer) As Boolean Implements IDataBaseOperation.SecureGetBool
