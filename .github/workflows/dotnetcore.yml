@@ -15,6 +15,15 @@ jobs:
         dotnet-version: 8.0.x
     - name: Build with dotnet
       run: dotnet build GravoCore -c Release
+    - name: Build GravoCmd
+      run: dotnet build GravoCmd -c Release
+    - name: Smoke-run GravoCmd
+      # Asserts the CLI actually produces real output, not just a zero exit code.
+      # `tee` then `grep` necessary to avoid grep closing the pipe early
+      shell: bash
+      run: |
+        printf '1\n' | dotnet run --project GravoCmd -c Release -- voc.s3db | tee smoke.log
+        grep -q "Available Groups:" smoke.log
     - name: Unit Tests
       # Run tests, and ensure that the tests are actually executed.
       # `dotnet test` exits 0 when no tests are discovered, this can easily happen after
@@ -29,7 +38,7 @@ jobs:
         echo "Tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
         [ "${passed:-0}" -ge "$TEST_FLOOR" ]
       env:
-        TEST_FLOOR: 254
+        TEST_FLOOR: 257
     - name: Coverage report
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10

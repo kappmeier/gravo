@@ -217,6 +217,44 @@ Public Class ManagementDaoTests
         fixture.Reorganize()
     End Sub
 
+    <Test>
+    Public Sub UpdateDatabaseSingle_1_4To1_5_TransfersMarkedFlagToGroupTable()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        Dim fixture = New ManagementDao(testDb)
+        fixture.Initialize()
+
+        For updateCount As Integer = 1 To 4
+            fixture.UpdateDatabaseSingle()
+        Next updateCount
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_4)
+
+        testDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'UpgradeGroup01')", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("CREATE TABLE [UpgradeGroup01] ([WordIndex] INT NOT NULL)", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("INSERT INTO [UpgradeGroup01] ([WordIndex]) VALUES (1)", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("INSERT INTO [UpgradeGroup01] ([WordIndex]) VALUES (2)", Array.Empty(Of Object))
+
+        testDb.ExecuteNonQuery("INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked]) VALUES (1, 'word1', NULL, NULL, 0, 'meaning1', NULL, 0, 1)", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked]) VALUES (1, 'word2', NULL, NULL, 0, 'meaning2', NULL, 0, 0)", Array.Empty(Of Object))
+
+        fixture.UpdateDatabaseSingle()
+
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_5)
+
+        Dim command As String = "SELECT [Marked] FROM [UpgradeGroup01] WHERE [WordIndex] = ?"
+
+        testDb.ExecuteReader(command, "1")
+        testDb.DBCursor.Read()
+        Dim markedFirst As Boolean = testDb.SecureGetBool(0)
+        testDb.DBCursor.Close()
+        markedFirst.Should.BeTrue()
+
+        testDb.ExecuteReader(command, "2")
+        testDb.DBCursor.Read()
+        Dim markedSecond As Boolean = testDb.SecureGetBool(0)
+        testDb.DBCursor.Close()
+        markedSecond.Should.BeFalse()
+    End Sub
+
     Private Function CreateIllegalDb() As SQLiteDataBaseOperation
         Dim tempIllegalDb = Path.GetTempFileName
         File.Copy(DaoUtils.GetSqliteResource(IllegalResourceFile), tempIllegalDb, True)

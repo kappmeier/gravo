@@ -173,7 +173,7 @@ Public Class ManagementDao
                 Dim marked As Boolean = DBConnection.SecureGetBool(0)
                 DBConnection.DBCursor.Close()
 
-                command = "UPDATE [" & table & "] SET [Marked] = ? WHERE [WordIndex] = ?" & index
+                command = "UPDATE [" & table & "] SET [Marked] = ? WHERE [WordIndex] = ?"
                 DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {marked, index}))
             Next
         Next group
