@@ -1,6 +1,6 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Data.Common
-Imports System.Data.SQLite
+Imports Microsoft.Data.Sqlite
 Imports System.Globalization
 Imports Gravo
 
@@ -45,8 +45,8 @@ Public Class PropertiesDao
         Try
             Dim command As String = "SELECT [Version], [Date], [Description] FROM DBVersion"
             DBConnection.ExecuteReader(command, Array.Empty(Of Object))
-        Catch ex As SQLiteException
-            If ex.ErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
+        Catch ex As SqliteException
+            If ex.SqliteErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
                 Return ImmutableList(Of Properties.DBVersion).Empty
             End If
             Throw

@@ -1,4 +1,4 @@
-﻿Imports System.Data.SQLite
+﻿Imports Microsoft.Data.Sqlite
 Imports System.IO
 Imports Gravo
 Imports NUnit.Framework
@@ -35,7 +35,7 @@ Public Class CardsDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub
@@ -237,16 +237,21 @@ Public Class CardsDaoTests
     End Sub
 
     ''' <summary>
-    ''' Assert current broken implementation of Save/Load `LastDate` with culture aware
-    ''' (e.g. '12/24/2021') saving, which cannot be parsed back by ISO date parser.
+    ''' Asserts working round-trip of writing dates through the wrapper (e.g. '12/24/2021), and reading
+    ''' back with culture invariant reader.
     ''' </summary>
     <Test>
-    Public Sub Save_ThenLoad_ThrowsFormatException()
+    Public Sub Save_ThenLoad_RoundTripsCard()
         Dim saved As New Card(8, 3, New Date(2021, 12, 24), 5, 2)
 
         _cardsDao.Save(saved, 3)
+        Dim loaded As Card = _cardsDao.Load(3)
 
-        Assert.Throws(Of FormatException)(Sub() _cardsDao.Load(3))
+        loaded.TestInterval.Should.Be(8)
+        loaded.Counter.Should.Be(3)
+        loaded.LastDate.Should.Be(New Date(2021, 12, 24))
+        loaded.TestIntervalMain.Should.Be(5)
+        loaded.CounterMain.Should.Be(2)
     End Sub
 
     Private Sub Test(updateAction As Action, table As String, columnSuffix As String, baseInterval As Integer, updateInterval As Func(Of Integer, Integer))

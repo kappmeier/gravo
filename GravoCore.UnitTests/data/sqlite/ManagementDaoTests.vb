@@ -1,4 +1,4 @@
-﻿Imports System.Data.SQLite
+﻿Imports Microsoft.Data.Sqlite
 Imports System.IO
 Imports Gravo
 Imports NUnit.Framework
@@ -30,7 +30,7 @@ Public Class ManagementDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub
@@ -265,6 +265,6 @@ Public Class ManagementDaoTests
 
     Private Shared Sub CloseIllegalDb(illegalDb As IDataBaseOperation)
         illegalDb.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
     End Sub
 End Class

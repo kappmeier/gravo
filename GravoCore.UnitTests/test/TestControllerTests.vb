@@ -1,4 +1,4 @@
-﻿Imports System.Data.SQLite
+﻿Imports Microsoft.Data.Sqlite
 Imports System.IO
 Imports Gravo
 Imports Moq
@@ -29,7 +29,7 @@ Public Class TestControllerTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

@@ -1,7 +1,7 @@
 ﻿Imports FluentAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports System.Data.SQLite
+Imports Microsoft.Data.Sqlite
 Imports System.IO
 
 Public Class SQLiteDataBaseOperationTests
@@ -20,7 +20,7 @@ Public Class SQLiteDataBaseOperationTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

@@ -1,5 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
-Imports System.Data.SQLite
+Imports Microsoft.Data.Sqlite
 Imports System.IO
 Imports Gravo
 Imports NUnit.Framework
@@ -58,7 +58,7 @@ Public Class DictionaryDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

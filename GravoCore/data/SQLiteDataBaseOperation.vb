@@ -1,5 +1,5 @@
 ﻿Imports System.Data.Common
-Imports System.Data.SQLite
+Imports Microsoft.Data.Sqlite
 Imports System.Globalization
 Imports System.Text.RegularExpressions
 
@@ -14,15 +14,15 @@ Public Class SQLiteDataBaseOperation
     Private Shared ReadOnly QuotedRegionOrPlaceholder As New Regex(
         SingleQuotedLiteral & "|" & DoubleQuotedIdentifier & "|" & BracketedIdentifier & "|\?")
 
-    Dim connection As New SQLiteConnection()
+    Dim connection As New SqliteConnection()
     Dim connected As Boolean
-    Dim SQLreader As SQLiteDataReader
+    Dim SQLreader As SqliteDataReader
     ' The currently active (most recent) SQL command, kept as state to allow reading without disposal.
-    Dim currentCommand As SQLiteCommand
+    Dim currentCommand As SqliteCommand
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If connected Then Close()
-        connection.ConnectionString = "Data Source=" & DBPath & ";"
+        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=False;"
         connection.Open()
         connected = True
         Return True
@@ -39,7 +39,7 @@ Public Class SQLiteDataBaseOperation
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
-        Dim command As SQLiteCommand
+        Dim command As SqliteCommand
         command = connection.CreateCommand
         command.CommandText = CommandText
         command.ExecuteNonQuery()
@@ -58,13 +58,13 @@ Public Class SQLiteDataBaseOperation
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
-        Dim command As SQLiteCommand = CreateParameterizedCommand(CommandText, values)
+        Dim command As SqliteCommand = CreateParameterizedCommand(CommandText, values)
         command.ExecuteNonQuery()
         command.Dispose()
     End Function
 
     Public Function ExecuteReader(CommandText As String) As DbDataReader Implements IDataBaseOperation.ExecuteReader
-        Dim SQLcommand As SQLiteCommand
+        Dim SQLcommand As SqliteCommand
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
         SQLcommand = connection.CreateCommand
@@ -77,7 +77,7 @@ Public Class SQLiteDataBaseOperation
     Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
-        Dim sqlCommand As SQLiteCommand = CreateParameterizedCommand(commandText, values)
+        Dim sqlCommand As SqliteCommand = CreateParameterizedCommand(commandText, values)
         SQLreader = sqlCommand.ExecuteReader()
         currentCommand = sqlCommand
         Return SQLreader
@@ -113,8 +113,8 @@ Public Class SQLiteDataBaseOperation
     ''' During replacement every value is bound through the VB Object-to-String conversion, as the DAOs rely on
     ''' (e.g. Date becomes a culture-general string).
     ''' </summary>
-    Private Function CreateParameterizedCommand(commandText As String, values As IEnumerable(Of Object)) As SQLiteCommand
-        Dim command As SQLiteCommand = connection.CreateCommand()
+    Private Function CreateParameterizedCommand(commandText As String, values As IEnumerable(Of Object)) As SqliteCommand
+        Dim command As SqliteCommand = connection.CreateCommand()
         Dim count As Integer = 0
         For Each value As String In values
             command.Parameters.AddWithValue("@param" & count, value)
