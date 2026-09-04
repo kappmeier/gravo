@@ -236,6 +236,19 @@ Public Class CardsDaoTests
         Assert.Throws(Of EntryNotFoundException)(Sub() _cardsDao.Load(999))
     End Sub
 
+    ''' <summary>
+    ''' Assert current broken implementation of Save/Load `LastDate` with culture aware
+    ''' (e.g. '12/24/2021') saving, which cannot be parsed back by ISO date parser.
+    ''' </summary>
+    <Test>
+    Public Sub Save_ThenLoad_ThrowsFormatException()
+        Dim saved As New Card(8, 3, New Date(2021, 12, 24), 5, 2)
+
+        _cardsDao.Save(saved, 3)
+
+        Assert.Throws(Of FormatException)(Sub() _cardsDao.Load(3))
+    End Sub
+
     Private Sub Test(updateAction As Action, table As String, columnSuffix As String, baseInterval As Integer, updateInterval As Func(Of Integer, Integer))
         Dim executionData = ExecuteOnSameDay(updateAction)
         Dim expectedInterval As Integer = If(executionData.Item2, updateInterval(baseInterval), updateInterval(updateInterval(baseInterval)))
