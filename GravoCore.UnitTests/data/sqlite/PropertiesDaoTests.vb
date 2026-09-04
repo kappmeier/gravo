@@ -1,7 +1,7 @@
 ﻿Imports FluentAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports System.Data.SQLite
+Imports Microsoft.Data.Sqlite
 Imports System.IO
 
 Public Class PropertiesDaoTests
@@ -24,7 +24,7 @@ Public Class PropertiesDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SQLiteConnection.ClearAllPools()
+        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub
@@ -84,7 +84,6 @@ Public Class PropertiesDaoTests
 
     Public Shared Function CreateEmptyTestDb() As IDataBaseOperation
         Dim emptyDbPath = Path.GetTempFileName
-        SQLiteConnection.CreateFile(emptyDbPath)
         CreateEmptyTestDb = New SQLiteDataBaseOperation()
         CreateEmptyTestDb.Open(emptyDbPath)
     End Function
