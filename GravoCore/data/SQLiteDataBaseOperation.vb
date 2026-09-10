@@ -61,6 +61,7 @@ Public Class SQLiteDataBaseOperation
         Dim command As SqliteCommand = CreateParameterizedCommand(CommandText, values)
         command.ExecuteNonQuery()
         command.Dispose()
+        Return True
     End Function
 
     Public Function ExecuteReader(CommandText As String) As DbDataReader Implements IDataBaseOperation.ExecuteReader
