@@ -58,13 +58,12 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - uses: microsoft/setup-msbuild@v2
-    - name: Restore
-      run: nuget restore Gravo.sln
-    - name: Restore packages.config
-      run: nuget restore Gravo/packages.config -PackagesDirectory packages
     - name: Build WinForms project
-      run: msbuild Gravo/Gravo.vbproj -p:Configuration=Release -v:minimal
+      run: msbuild Gravo/Gravo.vbproj -restore -p:Configuration=Release -v:minimal
     - name: Assert build output
       shell: pwsh
       run: |
         if (-not (Test-Path Gravo/bin/Release/Gravo.exe)) { throw "Gravo.exe not produced" }
+        if (-not (Test-Path Gravo/bin/Release/Microsoft.Data.Sqlite.dll)) { throw "provider missing" }
+        if (-not (Get-ChildItem Gravo/bin/Release -Recurse -Filter e_sqlite3.dll)) { throw "native sqlite missing" }
+        if (Test-Path Gravo/bin/Release/System.Data.SQLite.dll) { throw "legacy System.Data.SQLite.dll still in output" }
