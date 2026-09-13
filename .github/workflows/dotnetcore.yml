@@ -49,3 +49,22 @@ jobs:
       with:
         name: coverage-report
         path: coverage-report
+
+  build-winforms:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - uses: microsoft/setup-msbuild@v2
+    - name: Restore
+      run: nuget restore Gravo.sln
+    - name: Restore packages.config
+      run: nuget restore Gravo/packages.config -PackagesDirectory packages
+    - name: Build WinForms project
+      run: msbuild Gravo/Gravo.vbproj -p:Configuration=Release -v:minimal
+    - name: Assert build output
+      shell: pwsh
+      run: |
+        if (-not (Test-Path Gravo/bin/Release/Gravo.exe)) { throw "Gravo.exe not produced" }
