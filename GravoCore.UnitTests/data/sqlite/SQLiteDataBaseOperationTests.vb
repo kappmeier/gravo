@@ -63,4 +63,15 @@ Public Class SQLiteDataBaseOperationTests
     Public Sub ExecuteNonQuery_PlaceholderCountMismatch_Throws()
         Assert.Throws(Of ArgumentException)(Sub() _db.ExecuteNonQuery("SELECT '?';", New List(Of Object) From {"x"}))
     End Sub
+
+    <Test>
+    <SetCulture("de-DE")>
+    Public Sub ToDbDate_UnderGermanCulture_IsIsoInvariant()
+        SQLiteDataBaseOperation.ToDbDate(New Date(2021, 12, 24)).Should.Be("2021-12-24")
+    End Sub
+
+    <Test>
+    Public Sub NowDB_IsIsoDate()
+        SQLiteDataBaseOperation.NowDB().Should.MatchRegex("^\d{4}-\d{2}-\d{2}$")
+    End Sub
 End Class

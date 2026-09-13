@@ -45,7 +45,9 @@ Public Class CardsDao
     Public Sub Save(card As Card, wordNumber As Integer) Implements ICardsDao.Save
         'If m_wordNumber = -1 Then Throw New xlsExceptionCards(2)
         Dim command As String = "UPDATE [Cards] SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ? WHERE [Index] = ?"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {card.TestInterval, card.Counter, card.LastDate, card.TestIntervalMain, card.CounterMain, wordNumber}))
+        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {card.TestInterval,
+                card.Counter, SQLiteDataBaseOperation.ToDbDate(card.LastDate), card.TestIntervalMain, card.CounterMain,
+                wordNumber}))
     End Sub
 
     Public Sub UpdateSuccess(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) Implements ICardsDao.UpdateSuccess
