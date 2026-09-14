@@ -2,14 +2,14 @@ Public Class localizationBase
     ' Datenbank-Anbindung
     Private m_DBConnection as IDataBaseOperation
 
-    ' Klassenzustände
+    ' Klassenzustï¿½nde
     Private m_bConnected As Boolean = False  ' mit der Datenbank verbunden
 
     Sub New()
         m_bConnected = False
     End Sub
 
-    Sub New(ByVal db as IDataBaseOperation)    ' Keinen Speziellen Table auswählen
+    Sub New(ByVal db as IDataBaseOperation)    ' Keinen Speziellen Table auswÃ¤hlen
         m_bConnected = True
         m_DBConnection = db
     End Sub
