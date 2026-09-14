@@ -3,7 +3,7 @@ Imports System.Windows.Forms
 Public Class Options
     Dim initialized = False
 
-    Dim m_queryLanguage As Boolean = QueryLanguage.OriginalLanguage
+    Dim m_queryLanguage As QueryLanguage = QueryLanguage.TargetLanguage
     Dim m_testSetPhrases As Boolean = False
 
     Dim m_saveWindowPosition As Boolean = False
