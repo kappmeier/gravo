@@ -130,8 +130,6 @@
     <Compile Include="myElements\MDIChild.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RegistryNotReadyException.vb" />
-    <Compile Include="Settings.vb" />
     <Compile Include="TestSelect.Designer.vb">
       <DependentUpon>TestSelect.vb</DependentUpon>
     </Compile>
