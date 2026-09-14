@@ -229,35 +229,8 @@ Public Class ManagementDao
             Dim table As String = StripSpecialCharacters(group.Table)
             ' neue spalte hinzufügen
             SimpleUpdateCommand("ALTER TABLE [" & table & "] ADD COLUMN [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL)")
-
-            Dim command As String = "SELECT [WordIndex] FROM [" & table & "]"
-            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
-            Dim indices As ICollection(Of Integer) = New List(Of Integer)
-            While DBConnection.DBCursor.Read()
-                Dim index = DBConnection.SecureGetInt32(0)
-                ' store the index for later
-                indices.Add(index)
-            End While
-
-            Dim dictionary As New CardsDao(DBConnection)
-            For Each index As Integer In indices
-                command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
-                Dim o As Object = index
-                DBConnection.ExecuteReader(command, Enumerable.Repeat(o, 1))
-                DBConnection.DBCursor.Read()
-                Dim testInterval As Integer = DBConnection.SecureGetInt32(0)
-                Dim counter As Integer = DBConnection.SecureGetInt32(1)
-                Dim lastDateTemp As System.DateTime = DBConnection.SecureGetDateTime(2)
-                Dim lastDate As String = lastDateTemp.Day & "." & lastDateTemp.Month & "." & lastDateTemp.Year
-                Dim testIntervalMain As Integer = DBConnection.SecureGetInt32(3)
-                Dim counterMain As Integer = DBConnection.SecureGetInt32(4)
-                DBConnection.DBCursor.Close()
-
-                ' save
-                command = "UPDATE [" & table & "] SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ? WHERE [WordIndex] = ?"
-                DBConnection.ExecuteNonQuery(command, New List(Of Object) From {testInterval, counter, lastDate, testIntervalMain, counterMain, index})
-            Next index
         Next group
+        CopyGlobalCardsToGroups()
 
         ' Create supported word types
         SimpleUpdateCommand("CREATE TABLE [SupportedWordTypes] ([Type] TEXT(32) NOT NULL, [Index] INT PRIMARY KEY)")
@@ -286,6 +259,45 @@ Public Class ManagementDao
         SimpleUpdateCommand("CREATE UNIQUE INDEX [Word] ON DictionaryWords ([Word], [Meaning], [MainIndex])")
 
         UpdateToVersion(DB_VERSION_1_7)
+    End Sub
+
+    ''' <summary>
+    ''' Copies the global per-word test statistics of cards from the Cards table into the card columns of every group
+    ''' table.
+    ''' </summary>
+    Public Sub CopyGlobalCardsToGroups() Implements IManagementDao.CopyGlobalCardsToGroups
+        Dim groupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
+        Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
+        For Each group As GroupEntry In groups
+            Dim table As String = StripSpecialCharacters(group.Table)
+
+            Dim command As String = "SELECT [WordIndex] FROM [" & table & "]"
+            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
+            Dim indices As ICollection(Of Integer) = New List(Of Integer)
+            While DBConnection.DBCursor.Read()
+                Dim index = DBConnection.SecureGetInt32(0)
+                ' store the index for later
+                indices.Add(index)
+            End While
+
+            For Each index As Integer In indices
+                command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
+                Dim o As Object = index
+                DBConnection.ExecuteReader(command, Enumerable.Repeat(o, 1))
+                DBConnection.DBCursor.Read()
+                Dim testInterval As Integer = DBConnection.SecureGetInt32(0)
+                Dim counter As Integer = DBConnection.SecureGetInt32(1)
+                Dim lastDateTemp As System.DateTime = DBConnection.SecureGetDateTime(2)
+                Dim lastDate As String = SQLiteDataBaseOperation.ToDbDate(lastDateTemp)
+                Dim testIntervalMain As Integer = DBConnection.SecureGetInt32(3)
+                Dim counterMain As Integer = DBConnection.SecureGetInt32(4)
+                DBConnection.DBCursor.Close()
+
+                ' save
+                command = "UPDATE [" & table & "] SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ? WHERE [WordIndex] = ?"
+                DBConnection.ExecuteNonQuery(command, New List(Of Object) From {testInterval, counter, lastDate, testIntervalMain, counterMain, index})
+            Next index
+        Next group
     End Sub
 
     ''' <summary>

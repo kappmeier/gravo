@@ -109,7 +109,7 @@ Public Class Options
     Private Sub cmdCopyCards_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdCopyCards.Click
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
         db.Open(DBPath)
-        Dim man As New xlsManagement(db)
-        man.CopyGobalCardsToGroups()
+        Dim man As IManagementDao = New ManagementDao(db)
+        man.CopyGlobalCardsToGroups()
     End Sub
 End Class

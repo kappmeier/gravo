@@ -190,7 +190,6 @@
     <Compile Include="XLS\xlsGroup.vb" />
     <Compile Include="XLS\xlsGroups.vb" />
     <Compile Include="XLS\xlsImportExport.vb" />
-    <Compile Include="XLS\xlsManagement.vb" />
     <Compile Include="XLS\xlsTestBase.vb" />
     <Compile Include="XLS\xlsTestGroup.vb" />
   </ItemGroup>
