@@ -28,4 +28,9 @@ Public Interface IManagementDao
     ''' </summary>
     Function Reorganize() As Integer
 
+    ''' <summary>
+    ''' Copies the global per-word card statistics from the Cards table into the card columns of every group table.
+    ''' </summary>
+    Sub CopyGlobalCardsToGroups()
+
 End Interface
