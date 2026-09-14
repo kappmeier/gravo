@@ -84,8 +84,6 @@
     <Import Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Languages\localizationBase.vb" />
-    <Compile Include="Languages\LanguageConversion.vb" />
     <Compile Include="myElements\myMenu.vb">
       <SubType>Component</SubType>
     </Compile>
@@ -186,7 +184,6 @@
     <Compile Include="Options.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Languages\localization.vb" />
     <Compile Include="XLS\xlsBase.vb" />
     <Compile Include="XLS\xlsDictionary.vb" />
     <Compile Include="XLS\xlsDictionaryEntry.vb" />
