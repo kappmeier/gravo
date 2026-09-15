@@ -47,6 +47,55 @@ Public Class DatabaseTransfer
         Return result
     End Function
 
+    ''' <summary>
+    ''' Copies a main group including its subgroups, their words and the words' dictionary entries. Subgroups are
+    ''' merged with existing ones without altering existing data: Group rows, dictionary rows and card statistics
+    ''' already in the target database remain as before. The result counts the copied entities, whether they are
+    ''' newly created or existing before.
+    ''' </summary>
+    Public Function CopyGroup(groupName As String) As TransferResult
+        Dim result As New TransferResult()
+        Dim subGroups As ICollection(Of GroupEntry) = source.Groups.GetSubGroups(groupName)
+        If subGroups.Count = 0 Then Return result
+        result.Groups = 1
+
+        For Each sourceGroup As GroupEntry In subGroups
+            If Not target.Groups.GroupExists(groupName, sourceGroup.SubGroup) Then
+                target.Groups.AddGroup(groupName, sourceGroup.SubGroup)
+                result.SubGroups += 1
+            End If
+            Dim targetGroup As GroupEntry = target.Groups.GetGroup(groupName, sourceGroup.SubGroup)
+
+            For Each testWord As TestWord In source.Group.Load(sourceGroup).Entries
+                Dim sourceWord As WordEntry = testWord.WordEntry
+                Dim sourceMain As MainEntry = source.Dictionary.GetMainEntry(sourceWord)
+                Dim targetMain As MainEntry = GetOrAddMain(sourceMain.Word, sourceMain.Language,
+                        sourceMain.MainLanguage, result)
+                Dim targetWord As WordEntry = GetOrAddWord(targetMain, sourceWord, result)
+                Dim marked As Boolean = testWord.Marked
+                Dim example As String = testWord.Example
+                Try
+                    target.Group.Add(targetGroup, targetWord, marked, example)
+                    result.GroupEntries += 1
+                Catch ex As EntryExistsException
+                    ' Already in the target subgroup. Keep existing as merge policy.
+                End Try
+            Next
+        Next
+        Return result
+    End Function
+
+    ''' <summary>
+    ''' Copies every main group of the source to the target db.
+    ''' </summary>
+    Public Function CopyAllGroups() As TransferResult
+        Dim result As New TransferResult()
+        For Each groupName As String In source.Groups.GetGroups()
+            result.Add(CopyGroup(groupName))
+        Next
+        Return result
+    End Function
+
     Private Function GetOrAddMain(word As String, language As String, mainLanguage As String, result As TransferResult
             ) As MainEntry
         Try
