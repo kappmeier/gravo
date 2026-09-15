@@ -15,6 +15,8 @@ Public Class ManagementDaoTests
     Private _managementDao As ManagementDao
     Private _tempDb As String
     Private _db As IDataBaseOperation
+    Private _realDb As IDataBaseOperation
+    Private _tempRealDb As String
 
     <SetUp>
     Public Sub Setup()
@@ -33,6 +35,13 @@ Public Class ManagementDaoTests
         SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
+
+        If _realDb IsNot Nothing Then
+            _realDb.Close()
+            SqliteConnection.ClearAllPools()
+            File.Delete(_tempRealDb)
+            _realDb = Nothing
+        End If
     End Sub
 
     <Test>
@@ -253,6 +262,97 @@ Public Class ManagementDaoTests
         Dim markedSecond As Boolean = testDb.SecureGetBool(0)
         testDb.DBCursor.Close()
         markedSecond.Should.BeFalse()
+    End Sub
+
+    Private Function OpenRealDataBaseCopy() As ManagementDao
+        Dim realDataBaseResource = "test-data.s3db"
+
+        _tempRealDb = Path.GetTempFileName
+        File.Copy(DaoUtils.GetSqliteResource(realDataBaseResource), _tempRealDb, True)
+
+        _realDb = New SQLiteDataBaseOperation()
+        _realDb.Open(_tempRealDb)
+
+        Return New ManagementDao(_realDb)
+    End Function
+
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_CopiesCardColumnsToEveryGroupRow()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (29, 2, 1, '2019-06-30', 1, 1)", Array.Empty(Of Object))
+
+        fixture.CopyGlobalCardsToGroups()
+
+        AssertGroupCardColumns(1, 8, 3, "2021-12-24", 5, 2)
+        AssertGroupCardColumns(2, 16, 4, "2020-01-02", 6, 3)
+        AssertGroupCardColumns(29, 2, 1, "2019-06-30", 1, 1)
+    End Sub
+
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_LeavesMarkedAndExampleUntouched()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (29, 2, 1, '2019-06-30', 1, 1)", Array.Empty(Of Object))
+
+        fixture.CopyGlobalCardsToGroups()
+
+        AssertMarkedAndExample(2, True, "An example.")
+        AssertMarkedAndExample(29, False, "")
+    End Sub
+
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_NoGroups_IsNoOp()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        fixture.CopyGlobalCardsToGroups()
+
+        AssertGroupCardColumns(1, 4, 4, "2019-04-19", 1, 1)
+    End Sub
+
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_WordWithoutCard_Throws()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
+
+        Assert.Throws(Of InvalidOperationException)(Sub() fixture.CopyGlobalCardsToGroups())
+    End Sub
+
+    Private Sub AssertGroupCardColumns(wordIndex As Integer, expectedTestInterval As Integer, expectedCounter As Integer, expectedLastDate As String, expectedTestIntervalMain As Integer, expectedCounterMain As Integer)
+        _realDb.ExecuteReader("SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
+        _realDb.DBCursor.Read()
+        Dim testInterval As Integer = _realDb.SecureGetInt32(0)
+        Dim counter As Integer = _realDb.SecureGetInt32(1)
+        Dim lastDate As String = _realDb.SecureGetString(2)
+        Dim testIntervalMain As Integer = _realDb.SecureGetInt32(3)
+        Dim counterMain As Integer = _realDb.SecureGetInt32(4)
+        _realDb.DBCursor.Close()
+
+        testInterval.Should.Be(expectedTestInterval)
+        counter.Should.Be(expectedCounter)
+        lastDate.Should.Be(expectedLastDate)
+        testIntervalMain.Should.Be(expectedTestIntervalMain)
+        counterMain.Should.Be(expectedCounterMain)
+    End Sub
+
+    Private Sub AssertMarkedAndExample(wordIndex As Integer, expectedMarked As Boolean, expectedExample As String)
+        _realDb.ExecuteReader("SELECT [Marked], [Example] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
+        _realDb.DBCursor.Read()
+        Dim marked As Boolean = _realDb.SecureGetBool(0)
+        Dim example As String = _realDb.SecureGetString(1)
+        _realDb.DBCursor.Close()
+
+        marked.Should.Be(expectedMarked)
+        example.Should.Be(expectedExample)
     End Sub
 
     Private Function CreateIllegalDb() As SQLiteDataBaseOperation

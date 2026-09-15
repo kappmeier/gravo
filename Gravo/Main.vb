@@ -126,14 +126,14 @@ Public Class Main
         LocalizationChanged()
 
         ' Settings laden
-        programSettings = New Settings()
+        programSettings = New Settings(New JsonFileSettingsStore(JsonFileSettingsStore.DefaultPath()))
         programSettings.LoadSettings()
         m_windowSettings = programSettings.MainWindowSettings
         If programSettings.SaveWindowPosition Then
-            Me.Location = m_windowSettings.position
+            Me.Location = New Point(m_windowSettings.posX, m_windowSettings.posY)
             Me.Width = m_windowSettings.width
             Me.Height = m_windowSettings.height
-            If programSettings.MainWindowState = FormWindowState.Maximized Then Me.WindowState = FormWindowState.Maximized Else Me.WindowState = programSettings.MainWindowState
+            Me.WindowState = CType(programSettings.MainWindowState, FormWindowState)
         End If
         mainWindowLoaded = True
 
@@ -150,9 +150,10 @@ Public Class Main
     Private Sub Main_Move(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Move
         If Not mainWindowLoaded Then Exit Sub
         If WindowState = FormWindowState.Normal Then
-            m_windowSettings.position = Me.Location
+            m_windowSettings.posX = Me.Location.X
+            m_windowSettings.posY = Me.Location.Y
         End If
-        programSettings.MainWindowState = Me.WindowState
+        programSettings.MainWindowState = CType(Me.WindowState, WindowStateSetting)
         programSettings.MainWindowSettings = m_windowSettings
         programSettings.SaveSettings()
     End Sub
@@ -163,7 +164,7 @@ Public Class Main
             m_windowSettings.width = Me.Width
             m_windowSettings.height = Me.Height
         End If
-        programSettings.MainWindowState = Me.WindowState
+        programSettings.MainWindowState = CType(Me.WindowState, WindowStateSetting)
         programSettings.MainWindowSettings = m_windowSettings
         programSettings.SaveSettings()
     End Sub
@@ -258,8 +259,8 @@ Public Class Main
         End If
         frmVocabularyExplorer.Show()
         If programSettings.SaveWindowPosition Then
-            frmVocabularyExplorer.SetBounds(programSettings.ExplorerWindowSettings.position.X, programSettings.ExplorerWindowSettings.position.Y, programSettings.ExplorerWindowSettings.width, programSettings.ExplorerWindowSettings.height)
-            frmVocabularyExplorer.WindowState = programSettings.ChildWindowState
+            frmVocabularyExplorer.SetBounds(programSettings.ExplorerWindowSettings.posX, programSettings.ExplorerWindowSettings.posY, programSettings.ExplorerWindowSettings.width, programSettings.ExplorerWindowSettings.height)
+            frmVocabularyExplorer.WindowState = CType(programSettings.ChildWindowState, FormWindowState)
         End If
         childWindowLoaded = True
     End Sub
@@ -277,8 +278,8 @@ Public Class Main
         End If
         frmGroupInput.Show()
         If programSettings.SaveWindowPosition Then
-            frmGroupInput.SetBounds(programSettings.GroupWindowSettings.position.X, programSettings.GroupWindowSettings.position.Y, programSettings.GroupWindowSettings.width, programSettings.GroupWindowSettings.height)
-            frmGroupInput.WindowState = programSettings.ChildWindowState
+            frmGroupInput.SetBounds(programSettings.GroupWindowSettings.posX, programSettings.GroupWindowSettings.posY, programSettings.GroupWindowSettings.width, programSettings.GroupWindowSettings.height)
+            frmGroupInput.WindowState = CType(programSettings.ChildWindowState, FormWindowState)
         End If
         childWindowLoaded = True
     End Sub
@@ -291,8 +292,8 @@ Public Class Main
         End If
         frmStatistic.Show()
         If programSettings.SaveWindowPosition Then
-            frmStatistic.SetBounds(programSettings.StatisticWindowSettings.position.X, programSettings.StatisticWindowSettings.position.Y, programSettings.StatisticWindowSettings.width, programSettings.StatisticWindowSettings.height)
-            frmStatistic.WindowState = programSettings.ChildWindowState
+            frmStatistic.SetBounds(programSettings.StatisticWindowSettings.posX, programSettings.StatisticWindowSettings.posY, programSettings.StatisticWindowSettings.width, programSettings.StatisticWindowSettings.height)
+            frmStatistic.WindowState = CType(programSettings.ChildWindowState, FormWindowState)
         End If
         childWindowLoaded = True
     End Sub
@@ -397,13 +398,14 @@ Public Class Main
         ' für alle geladenen Kindfenster die Positionen auslesen und speichern
         If Not childWindowLoaded Then Exit Sub
         Dim tmp As WindowSettings
-        programSettings.ChildWindowState = State
+        programSettings.ChildWindowState = CType(State, WindowStateSetting)
 
         ' Vokabel-Explorer
         If frmVocabularyExplorer IsNot Nothing Then
             tmp = programSettings.ExplorerWindowSettings
             If frmVocabularyExplorer.WindowState = FormWindowState.Normal Then
-                tmp.position = frmVocabularyExplorer.Location
+                tmp.posX = frmVocabularyExplorer.Location.X
+                tmp.posY = frmVocabularyExplorer.Location.Y
                 tmp.width = frmVocabularyExplorer.Width
                 tmp.height = frmVocabularyExplorer.Height
             End If
@@ -414,7 +416,8 @@ Public Class Main
         If frmGroupInput IsNot Nothing Then
             tmp = programSettings.GroupWindowSettings
             If frmGroupInput.WindowState = FormWindowState.Normal Then
-                tmp.position = frmGroupInput.Location
+                tmp.posX = frmGroupInput.Location.X
+                tmp.posY = frmGroupInput.Location.Y
                 tmp.width = frmGroupInput.Width
                 tmp.height = frmGroupInput.Height
             End If
@@ -425,7 +428,8 @@ Public Class Main
         If frmStatistic IsNot Nothing Then
             tmp = programSettings.StatisticWindowSettings
             If frmStatistic.WindowState = FormWindowState.Normal Then
-                tmp.position = frmStatistic.Location
+                tmp.posX = frmStatistic.Location.X
+                tmp.posY = frmStatistic.Location.Y
                 tmp.width = frmStatistic.Width
                 tmp.height = frmStatistic.Height
             End If
