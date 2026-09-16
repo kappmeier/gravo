@@ -37,12 +37,12 @@ Public Class Main
     Private Sub SaveAsToolStripMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SaveAsMenuItem.Click
         Dim SaveFileDialog As New SaveFileDialog
         SaveFileDialog.InitialDirectory = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-        SaveFileDialog.Filter = "Datenbanken (*.mdb)|*.mdb|Alle Dateien (*.*)|*.*"
+        SaveFileDialog.Filter = "Datenbanken (*.s3db)|*.s3db|Alle Dateien (*.*)|*.*"
 
         If (SaveFileDialog.ShowDialog(Me) = System.Windows.Forms.DialogResult.OK) Then
             Dim FileName As String = SaveFileDialog.FileName
             Try
-                FileCopy(Application.StartupPath() & "\voc.mdb", SaveFileDialog.FileName)
+                FileCopy(Application.StartupPath() & "\voc.s3db", SaveFileDialog.FileName)
             Catch ex As Exception
                 MsgBox("Beim Kopieren ist ein Fehler aufgetreten: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             End Try
@@ -332,9 +332,6 @@ Public Class Main
 
     Private Sub AllgemeinToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestGeneralMenuItem.Click
         Throw New NotSupportedException("Test with language restriction not supported")
-        ' Test without restriction
-        Dim frmTest As New TestSimple(False, "", Me)
-        frmTest.Show(Me)
     End Sub
 
     Private Sub GruppenAbfragenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TestGroupsMenuItem.Click
@@ -464,35 +461,5 @@ Public Class Main
 
     Public Sub TestFinished()
         Throw New NotSupportedException("Test finished not supported")
-
-        Dim frmSelect As New TestSelect
-        If Trim(programSettings.LastGroup) <> "" Then frmSelect.LastGroup = programSettings.LastGroup
-        If Trim(programSettings.LastSubGroup) <> "" Then frmSelect.LastSubGroup = programSettings.LastSubGroup
-        frmSelect.TestPhrases = programSettings.TestSetPhrases
-        frmSelect.QueryLanguage = programSettings.QueryLanguage
-        Dim group As GroupEntry
-        Dim frmTest As TestSimple = Nothing
-        Do
-            Dim res As DialogResult = frmSelect.ShowDialog(Me)
-            If res = Windows.Forms.DialogResult.Cancel Then Exit Sub
-            programSettings.LastGroup = frmSelect.LastGroup
-            programSettings.LastSubGroup = frmSelect.LastSubGroup
-            programSettings.SaveSettings()
-            group = frmSelect.SelectedGroup
-            If group Is Nothing Then Continue Do
-            frmSelect.Hide()
-            frmTest = New TestSimple("", Me)
-            'frmTest = New TestSimple(group.GroupTable, Me)
-            frmTest.TestFormerLanguage = frmSelect.QueryLanguage
-            frmTest.UseCards = programSettings.UseCards
-            frmTest.TestSetPhrases = frmSelect.TestPhrases
-            frmTest.TestMarked = frmSelect.TestMarked
-            frmTest.RandomOrder = frmSelect.RandomOrder
-            frmTest.Start()
-
-            If frmTest.RestCount <> 0 Then Exit Do
-            frmTest.Close()
-        Loop
-        frmTest.Show(Me)
     End Sub
 End Class

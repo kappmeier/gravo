@@ -2,7 +2,10 @@ Imports System.Collections.ObjectModel
 Imports Gravo.Properties
 
 Public Class Management
-    ' Datenbank-Zugriff
+    ''' <summary>
+    ''' The active database as source or target of a transfer.
+    ''' </summary>
+    Dim ActiveDb As VocabularyDatabase
     ''' <summary>
     ''' Data access for groups.
     ''' </summary>
@@ -11,7 +14,6 @@ Public Class Management
     ''' Data access for a single group.
     ''' </summary>
     Dim GroupDao As IGroupDao
-    'Dim man As xlsManagement
     ''' <summary>
     ''' Data access to the dictionary.
     ''' </summary>
@@ -24,7 +26,7 @@ Public Class Management
     Dim importFilename As String = ""
 
     Public Sub New()
-        ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
+        ' Dieser Aufruf ist fï¿½r den Windows Form-Designer erforderlich.
         InitializeComponent()
 
         Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
@@ -33,8 +35,9 @@ Public Class Management
         GroupDao = New GroupDao(db)
         DictionaryDao = New DictionaryDao(db)
         ManagementDao = New ManagementDao(db)
+        ActiveDb = New VocabularyDatabase(DictionaryDao, GroupsDao, GroupDao)
 
-        ' Anzahl der Zeichen für Textfelder
+        ' Anzahl der Zeichen fï¿½r Textfelder
         Dim properties As Properties = New PropertiesDao(db).LoadProperties
         txtGroupName.MaxLength = properties.GroupsMaxLengthName
         txtUnitName.MaxLength = properties.GroupsMaxLengthSubName
@@ -47,17 +50,18 @@ Public Class Management
         If Me.Top < 0 Then Me.Top = 0
         If Me.Left < 0 Then Me.Left = 0
 
-        ' Form-Update durchführen (Lädt Gruppen und Bezeichnungen)
+        ' Form-Update durchfï¿½hren (Lï¿½dt Gruppen und Bezeichnungen)
         UpdateForm()
 
         ' Datenbank-Version, reorganisieren, importieren, exportieren
         UpdateDatabaseVersionText()
-        lblErrorCount.Text = "Gefundene und behobene Fehler: keine Überprüfung durchgeführt"
-        lblImportDB.Text = "Datenbank: noch keine gewählt"
+        lblErrorCount.Text = "Gefundene und behobene Fehler: keine ï¿½berprï¿½fung durchgefï¿½hrt"
+        lblImportDB.Text = "Datenbank: noch keine gewï¿½hlt"
         cmdImportDictionary.Enabled = False
         cmdImportGroup.Enabled = False
-        lblImportDictCount.Text = "Importierte Haupteinträge: " & vbCrLf & "Importierte Untereinträge: "
-        lblImportGroupCount.Text = "Importierte Gruppen: " & vbCrLf & "Importierte Untergruppen: " & vbCrLf & "Importierte Gruppeneinträge: "
+        chkExportStats.Enabled = False   ' statistics never are exported
+        lblImportDictCount.Text = "Importierte Haupteintrï¿½ge: " & vbCrLf & "Importierte Untereintrï¿½ge: "
+        lblImportGroupCount.Text = "Importierte Gruppen: " & vbCrLf & "Importierte Untergruppen: " & vbCrLf & "Importierte Gruppeneintrï¿½ge: "
 
         'Dialoge
         dlgExport.InitialDirectory = Application.StartupPath
@@ -71,7 +75,7 @@ Public Class Management
     End Sub
 
     Private Sub UpdateForm()
-        ' Gruppen in die Listen einfügen
+        ' Gruppen in die Listen einfï¿½gen
         lstGroupList.Items.Clear()          ' Liste der Gruppen in der aktuellen Sprache
         cmbUnitSelectGroup.Items.Clear()    ' 
         lstExportGroups.Items.Clear()    ' Liste der Gruppen zum exportieren
@@ -106,7 +110,7 @@ Public Class Management
             cmdUnitEdit.Enabled = True
         End If
 
-        ' lade Sprachen in die Export-Sprachen-Liste, nur tatsächlich vorhandene! (LDF-unabhängig)
+        ' lade Sprachen in die Export-Sprachen-Liste, nur tatsï¿½chlich vorhandene! (LDF-unabhï¿½ngig)
         lstExportLanguages.Items.Clear()
         For Each language As String In DictionaryDao.DictionaryLanguages("german")
             lstExportLanguages.Items.Add(language)
@@ -114,7 +118,7 @@ Public Class Management
         If lstExportLanguages.Items.Count > 0 Then lstExportLanguages.SelectedIndex = 0
     End Sub
 
-    Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchließen.Click
+    Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchlieï¿½en.Click
         Me.Close()
     End Sub
 
@@ -129,12 +133,12 @@ Public Class Management
     End Sub
 
     Private Sub GroupAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupAdd.Click
-        ' da eine gruppe nicht direkt hinzugefügt werden kann, wird direkt ein untereintrag erzeugt
+        ' da eine gruppe nicht direkt hinzugefï¿½gt werden kann, wird direkt ein untereintrag erzeugt
         If Trim(txtGroupName.Text = "") Then Exit Sub
         Try
             GroupsDao.AddGroup(txtGroupName.Text, "Untereintrag 1")
         Catch e2 As EntryExistsException
-            MsgBox("Gruppen können nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
+            MsgBox("Gruppen kï¿½nnen nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
             Exit Sub
         Catch es As Exception
             MsgBox("Ein Fehler ist aufgetreten: " & es.Message, MsgBoxStyle.Critical, "Error")
@@ -147,7 +151,7 @@ Public Class Management
     Private Sub GroupEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupEdit.Click
         If Trim(txtGroupName.Text) = "" Then Exit Sub
 
-        ' Ändern der Gruppen-Informationen in der Datenbank
+        ' ï¿½ndern der Gruppen-Informationen in der Datenbank
         GroupsDao.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
 
         ' Anzeige Aktualisieren
@@ -156,17 +160,17 @@ Public Class Management
     End Sub
 
     Private Sub GroupDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupDelete.Click
-        If MsgBox("Wollen sie wirklich die komplette Gruppe löschen?", MsgBoxStyle.YesNo, "Warning") = MsgBoxResult.No Then Return
+        If MsgBox("Wollen sie wirklich die komplette Gruppe lï¿½schen?", MsgBoxStyle.YesNo, "Warning") = MsgBoxResult.No Then Return
 
         GroupsDao.DeleteGroup(lstGroupList.SelectedItem)
         UpdateForm()
     End Sub
 
     Private Sub GroupSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstGroupList.SelectedIndexChanged
-        If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irreguläre Werte abfangen
+        If lstGroupList.SelectedIndex = -1 Then Exit Sub ' Irregulï¿½re Werte abfangen
         txtGroupName.Text = lstGroupList.SelectedItem     ' Text aktualisieren
         Dim count As Integer = DataTools.WordCount(GroupsDao, GroupDao, txtGroupName.Text)
-        lblGroupInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
+        lblGroupInfo.Text = IIf(count = 1, count & " Eintrag", count & " Eintrï¿½ge")
     End Sub
 
     Private Sub UnitAdd(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitAdd.Click
@@ -174,7 +178,7 @@ Public Class Management
         Try
             GroupsDao.AddGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
         Catch e2 As EntryExistsException
-            MsgBox("Gruppen können nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
+            MsgBox("Gruppen kï¿½nnen nur einmal unter einem Namen existieren.", MsgBoxStyle.Information, "Warning")
             Exit Sub
         Catch es As Exception
             MsgBox("Ein Fehler ist aufgetreten: " & es.Message, MsgBoxStyle.Critical, "Error")
@@ -188,7 +192,7 @@ Public Class Management
     Private Sub UnitEdit(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitEdit.Click
         If Trim(txtUnitName.Text) = "" Then Exit Sub
 
-        ' Ändern der Gruppen-Informationen in der Datenbank
+        ' ï¿½ndern der Gruppen-Informationen in der Datenbank
         GroupsDao.EditSubGroup(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, txtUnitName.Text)
 
         ' Anzeige Aktualisieren
@@ -197,7 +201,7 @@ Public Class Management
     End Sub
 
     Private Sub UnitDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUnitDelete.Click
-        MsgBox("Leider ist es zur Zeit nicht möglich Units zu Löschen oder zu Verschieben.", vbInformation)
+        MsgBox("Leider ist es zur Zeit nicht mï¿½glich Units zu Lï¿½schen oder zu Verschieben.", vbInformation)
     End Sub
 
     Private Sub UnitSelect(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstUnitList.SelectedIndexChanged
@@ -205,7 +209,7 @@ Public Class Management
         Dim groupEntry As GroupEntry = GroupsDao.GetGroup(cmbUnitSelectGroup.SelectedItem, txtUnitName.Text)
         Dim groupData As GroupDto = GroupDao.Load(groupEntry)
         Dim count As Integer = groupData.WordCount
-        lblUnitInfo.Text = IIf(count = 1, count & " Eintrag", count & " Einträge")
+        lblUnitInfo.Text = IIf(count = 1, count & " Eintrag", count & " Eintrï¿½ge")
         count = GroupDao.GetLanguages(groupEntry).Count
         lblUnitInfo.Text &= vbCrLf & IIf(count = 1, count & " benutzte Sprache", count & " benutzte Sprachen")
     End Sub
@@ -227,7 +231,7 @@ Public Class Management
         Dim db As IDataBaseOperation
         If res = Windows.Forms.DialogResult.OK Then
             db = New SQLiteDataBaseOperation()
-            Try ' Testweise öffnen
+            Try ' Testweise ï¿½ffnen
                 db.Open(dlgImport.FileName)
                 db.Close()
                 lblImportDB.Text = "Datenbank: " & dlgImport.FileName
@@ -235,25 +239,17 @@ Public Class Management
                 cmdImportGroup.Enabled = True
                 dlgExport.FileName = dlgImport.FileName
                 importFilename = dlgImport.FileName
-            Catch ex As System.Data.OleDb.OleDbException
-                If ex.ErrorCode = -2147467259 Then
-                    lblImportDB.Text = "Datenbank: noch keine gewählt"
-                    Me.cmdImportDictionary.Enabled = False
-                    Me.cmdImportGroup.Enabled = False
-                    MsgBox("Bitte geben sie eine existierende Datei an", MsgBoxStyle.Information, "Fehler")
-                Else
-                    lblImportDB.Text = "Datenbank: noch keine gewählt"
-                    cmdImportDictionary.Enabled = False
-                    cmdImportGroup.Enabled = False
-                    MsgBox("Unbekannter Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
-                    Exit Sub
-                End If
+            Catch ex As Exception
+                lblImportDB.Text = "Datenbank: noch keine gewï¿½hlt"
+                Me.cmdImportDictionary.Enabled = False
+                Me.cmdImportGroup.Enabled = False
+                MsgBox("Bitte geben sie eine existierende Datei an", MsgBoxStyle.Information, "Fehler")
             End Try
         End If
     End Sub
 
     Private Sub cmdExport_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExport.Click
-        ' Teste, ob die aktuelle Dateie die höchste Version hat
+        ' Teste, ob die aktuelle Dateie die hï¿½chste Version hat
         If Not ManagementDao.IsVersionUpToDate() Then
             MsgBox("Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.", MsgBoxStyle.Information, "Fehler")
             Exit Sub
@@ -271,59 +267,22 @@ Public Class Management
                 End Try
             End If
 
-            'Try
             Gravo.ManagementDao.CreateNewVocabularyDatabase(dlgExport.FileName)
             db.Open(dlgExport.FileName)
-            'Catch ex As Exception
-            '    MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
-            '    Exit Sub
-            'End Try
-
-            'db = New AccessDatabaseOperation()
-            'Try
-            '    db.Open(dlgExport.FileName)
-            '    ' datei existierte schon.
-            '    ' überschreiben
-            '    db.Close()
-            '    Try
-            '        FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
-            '        man.CreateNewVocabularyDatabase(dlgExport.FileName)
-            '    Catch ex As Exception
-            '        MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
-            '        Exit Sub
-            '    End Try
-            '    Try
-            '        db.Open(dlgExport.FileName) ' müsste funktionieren
-            '    Catch ex As Exception
-            '        MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
-            '        Exit Sub
-            '    End Try
-            'Catch ex As System.Data.OleDb.OleDbException
-            '    If ex.ErrorCode = -2147467259 Then
-            '        ' db existiert nicht
-            '        FileCopy(Application.StartupPath() & "\empty.mdb", dlgExport.FileName)
-            '        man.CreateNewVocabularyDatabase(dlgExport.FileName)
-            '        db.Open(dlgExport.FileName)
-            '    Else
-            '        MsgBox("Unbekannter Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
-            '        Exit Sub
-            '    End If
-            'End Try
         Else
             Exit Sub
         End If
         dlgImport.FileName = dlgExport.FileName
 
         ' sichern
-        Dim export As New xlsImportExport
-        export.ExportEmptyEntrys = Not chkExportEmptyEntrys.Checked
-        export.ExportStats = chkExportStats.Checked
+        Dim export As New DatabaseTransfer(ActiveDb, New VocabularyDatabase(db))
         For Each selectedLanguage As String In lstExportLanguages.CheckedItems
-            export.ExportLanguage(selectedLanguage, "german", db)
+            export.CopyLanguage(selectedLanguage, "german", Not chkExportEmptyEntrys.Checked)
         Next
         For Each selectedGroup As String In lstExportGroups.CheckedItems
-            export.ExportGroup(selectedGroup, "german", db)
+            export.CopyGroup(selectedGroup)
         Next
+        db.Close()
 
         ' Meldung
         MsgBox("Exportieren erfolgreich!", MsgBoxStyle.Information, Application.ProductName)
@@ -339,7 +298,7 @@ Public Class Management
         Dim res As DialogResult = dlgSaveDb.ShowDialog(Me)
         If res = Windows.Forms.DialogResult.OK Then
             Try
-                FileCopy(Application.StartupPath() & "\voc.mdb", dlgExport.FileName)
+                FileCopy(DBPath, dlgSaveDb.FileName)
             Catch ex As Exception
                 MsgBox("Beim Kopieren ist ein Fehler aufgetreten: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             End Try
@@ -349,7 +308,7 @@ Public Class Management
     End Sub
 
     Private Sub cmdImportGroup_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdImportGroup.Click
-        ' Teste, ob beide Dateien die höchste Version haben
+        ' Teste, ob beide Dateien die hï¿½chste Version haben
         If Not ManagementDao.IsVersionUpToDate() Then
             MsgBox("Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.", MsgBoxStyle.Information, "Fehler")
             Exit Sub
@@ -374,12 +333,16 @@ Public Class Management
             versionTest.UpdateDatabaseVersion()
         End If
 
-        Dim import As New xlsImportExport(Nothing)
-        import.ImportGroups("german", db)
+        Dim result As TransferResult = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb).CopyAllGroups()
         db.Close()
 
-        lblImportDictCount.Text = "Importierte Haupteinträge: " & import.ImportedMainEntrys & vbCrLf & "Importierte Untereinträge: " & import.ImportedSubEntrys
-        lblImportGroupCount.Text = "Importierte Gruppen: " & import.ImportedGroups & vbCrLf & "Importierte Untergruppen: " & import.ImportedSubGroups & vbCrLf & "Importierte Gruppeneinträge: " & import.ImportedGroupEntrys
+        lblImportDictCount.Text = "
+            Importierte Haupteintrï¿½ge: " & result.MainEntries & vbCrLf & "
+            Importierte Untereintrï¿½ge: " & result.SubEntries
+        lblImportGroupCount.Text = "
+            Importierte Gruppen: " & result.Groups & vbCrLf & "
+            Importierte Untergruppen: " & result.SubGroups & vbCrLf & "
+            Importierte Gruppeneintrï¿½ge: " & result.GroupEntries
         UpdateForm()
 
         ' Meldung
@@ -395,12 +358,17 @@ Public Class Management
             MsgBox("Fehler beim Datenbankzugriff: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             Exit Sub
         End Try
-        Dim import As New xlsImportExport(Nothing)
-        import.ImportDictionary("german", db)
+        Dim result As TransferResult = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb)
+                .CopyDictionary("german")
         db.Close()
 
-        lblImportDictCount.Text = "Importierte Haupteinträge: " & import.ImportedMainEntrys & vbCrLf & "Importierte Untereinträge: " & import.ImportedSubEntrys
-        lblImportGroupCount.Text = "Importierte Gruppen: " & import.ImportedGroups & vbCrLf & "Importierte Untergruppen: " & import.ImportedSubGroups & vbCrLf & "Importierte Gruppeneinträge: " & import.ImportedGroupEntrys
+        lblImportDictCount.Text = "
+            Importierte Haupteintrï¿½ge: " & result.MainEntries & vbCrLf & "
+            Importierte Untereintrï¿½ge: " & result.SubEntries
+        lblImportGroupCount.Text = "
+            Importierte Gruppen: " & result.Groups & vbCrLf & "
+            Importierte Untergruppen: " & result.SubGroups & vbCrLf & "
+            Importierte Gruppeneintrï¿½ge: " & result.GroupEntries
         UpdateForm()
 
         ' Meldung

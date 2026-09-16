@@ -548,21 +548,21 @@ Partial Class Management
         'dlgExport
         '
         Me.dlgExport.CheckFileExists = False
-        Me.dlgExport.DefaultExt = "mdb"
-        Me.dlgExport.FileName = "ExportDB.mdb"
-        Me.dlgExport.Filter = "Datenbanken|*.mdb"
+        Me.dlgExport.DefaultExt = "s3db"
+        Me.dlgExport.FileName = "ExportDB.s3db"
+        Me.dlgExport.Filter = "Datenbanken|*.s3db"
         Me.dlgExport.ShowHelp = True
         '
         'dlgSaveDb
         '
-        Me.dlgSaveDb.FileName = "SaveDB.mdb"
+        Me.dlgSaveDb.FileName = "SaveDB.s3db"
         '
         'dlgImport
         '
         Me.dlgImport.CheckFileExists = False
-        Me.dlgImport.DefaultExt = "mdb"
-        Me.dlgImport.FileName = "ImportDB.mdb"
-        Me.dlgImport.Filter = "Datenbanken|*.mdb"
+        Me.dlgImport.DefaultExt = "s3db"
+        Me.dlgImport.FileName = "ImportDB.s3db"
+        Me.dlgImport.Filter = "Datenbanken|*.s3db"
         Me.dlgImport.ShowHelp = True
         '
         'Management

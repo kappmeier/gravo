@@ -13,10 +13,8 @@ Imports Gravo.localization
 ''' 
 ''' </summary>
 Public Class TestSimple
-    Dim voc As xlsTestBase
     Dim db As New SQLiteDataBaseOperation()
 
-    Dim startVal As String
     Dim controller As TestController
     Dim checker As Checker
 
@@ -33,32 +31,6 @@ Public Class TestSimple
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         Me.controller = testController
-    End Sub
-
-    Public Sub New(ByVal OneLanguage As Boolean, ByVal Language As String, ByRef Owner As Main)
-        ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
-        InitializeComponent()
-
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        'voc = New xlsTestBase
-        db.Open(DBPath)     ' Datenbank öffnen
-        'voc.DBConnection = db
-        If OneLanguage Then
-            startVal = Language
-        Else
-            startVal = ""
-        End If
-    End Sub
-
-    Public Sub New(ByVal GroupName As String, ByRef Owner As Main)
-        ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
-        InitializeComponent()
-
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        'voc = New xlsTestGroup
-        db.Open(DBPath)     ' Datenbank öffnen
-        'voc.DBConnection = db
-        startVal = GroupName
     End Sub
 
     Private Sub TestSimple_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -80,21 +52,6 @@ Public Class TestSimple
         cmdExit.Text = GetLoc.GetText(BUTTON_CLOSE)
         Me.Text = GetLoc.GetText(TEST_TITLE)
     End Sub
-
-    Public Sub Start()
-        If startVal = "" Then
-            voc.Start()
-        Else
-            voc.Start(startVal)
-        End If
-        voc.NextWord()
-    End Sub
-
-    Public ReadOnly Property RestCount()
-        Get
-            Return voc.WordCount
-        End Get
-    End Property
 
     Private Sub cmdOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdOK.Click
         Dim result As TestResult = checker.Evaluate(txtInput.Text.Trim)
@@ -150,41 +107,4 @@ Public Class TestSimple
             frmMain.TestFinished()
         End If
     End Sub
-
-    Public WriteOnly Property TestFormerLanguage() As Boolean
-        Set(ByVal value As Boolean)
-            voc.TestFormerLanguage = value
-        End Set
-    End Property
-
-    Public WriteOnly Property UseCards() As Boolean
-        Set(ByVal value As Boolean)
-            voc.UseCards = value
-        End Set
-    End Property
-
-    Public WriteOnly Property TestSetPhrases() As Boolean
-        Set(ByVal value As Boolean)
-            voc.TestSetPhrases = value
-        End Set
-    End Property
-
-    Public WriteOnly Property TestMarked() As Boolean
-        Set(ByVal value As Boolean)
-            If TypeOf voc Is xlsTestGroup Then
-                Dim voc2 As xlsTestGroup = voc
-                voc2.TestMarked = value
-            End If
-        End Set
-    End Property
-
-    Public WriteOnly Property RandomOrder() As Boolean
-        Set(ByVal value As Boolean)
-            If value Then
-                voc.TestStyle = xlsTestStyle.RandomTestAgain
-            Else
-                voc.TestStyle = xlsTestStyle.TestAgain
-            End If
-        End Set
-    End Property
 End Class
