@@ -111,8 +111,8 @@ Public Class SQLiteDataBaseOperation
     ''' Creates a command from <paramref name="commandText"/> with potential ? placeholders rewritten to
     ''' named @paramN parameters. Each value of <paramref name="values"/> is bound to the corresponding named
     ''' parameter.
-    ''' During replacement every value is bound through the VB Object-to-String conversion, as the DAOs rely on
-    ''' (e.g. Date becomes a culture-general string).
+    ''' During replacement every value is bound through the VB Object-to-String conversion, which is culture dependent for
+    ''' non-string types. Dates must therefore be pre-formatted with <see cref="ToDbDate"/>.
     ''' </summary>
     Private Function CreateParameterizedCommand(commandText As String, values As IEnumerable(Of Object)) As SqliteCommand
         Dim command As SqliteCommand = connection.CreateCommand()
@@ -175,8 +175,16 @@ Public Class SQLiteDataBaseOperation
         'End Try
     End Function
 
+    ''' <summary>
+    ''' Formats a date as culture invariant ISO yyyy-MM-dd. It's the format of date columns in the database.
+    ''' DAOs must pass dates through this function instead of using a raw Date object.
+    ''' </summary>
+    Shared Function ToDbDate(d As Date) As String
+        Return d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+    End Function
+
     Shared Function NowDB() As String
-        Return DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+        Return ToDbDate(DateTime.Now)
     End Function
 
 End Class

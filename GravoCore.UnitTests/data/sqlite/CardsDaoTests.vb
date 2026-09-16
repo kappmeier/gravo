@@ -237,7 +237,7 @@ Public Class CardsDaoTests
     End Sub
 
     ''' <summary>
-    ''' Asserts working round-trip of writing dates through the wrapper (e.g. '12/24/2021), and reading
+    ''' Asserts working round-trip of writing dates as culture invariant ISO yyyy-MM-dd  value, and reading
     ''' back with culture invariant reader.
     ''' </summary>
     <Test>
@@ -252,6 +252,21 @@ Public Class CardsDaoTests
         loaded.LastDate.Should.Be(New Date(2021, 12, 24))
         loaded.TestIntervalMain.Should.Be(5)
         loaded.CounterMain.Should.Be(2)
+    End Sub
+
+    <Test>
+    <SetCulture("de-DE")>
+    Public Sub Save_UnderGermanCulture_StoresIsoDateAndRoundTrips()
+        _cardsDao.Save(New Card(8, 3, New Date(2021, 12, 24), 5, 2), 3)
+
+        _cardsDao.Load(3).LastDate.Should.Be(New Date(2021, 12, 24))
+
+        Dim command = "SELECT [LastDate] FROM [Cards] WHERE [Index] = ?"
+        _db.ExecuteReader(command, CStr(3))
+        _db.DBCursor.Read()
+        Dim storedValue As String = _db.SecureGetString(0)
+        _db.DBCursor.Close()
+        storedValue.Should.Be("2021-12-24")
     End Sub
 
     Private Sub Test(updateAction As Action, table As String, columnSuffix As String, baseInterval As Integer, updateInterval As Func(Of Integer, Integer))

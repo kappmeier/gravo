@@ -6,7 +6,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <!--
-        CA1707: Given_When_Then underscores are the test naming convention (217 occurrences). -->
+        CA1707: Given_When_Then underscores are the test naming convention. -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>
 
     <IsPackable>false</IsPackable>
@@ -47,6 +47,9 @@
     </None>
     <None Update="test-data.s3db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\languages.s3db" Link="languages.s3db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
