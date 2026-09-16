@@ -110,7 +110,7 @@ Public Class Management
             cmdUnitEdit.Enabled = True
         End If
 
-        ' lade Sprachen in die Export-Sprachen-Liste, nur tats�chlich vorhandene! (LDF-unabh�ngig)
+        ' lade Sprachen in die Export-Sprachen-Liste, nur tatsächlich vorhandene! (LDF-unabh�ngig)
         lstExportLanguages.Items.Clear()
         For Each language As String In DictionaryDao.DictionaryLanguages("german")
             lstExportLanguages.Items.Add(language)
@@ -118,7 +118,7 @@ Public Class Management
         If lstExportLanguages.Items.Count > 0 Then lstExportLanguages.SelectedIndex = 0
     End Sub
 
-    Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSchlie�en.Click
+    Private Sub CloseForm(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdClose.Click
         Me.Close()
     End Sub
 
