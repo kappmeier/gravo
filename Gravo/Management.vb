@@ -358,8 +358,8 @@ Public Class Management
             MsgBox("Fehler beim Datenbankzugriff: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             Exit Sub
         End Try
-        Dim result As TransferResult = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb)
-                .CopyDictionary("german")
+        Dim result As TransferResult = New DatabaseTransfer(
+                New VocabularyDatabase(db), ActiveDb).CopyDictionary("german")
         db.Close()
 
         lblImportDictCount.Text = "
