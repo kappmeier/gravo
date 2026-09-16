@@ -36,7 +36,7 @@ Partial Class Management
         Me.lstGroupList = New System.Windows.Forms.ListBox()
         Me.cmdGroupAdd = New System.Windows.Forms.Button()
         Me.tabGroup = New System.Windows.Forms.TabPage()
-        Me.cmdSchließen = New System.Windows.Forms.Button()
+        Me.cmdClose = New System.Windows.Forms.Button()
         Me.tab = New System.Windows.Forms.TabControl()
         Me.tabImport = New System.Windows.Forms.TabPage()
         Me.Label1 = New System.Windows.Forms.Label()
@@ -247,15 +247,15 @@ Partial Class Management
         Me.tabGroup.Text = "Gruppen"
         Me.tabGroup.UseVisualStyleBackColor = True
         '
-        'cmdSchließen
+        'cmdClose
         '
-        Me.cmdSchließen.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.cmdSchließen.Location = New System.Drawing.Point(594, 527)
-        Me.cmdSchließen.Margin = New System.Windows.Forms.Padding(6, 6, 6, 6)
-        Me.cmdSchließen.Name = "cmdSchließen"
-        Me.cmdSchließen.Size = New System.Drawing.Size(150, 44)
-        Me.cmdSchließen.TabIndex = 20
-        Me.cmdSchließen.Text = "Schließen"
+        Me.cmdClose.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.cmdClose.Location = New System.Drawing.Point(594, 527)
+        Me.cmdClose.Margin = New System.Windows.Forms.Padding(6, 6, 6, 6)
+        Me.cmdClose.Name = "cmdClose"
+        Me.cmdClose.Size = New System.Drawing.Size(150, 44)
+        Me.cmdClose.TabIndex = 20
+        Me.cmdClose.Text = "Schließen"
         '
         'tab
         '
@@ -569,9 +569,9 @@ Partial Class Management
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(12.0!, 25.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.CancelButton = Me.cmdSchließen
+        Me.CancelButton = Me.cmdClose
         Me.ClientSize = New System.Drawing.Size(764, 585)
-        Me.Controls.Add(Me.cmdSchließen)
+        Me.Controls.Add(Me.cmdClose)
         Me.Controls.Add(Me.tab)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.Margin = New System.Windows.Forms.Padding(6, 6, 6, 6)
@@ -608,7 +608,7 @@ Partial Class Management
   Friend WithEvents lstGroupList As System.Windows.Forms.ListBox
   Friend WithEvents cmdGroupAdd As System.Windows.Forms.Button
   Friend WithEvents tabGroup As System.Windows.Forms.TabPage
-  Friend WithEvents cmdSchließen As System.Windows.Forms.Button
+  Friend WithEvents cmdClose As System.Windows.Forms.Button
   Friend WithEvents tab As System.Windows.Forms.TabControl
   Friend WithEvents tabImport As System.Windows.Forms.TabPage
   Friend WithEvents lblImportDB As System.Windows.Forms.Label
