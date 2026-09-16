@@ -154,13 +154,7 @@
     <Compile Include="WordInput.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="data\AccessDataBaseOperation.vb" />
     <Compile Include="Definitions.vb" />
-    <Compile Include="emptyDataSet.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>emptyDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -182,14 +176,6 @@
     <Compile Include="Options.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="XLS\xlsBase.vb" />
-    <Compile Include="XLS\xlsDictionary.vb" />
-    <Compile Include="XLS\xlsDictionaryEntry.vb" />
-    <Compile Include="XLS\xlsGroup.vb" />
-    <Compile Include="XLS\xlsGroups.vb" />
-    <Compile Include="XLS\xlsImportExport.vb" />
-    <Compile Include="XLS\xlsTestBase.vb" />
-    <Compile Include="XLS\xlsTestGroup.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Statistic.resx">
@@ -245,17 +231,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="emptyDataSet.xsc">
-      <DependentUpon>emptyDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="emptyDataSet.xsd">
-      <SubType>Designer</SubType>
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>emptyDataSet.Designer.vb</LastGenOutput>
-    </None>
-    <None Include="emptyDataSet.xss">
-      <DependentUpon>emptyDataSet.xsd</DependentUpon>
-    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -265,11 +240,6 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="empty.mdb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
