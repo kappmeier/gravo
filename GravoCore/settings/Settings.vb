@@ -9,7 +9,7 @@ Public Structure WindowSettings
 End Structure
 
 ''' <summary>
-''' Window state as persisted in the settings. Numerically identical to c>System.Windows.Forms.FormWindowState</c>.
+''' Window state as persisted in the settings. Numerically identical to <c>System.Windows.Forms.FormWindowState</c>.
 ''' </summary>
 Public Enum WindowStateSetting
     Normal = 0

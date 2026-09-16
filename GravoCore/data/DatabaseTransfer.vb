@@ -1,6 +1,6 @@
 ﻿''' <summary>
-''' Copies dictionary entries from a vocabulary database (including groups and group entries, see 
-''' see cref="VocabularyDatabase"/>). Transfers databases are selected by the constructor.
+''' Copies dictionary entries from a vocabulary database (including groups and group entries, see
+''' <see cref="VocabularyDatabase"/>). Transfers databases are selected by the constructor.
 ''' </summary>
 ''' <remarks>
 ''' Transfer follows the DAO uniqueness rules: a main entry is matched by (word, language, main language), a word by
@@ -50,8 +50,8 @@ Public Class DatabaseTransfer
     ''' <summary>
     ''' Copies a main group including its subgroups, their words and the words' dictionary entries. Subgroups are
     ''' merged with existing ones without altering existing data: Group rows, dictionary rows and card statistics
-    ''' already in the target database remain as before. The result counts the copied entities, whether they are
-    ''' newly created or existing before.
+    ''' already in the target database remain as before. The result counts the rows actually added, except
+    ''' <c>Groups</c> counts the main group, whether added or not.
     ''' </summary>
     Public Function CopyGroup(groupName As String) As TransferResult
         Dim result As New TransferResult()
