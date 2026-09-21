@@ -1,7 +1,7 @@
 Imports System.Collections.ObjectModel
 
 Public Class WordInput
-    Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen für Microsoft Access Datenbanken
+    Dim db As New SQLiteDataBaseOperation                 ' Datenbankoperationen fï¿½r Microsoft Access Datenbanken
     Dim DictionaryDao As IDictionaryDao
     ''' <summary>
     ''' Data access for groups.
@@ -23,10 +23,10 @@ Public Class WordInput
     Dim wordEdited As Boolean = False
 
     Public Sub New()
-        ' Dieser Aufruf ist für den Windows Form-Designer erforderlich.
+        ' Dieser Aufruf ist fï¿½r den Windows Form-Designer erforderlich.
         InitializeComponent()
 
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
+        ' Fï¿½gen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         db.Open(DBPath)
         DictionaryDao = New DictionaryDao(db)
         GroupsDao = New GroupsDao(db)
@@ -51,7 +51,7 @@ Public Class WordInput
         If Me.Top < 0 Then Me.Top = 0
         If Me.Left < 0 Then Me.Left = 0
 
-        ' Sprachen in die Listen einfügen
+        ' Sprachen in die Listen einfï¿½gen
         cmbLanguages.Items.Clear()
         Dim languages As Collection(Of String) = DictionaryDao.DictionaryLanguages("german")
         For Each language As String In languages
@@ -86,16 +86,16 @@ Public Class WordInput
 
     Private Sub AddSubEntry(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdAddSubEntry.Click
         If chkDirectAdd.Checked And GroupEntry Is Nothing Then
-            MsgBox("Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!", MsgBoxStyle.Information, "Warnung")
+            MsgBox("Bitte wï¿½hlen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!", MsgBoxStyle.Information, "Warnung")
             Exit Sub
         End If
 
         Dim languageCount As Integer = GroupDao.GetLanguages(GroupEntry).Count
         Dim mainLanguageCount As Integer = GroupDao.GetMainLanguages(GroupEntry).Count
 
-        ' Falls keine Sprache in der Gruppe vorhanden ist (0 Einträgee bisher), nachfragen ob wirklich erstellt werden soll
+        ' Falls keine Sprache in der Gruppe vorhanden ist (0 Eintrï¿½gee bisher), nachfragen ob wirklich erstellt werden soll
         If languageCount = 0 Or mainLanguageCount = 0 Then
-            If MsgBox("Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den Sprachen '" & language & "' und '" & mainLanguage & "' erstellt werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
+            If MsgBox("Es ist bisher noch kein Eintrag in der gewï¿½hlten Gruppe vorhanden. Soll ein neuer Eintrag mit den Sprachen '" & language & "' und '" & mainLanguage & "' erstellt werden?", MsgBoxStyle.YesNo, "Neue Sprache") = MsgBoxResult.No Then Exit Sub
         End If
 
         ' Falls bisher eine Sprache in der Gruppe vorhanden ist, nachfragen ob eine neue erstellt werden soll
@@ -114,28 +114,30 @@ Public Class WordInput
         Try
             DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
             If chkDirectAdd.Checked Then AddToGroup()
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
         Catch ex As EntryExistsException
             ' Eintrag existiert schon
             If chkDirectAdd.Checked Then AddToGroup()
         Catch ex As EntryNotFoundException
-            ' Da der Haupteintrag nicht vorhanden ist, muß hier auch nicht auf die xlsExists-Exception geachtet werden.
-            Dim res As MsgBoxResult = MsgBox("Der Haupteintrag " & txtMainEntry.Text & " ist für die gewählten Sprachen nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
+            ' Da der Haupteintrag nicht vorhanden ist, muï¿½ hier auch nicht auf die xlsExists-Exception geachtet werden.
+            Dim res As MsgBoxResult = MsgBox("Der Haupteintrag " & txtMainEntry.Text & " ist fï¿½r die gewï¿½hlten Sprachen nicht vorhanden. Soll er erstellt werden?", MsgBoxStyle.YesNo, "Haupteintrag nicht vorhanden")
             If res = MsgBoxResult.Yes Then
-                ' Hinzufügen. Da die nicht-existiert-exception auftrat, kann nicht mehr die existiert-schon-exception auftreten
+                ' Hinzufï¿½gen. Da die nicht-existiert-exception auftrat, kann nicht mehr die existiert-schon-exception auftreten
                 Try
                     DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
-                Catch sex As Exception When TypeOf sex Is LanguageNotFoundException OrElse TypeOf sex Is EntryNotFoundException
-                    MsgBox(sex.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
+                Catch sex As Exception When TypeOf sex Is LanguageNotFoundException OrElse TypeOf sex Is EntryNotFoundException OrElse TypeOf sex Is InputException
+                    MsgBox(sex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
                 End Try
-                ' Erneut den subentry hinzufügen
+                ' Erneut den subentry hinzufï¿½gen
                 Try
                     DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
-                    ' hinzufügen in die gruppe
+                    ' hinzufï¿½gen in die gruppe
                     If chkDirectAdd.Checked Then AddToGroup()
                 Catch sex As EntryExistsException
-                    If chkDirectAdd.Checked Then AddToGroup() ' da es schon vorhanden ist, kann es in die aktuelle Gruppe hinzugefügt werden
+                    If chkDirectAdd.Checked Then AddToGroup() ' da es schon vorhanden ist, kann es in die aktuelle Gruppe hinzugefï¿½gt werden
                 Catch sex As Exception
-                    MsgBox("Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
+                    MsgBox("Eintrag nicht mï¿½glich, konflikt mit Index wahrscheinlich. ï¿½berprï¿½fen Sie Ihre Datenbankversion." & vbCrLf & "Fehler: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
                 End Try
             Else
                 ' Eintrag soll nicht erstellt werden, ende.
@@ -157,7 +159,7 @@ Public Class WordInput
     End Sub
 
     Private Sub AddToGroup()
-        ' Davon ausgehen, daß das Einfügen in die Wortliste korrekt erfolgt ist
+        ' Davon ausgehen, daï¿½ das Einfï¿½gen in die Wortliste korrekt erfolgt ist
         Dim mainEntry As MainEntry = DictionaryDao.GetMainEntry(txtMainEntry.Text, language, mainLanguage)
         Dim wordEntry As WordEntry = DictionaryDao.GetEntry(mainEntry, txtWord.Text, txtMeaning.Text)
         ' TODO example
@@ -165,7 +167,7 @@ Public Class WordInput
     End Sub
 
     Private Sub cmbLanguages_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbLanguages.SelectedIndexChanged
-        ' Liste der Wortarten füllen (immer alle unterstützen zur zeit)
+        ' Liste der Wortarten fï¿½llen (immer alle unterstï¿½tzen zur zeit)
         lstWordTypes.Items.Clear()
 
         Dim propertiesDao As New PropertiesDao(db)

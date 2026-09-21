@@ -152,7 +152,12 @@ Public Class Management
         If Trim(txtGroupName.Text) = "" Then Exit Sub
 
         ' Ändern der Gruppen-Informationen in der Datenbank
-        GroupsDao.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
+        Try
+            GroupsDao.EditGroup(lstGroupList.SelectedItem, txtGroupName.Text)
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+            Exit Sub
+        End Try
 
         ' Anzeige Aktualisieren
         UpdateForm()
@@ -193,7 +198,12 @@ Public Class Management
         If Trim(txtUnitName.Text) = "" Then Exit Sub
 
         ' Ändern der Gruppen-Informationen in der Datenbank
-        GroupsDao.EditSubGroup(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, txtUnitName.Text)
+        Try
+            GroupsDao.EditSubGroup(cmbUnitSelectGroup.SelectedItem, lstUnitList.SelectedItem, txtUnitName.Text)
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+            Exit Sub
+        End Try
 
         ' Anzeige Aktualisieren
         UnitSelectGroup(sender, e)
@@ -275,13 +285,19 @@ Public Class Management
         dlgImport.FileName = dlgExport.FileName
 
         ' sichern
-        Dim export As New DatabaseTransfer(ActiveDb, New VocabularyDatabase(db))
-        For Each selectedLanguage As String In lstExportLanguages.CheckedItems
-            export.CopyLanguage(selectedLanguage, "german", Not chkExportEmptyEntrys.Checked)
-        Next
-        For Each selectedGroup As String In lstExportGroups.CheckedItems
-            export.CopyGroup(selectedGroup)
-        Next
+        Try
+            Dim export As New DatabaseTransfer(ActiveDb, New VocabularyDatabase(db))
+            For Each selectedLanguage As String In lstExportLanguages.CheckedItems
+                export.CopyLanguage(selectedLanguage, "german", Not chkExportEmptyEntrys.Checked)
+            Next
+            For Each selectedGroup As String In lstExportGroups.CheckedItems
+                export.CopyGroup(selectedGroup)
+            Next
+        Catch ex As Exception
+            db.Close()
+            MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            Exit Sub
+        End Try
         db.Close()
 
         ' Meldung
@@ -333,7 +349,14 @@ Public Class Management
             versionTest.UpdateDatabaseVersion()
         End If
 
-        Dim result As TransferResult = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb).CopyAllGroups()
+        Dim result As TransferResult = Nothing
+        Try
+            result = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb).CopyAllGroups()
+        Catch ex As Exception
+            db.Close()
+            MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            Exit Sub
+        End Try
         db.Close()
 
         lblImportDictCount.Text = "Importierte Haupteinträge: " & result.MainEntries & vbCrLf & "Importierte Untereinträge: " & result.SubEntries
@@ -353,8 +376,14 @@ Public Class Management
             MsgBox("Fehler beim Datenbankzugriff: " & ex.Message, MsgBoxStyle.Critical, "Fehler")
             Exit Sub
         End Try
-        Dim result As TransferResult = New DatabaseTransfer(
-                New VocabularyDatabase(db), ActiveDb).CopyDictionary("german")
+        Dim result As TransferResult = Nothing
+        Try
+            result = New DatabaseTransfer(New VocabularyDatabase(db), ActiveDb).CopyDictionary("german")
+        Catch ex As Exception
+            db.Close()
+            MsgBox(ex.Message, MsgBoxStyle.Critical, "Fehler")
+            Exit Sub
+        End Try
         db.Close()
 
         lblImportDictCount.Text = "Importierte Haupteinträge: " & result.MainEntries & vbCrLf & "Importierte Untereinträge: " & result.SubEntries
