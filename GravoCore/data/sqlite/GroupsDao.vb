@@ -99,6 +99,7 @@ Public Class GroupsDao
     ''' <param name="groupName"></param>
     ''' <param name="subGroupName"></param>
     Public Sub AddGroup(groupName As String, subGroupName As String) Implements IGroupsDao.AddGroup
+        CheckAllowedText(groupName, subGroupName)
         If GroupExists(groupName, subGroupName) Then
             Throw New EntryExistsException("Group with the given name already exists.")
         End If
@@ -142,6 +143,7 @@ Public Class GroupsDao
     ''' <param name="groupName"></param>
     ''' <param name="newName"></param>
     Public Sub EditGroup(ByVal groupName As String, ByVal newName As String) Implements IGroupsDao.EditGroup
+        CheckAllowedText(newName)
         If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
 
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
@@ -167,6 +169,7 @@ Public Class GroupsDao
     ''' <param name="subGroupName">The sub group name</param>
     ''' <param name="newSubGroupName">The new sub group name</param>
     Public Sub EditSubGroup(ByVal groupName As String, ByVal subGroupName As String, ByVal newSubGroupName As String) Implements IGroupsDao.EditSubGroup
+        CheckAllowedText(newSubGroupName)
         Dim oldEntry As GroupEntry = GetGroup(groupName, subGroupName)
         If (GroupExists(groupName, newSubGroupName)) Then
             Throw New EntryExistsException("Sub group " & newSubGroupName & " for group " & groupName & " exists.")

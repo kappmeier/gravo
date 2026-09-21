@@ -86,4 +86,16 @@ Public Class DaoToolsTests
         Assert.AreEqual("Thisiscrazy1", DaoTools.StripSpecialCharacters("This is crazy!!!1!"))
     End Sub
 
+    <Test>
+    Public Sub CheckAllowedText_DoubleQuote_Throws()
+        Assert.Throws(Of InputException)(Sub() DaoTools.CheckAllowedText("ok", "x""y"))
+    End Sub
+
+    <Test>
+    Public Sub CheckAllowedText_ApostropheAndNothing_Pass()
+        Assert.DoesNotThrow(Sub() DaoTools.CheckAllowedText("un po'", "l'", Nothing, ""))
+        Assert.DoesNotThrow(Sub() DaoTools.CheckAllowedText())
+        Assert.DoesNotThrow(Sub() DaoTools.CheckAllowedText(CType(Nothing, String())))
+    End Sub
+
 End Class

@@ -2,6 +2,25 @@
 
 Public Module DaoTools
 
+    ''' <summary>
+    ''' Double quotes are not  allowed in any text stored by the DAOs. A single apostrophe is an
+    ''' accepted letter.
+    ''' </summary>
+    Public Const ForbiddenCharacters As String = """"
+
+    ''' <summary>
+    ''' Checks for characters from <see cref="ForbiddenCharacters"/>. Throws an <see cref="InputException"/> when any
+    ''' of the texts contains such a character. <c>Nothing</c> is tolerated.
+    ''' </summary>
+    Public Sub CheckAllowedText(ParamArray texts As String())
+        If texts Is Nothing Then Exit Sub
+        For Each text As String In texts
+            If text IsNot Nothing AndAlso text.IndexOfAny(ForbiddenCharacters.ToCharArray()) >= 0 Then
+                Throw New InputException(InputException.ErrorType.IllegalCharacter)
+            End If
+        Next
+    End Sub
+
     Public Function GetDBEntry(ByVal text As String) As String
         Return "'" & EscapeSingleQuotes(text) & "'"
     End Function

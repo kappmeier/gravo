@@ -172,8 +172,21 @@ Public Class DatabaseTransferLanguageTests
 
     <Test>
     Public Sub CopyLanguage_ApostropheEntries_ArriveUnchangedOverTwoHops()
-        _sourceDb.ExecuteNonQuery("INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage) VALUES ('po''', 'lang', 'targetLang')", Array.Empty(Of Object))
-        _sourceDb.ExecuteNonQuery("INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular) SELECT [Index], 'un po'' di', 'l''', '', 3, 'ein bisschen', 'Sapori d''Italia', 0 FROM DictionaryMain WHERE WordEntry = 'po'''", Array.Empty(Of Object))
+        Dim command = "
+            INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage)
+            VALUES ('po''', 'lang', 'targetLang')
+        "
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
+        command = "
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            SELECT [Index],
+                   'un po'' di', 'l''', '', 3,
+                   'ein bisschen', 'Sapori d''Italia',
+                   0
+              FROM DictionaryMain
+             WHERE WordEntry = 'po'''
+        "
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
         Dim thirdPath As String = Path.GetTempFileName()
         ManagementDao.CreateNewVocabularyDatabase(thirdPath)
         Dim thirdDb As IDataBaseOperation = New SQLiteDataBaseOperation()
@@ -196,6 +209,30 @@ Public Class DatabaseTransferLanguageTests
             SqliteConnection.ClearAllPools()
             File.Delete(thirdPath)
         End Try
+    End Sub
+
+    <Test>
+    Public Sub CopyLanguage_SourceWordWithDoubleQuote_ThrowsInputException()
+        Dim command = "
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            VALUES (1, 'say ""hi""', '', '', 3, 'greet', '', 0)
+        "
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
+
+        ' First attempt fails
+        Assert.Throws(Of InputException)(Sub() _transfer.CopyLanguage("lang", mainLanguage, False))
+
+        ' Check that the merge is idempotent and can recover after the failure is fixed.
+        command = "
+            DELETE FROM DictionaryWords
+             WHERE Word = 'say ""hi""'
+        "
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
+
+        ' Second attempt should succeed
+        _transfer.CopyLanguage("lang", mainLanguage, False)
+        _target.Dictionary.WordCount("lang", mainLanguage).Should().Be(2)
+        _target.Dictionary.WordCountTotal("lang", mainLanguage).Should().Be(5)
     End Sub
 
     Private Function MainWords(language As String) As IEnumerable(Of String)

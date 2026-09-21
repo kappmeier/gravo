@@ -498,4 +498,38 @@ Public Class DictionaryDaoTests
         SeedApostropheMain = _db.SecureGetInt32(0)
         _db.DBCursor.Close()
     End Function
+
+    ' Assert that no double quotes are allowed.
+
+    <Test>
+    Public Sub AddEntry_WithDoubleQuote_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.AddEntry("x""y", language, targetLanguage))
+
+        _dictionaryDao.WordCount(language, targetLanguage).Should.Be(2)
+    End Sub
+
+    <Test>
+    Public Sub AddSubEntry_WithDoubleQuote_ThrowsInputException()
+        Dim quoted As New WordEntry("word1", "", "", WordType.Verb, "say ""hi""", "", False)
+
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.AddSubEntry(quoted, "word1", language, targetLanguage))
+
+        _dictionaryDao.WordCountTotal(language, targetLanguage).Should.Be(5)
+    End Sub
+
+    <Test>
+    Public Sub ChangeEntry_WithDoubleQuote_ThrowsInputException()
+        Dim quotedUpdate As New IDictionaryDao.UpdateData With {.Meaning = "m ""q"""}
+
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.ChangeEntry(word1entry1, quotedUpdate))
+
+        _dictionaryDao.GetEntry(word1MainEntry, "word1", "m").Should.BeEquivalentTo(word1entry1)
+    End Sub
+
+    <Test>
+    Public Sub ChangeMainEntry_WithDoubleQuote_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.ChangeMainEntry(word1MainEntry, "word""1"))
+
+        _dictionaryDao.GetMainEntry("word1", language, targetLanguage).Should.Be(word1MainEntry)
+    End Sub
 End Class

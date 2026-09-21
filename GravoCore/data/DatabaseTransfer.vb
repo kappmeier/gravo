@@ -6,6 +6,8 @@
 ''' Transfer follows the DAO uniqueness rules: a main entry is matched by (word, language, main language), a word by
 ''' (main entry, word, meaning). Existing target rows are never modified. New words get assigned a default <c>Cards</c>
 ''' Card statistics (user data) are not transferred.
+''' A forbidden character (<see cref="DaoTools.ForbiddenCharacters"/>) in the source aborts the transfer with an
+''' <see cref="InputException"/>. The merge is idempotent, transfer can be retried after fixing the source.
 '''
 ''' The DAOs read NULL text columns as "" (via <c>SecureGetString</c>), so a transfer writes these values as "".
 ''' </remarks>
