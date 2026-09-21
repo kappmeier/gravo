@@ -178,7 +178,7 @@ Public Class DictionaryDaoTests
 
     Private Sub AssertCardCreated()
         Dim command As String = "SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain FROM Cards WHERE [Index] = ?"
-        _db.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {newWordIndex}))
+        _db.ExecuteReader(command, ToDbParameters(New List(Of Object) From {newWordIndex}))
         _db.DBCursor.Read()
         Dim testInterval As Integer = _db.SecureGetInt32(0)
         Dim counter As Integer = _db.SecureGetInt32(1)
@@ -438,4 +438,64 @@ Public Class DictionaryDaoTests
 
         languages.Should.BeEquivalentTo(expectedLanguages)
     End Sub
+
+    ' Apostrophes are letters (l', c'est, un po') and must round-trip unchanged.
+
+    <Test>
+    Public Sub GetMainEntry_ExistingApostropheRow_IsFound()
+        SeedApostropheMain()
+
+        Dim entry As MainEntry = _dictionaryDao.GetMainEntry("aujourd'hui", language, targetLanguage)
+
+        entry.Word.Should.Be("aujourd'hui")
+    End Sub
+
+    <Test>
+    Public Sub GetWords_StartsWithApostrophe_FindsSeededWord()
+        Dim mainIndex As Integer = SeedApostropheMain()
+        Dim command = "
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            VALUES (?, 'aujourd''hui', '', '', 3, 'heute', '', 0)
+        "
+        _db.ExecuteNonQuery(command, Enumerable.Repeat(CObj(mainIndex), 1))
+
+        _dictionaryDao.GetWords(language, targetLanguage, "aujourd'").Should.HaveCount(1)
+        _dictionaryDao.GetMainEntries(language, targetLanguage, "aujourd'").Should.HaveCount(1)
+    End Sub
+
+    <Test>
+    Public Sub AddEntry_WithApostrophe_RoundTripsUnchanged()
+        Dim added As MainEntry = _dictionaryDao.AddEntry("po'", language, targetLanguage)
+
+        added.Word.Should.Be("po'")
+        _dictionaryDao.GetMainEntry("po'", language, targetLanguage).Word.Should.Be("po'")
+    End Sub
+
+    <Test>
+    Public Sub AddSubEntry_ApostropheInAllTextFields_RoundTripsUnchanged()
+        _dictionaryDao.AddEntry("po'", language, targetLanguage)
+        Dim apostropheWord As New WordEntry("un po'", "l'", "d'", WordType.Simple, "wie geht's?", "d'Aide", False)
+
+        _dictionaryDao.AddSubEntry(apostropheWord, "po'", language, targetLanguage)
+
+        Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWordsAndSubWords("po'", language, targetLanguage)
+        words.Should.HaveCount(1)
+        words.First().Should.Be(New WordEntry("un po'", "l'", "d'", WordType.Simple, "wie geht's?", "d'Aide", False))
+    End Sub
+
+    Private Function SeedApostropheMain() As Integer
+        Dim command = "
+            INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage)
+            VALUES ('aujourd''hui', 'lang', 'targetLang')
+        "
+        _db.ExecuteNonQuery(command, Array.Empty(Of Object))
+        command = "
+            SELECT [Index] FROM DictionaryMain
+            WHERE WordEntry = 'aujourd''hui'
+        "
+        _db.ExecuteReader(command, Array.Empty(Of Object))
+        _db.DBCursor.Read()
+        SeedApostropheMain = _db.SecureGetInt32(0)
+        _db.DBCursor.Close()
+    End Function
 End Class

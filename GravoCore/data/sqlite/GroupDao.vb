@@ -42,7 +42,7 @@ Public Class GroupDao
 
         Dim dateString As String = "1900-01-01"
         Dim command As String = "INSERT INTO [" & StripSpecialCharacters(group.Table) & "] ([WordIndex], [Marked], [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES(?, ?, ?, 1, 1, " & GetDBEntry(dateString) & ", 1, 1)"
-        Dim parameters = EscapeSingleQuotes(New List(Of Object) From {word.Index, marked, example})
+        Dim parameters = ToDbParameters(New List(Of Object) From {word.Index, marked, example})
         DBConnection.ExecuteNonQuery(command, parameters)
     End Sub
 
@@ -65,7 +65,7 @@ Public Class GroupDao
 
     Function Load(ByRef group As GroupEntry, ByRef word As WordEntry) As TestWord Implements IGroupDao.Load
         Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE D.[Index]=G.[WordIndex] AND D.[Index] = ? AND G.[WordIndex] = ?"
-        Dim parameters = EscapeSingleQuotes(New List(Of Object) From {word.Index, word.Index})
+        Dim parameters = ToDbParameters(New List(Of Object) From {word.Index, word.Index})
         DBConnection.ExecuteReader(command, parameters)
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("No Entry with this index in the Group.")
@@ -109,13 +109,13 @@ Public Class GroupDao
 
     Sub UpdateMarked(ByRef group As GroupEntry, ByRef word As TestWord, ByVal marked As Boolean) Implements IGroupDao.UpdateMarked
         Dim command As String = "SELECT [Marked] FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
-        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {word.WordIndex}))
+        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {word.WordIndex}))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("No Entry with this index in the Group.")
                                   End Function)
         DBConnection.DBCursor.Close()
         command = "UPDATE [" & StripSpecialCharacters(group.Table) & "] SET [Marked] = ? WHERE [WordIndex] = ?"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {marked, word.WordIndex}))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {marked, word.WordIndex}))
         DBConnection.DBCursor.Close()
     End Sub
 
@@ -153,7 +153,7 @@ Public Class GroupDao
     <Obsolete("This method is deprecated, work on data objects and update.")>
     Public Function GetIndex(ByRef group As GroupEntry, ByVal word As String, ByVal meaning As String) As Integer
         Dim command As String = "SELECT G.WordIndex FROM DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.Word= ? AND W.Meaning = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(word), EscapeSingleQuotes(meaning)})
+        DBConnection.ExecuteReader(command, New List(Of String) From {word, meaning})
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New EntryNotFoundException("No Entry for the given word and meaning in the current group.")
@@ -175,7 +175,7 @@ Public Class GroupDao
     Public Function GetTestWord(ByRef group As GroupEntry, ByVal word As String, ByVal meaning As String) As TestWord Implements IGroupDao.GetTestWord
 
         Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = D.[Index] AND D.Word= ? AND D.Meaning = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {EscapeSingleQuotes(word), EscapeSingleQuotes(meaning)})
+        DBConnection.ExecuteReader(command, New List(Of String) From {word, meaning})
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New EntryNotFoundException("No Entry for the given word and meaning in the current group.")

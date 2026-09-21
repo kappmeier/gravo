@@ -310,4 +310,14 @@ Public Class GroupsDaoTests
         End If
         _db.CloseReader()
     End Function
+
+    <Test>
+    Public Sub AddGroup_SubGroupWithApostrophe_IsFoundByGetGroupAndGroupExists()
+        Dim dao As IGroupsDao = _groupsDao
+
+        dao.AddGroup("Language Book", "Sapori d'Italia")
+
+        Assert.IsTrue(dao.GroupExists("Language Book", "Sapori d'Italia"))
+        Assert.AreEqual("Sapori d'Italia", dao.GetGroup("Language Book", "Sapori d'Italia").SubGroup)
+    End Sub
 End Class

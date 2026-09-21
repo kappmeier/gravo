@@ -15,17 +15,19 @@ Public Module DaoTools
     End Function
 
     ''' <summary>
-    ''' Applies the escaping rules to all elements of the list.
+    ''' Prepares values for binding as SQL parameters. booleans become "1"/"0", everything else passes through
+    ''' unchanged. Parameter values are bound raw and must never be escaped. Quote doubling should only be done for
+    ''' string literals built with <see cref="GetDBEntry(String)"/>.
     ''' </summary>
-    ''' <param name="parameters"></param>
-    ''' <returns></returns>
-    Public Function EscapeSingleQuotes(ByRef parameters As List(Of Object)) As IEnumerable(Of Object)
-        EscapeSingleQuotes = parameters.Select(Of Object)(Function(data) If(TypeOf data Is String, EscapeSingleQuotes(CType(data, String)),
-                                                              If(TypeOf data Is Boolean, EscapeBoolean(CType(data, Boolean)), data)))
+    Public Function ToDbParameters(ByRef parameters As List(Of Object)) As IEnumerable(Of Object)
+        ToDbParameters = parameters.Select(Of Object)(
+            Function(data) If(TypeOf data Is Boolean, EscapeBoolean(CType(data, Boolean)), data)
+        )
     End Function
 
     ''' <summary>
-    ''' Escapes all single quotes by replacing them with two single quotes.
+    ''' Escapes all single quotes by replacing them with two single quotes. Only needed for SQL string literals built
+    ''' by <see cref="GetDBEntry(String)"/>. Method should never be applied it to parameter values, they are bound raw.
     ''' </summary>
     ''' <param name="Text">The string to be escaped.</param>
     ''' <returns></returns>

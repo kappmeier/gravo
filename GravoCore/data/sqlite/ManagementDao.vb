@@ -168,13 +168,13 @@ Public Class ManagementDao
             Dim dict As New CardsDao(Me.DBConnection)
             For Each index As Integer In indices
                 command = "SELECT Marked FROM [DictionaryWords] WHERE [Index] = ?"
-                DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {index}))
+                DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
                 DBConnection.DBCursor.Read()
                 Dim marked As Boolean = DBConnection.SecureGetBool(0)
                 DBConnection.DBCursor.Close()
 
                 command = "UPDATE [" & table & "] SET [Marked] = ? WHERE [WordIndex] = ?"
-                DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {marked, index}))
+                DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {marked, index}))
             Next
         Next group
 
@@ -308,7 +308,7 @@ Public Class ManagementDao
         Dim command As String = "INSERT INTO [DBVersion] ([Version], [Date], [Description]) VALUES(?, ?, ?)"
         Dim versionString As String = version.Major & "." & version.Minor.ToString("00", CultureInfo.InvariantCulture)
         Dim versionParameters = New List(Of Object) From {versionString, version.Introduction.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), version.Description}
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(versionParameters))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(versionParameters))
     End Sub
 
     ''' <summary>
@@ -385,11 +385,11 @@ Public Class ManagementDao
         DBConnection.DBCursor.Close()
         For Each index As Integer In indices
             command = "SELECT Word FROM DictionaryWords WHERE [Index] = ?"
-            DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {index}))
+            DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
             If Not DBConnection.DBCursor.HasRows Then
                 command = "DELETE FROM Cards WHERE [Index] = ?"
                 DBConnection.DBCursor.Close()
-                DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {index}))
+                DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {index}))
                 ErrorCount += 1
             Else
                 DBConnection.DBCursor.Close()
@@ -407,7 +407,7 @@ Public Class ManagementDao
         Dim cards As New CardsDao(DBConnection)
         For Each index As Integer In indices
             command = "SELECT TestInterval FROM Cards WHERE [Index] = ?"
-            DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {index}))
+            DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
             If Not DBConnection.DBCursor.HasRows Then
                 DBConnection.DBCursor.Close()
                 cards.AddNewEntry(index)
@@ -425,7 +425,7 @@ Public Class ManagementDao
             Dim groupDto As GroupDto = GroupDao.Load(Group)
             For Each entry As TestWord In groupDto.Entries
                 command = "SELECT MainIndex FROM DictionaryWords WHERE [Index] = ?"
-                DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {entry.Index}))
+                DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {entry.Index}))
                 If DBConnection.DBCursor.HasRows = False Then
                     ' delete because entry does not exist
                     DBConnection.CloseReader()

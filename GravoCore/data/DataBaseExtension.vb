@@ -49,7 +49,7 @@ Public Module DataBaseExtension
     <Extension()>
     Public Function ExistsTable(dataBaseOperation As IDataBaseOperation, tableName As String) As Boolean
         Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
-        dataBaseOperation.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {tableName}))
+        dataBaseOperation.ExecuteReader(command, ToDbParameters(New List(Of Object) From {tableName}))
         ExistsTable = dataBaseOperation.DBCursor.HasRows
         dataBaseOperation.DBCursor.Close()
     End Function

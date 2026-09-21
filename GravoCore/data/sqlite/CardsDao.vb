@@ -19,7 +19,7 @@ Public Class CardsDao
 
     Public Function Load(wordNumber As Integer) As Card Implements ICardsDao.Load
         Dim command As String = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
-        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {wordNumber}))
+        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {wordNumber}))
         If Not DBConnection.DBCursor.HasRows Then Throw New EntryNotFoundException("Entry " & wordNumber & " not found in global cards-system. If you Expect to have it, try to reorganize the database.")
 
         DBConnection.DBCursor.Read()
@@ -39,13 +39,13 @@ Public Class CardsDao
     ''' <param name="index">The word index.</param>
     Friend Sub AddNewEntry(ByVal index As Integer)
         Dim command As String = "INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (?, ?, ?, ?, ?, ?)"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {index, 1, 1, SQLiteDataBaseOperation.NowDB(), 1, 1}))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {index, 1, 1, SQLiteDataBaseOperation.NowDB(), 1, 1}))
     End Sub
 
     Public Sub Save(card As Card, wordNumber As Integer) Implements ICardsDao.Save
         'If m_wordNumber = -1 Then Throw New xlsExceptionCards(2)
         Dim command As String = "UPDATE [Cards] SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ? WHERE [Index] = ?"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {card.TestInterval,
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {card.TestInterval,
                 card.Counter, SQLiteDataBaseOperation.ToDbDate(card.LastDate), card.TestIntervalMain, card.CounterMain,
                 wordNumber}))
     End Sub
@@ -117,7 +117,7 @@ Public Class CardsDao
 
     Private Sub Update(tableNameSafe As String, wordIndex As Integer, indexColumn As String, interval As Integer, intervalColumn As String, counterColumn As String)
         Dim command = "UPDATE [" & tableNameSafe & "] SET " & intervalColumn & " = ?, " & counterColumn & " = ?, [LastDate] = ? WHERE [" & indexColumn & "] = ?"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {interval, interval, SQLiteDataBaseOperation.NowDB(), wordIndex}))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {interval, interval, SQLiteDataBaseOperation.NowDB(), wordIndex}))
     End Sub
 
     Public Function Skip(entry As WordEntry, queryDirection As QueryLanguage) As Boolean Implements ICardsDao.Skip
@@ -139,7 +139,7 @@ Public Class CardsDao
         End If
 
         Dim command = "UPDATE [" & tableNameSafe & "] SET " & counterColumn & " = ? WHERE [" & indexColumn & "] = ?"
-        DBConnection.ExecuteNonQuery(command, EscapeSingleQuotes(New List(Of Object) From {counter - 1, wordIndex}))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {counter - 1, wordIndex}))
         Return True
     End Function
 
@@ -149,7 +149,7 @@ Public Class CardsDao
     ''' <returns>Tuple containing counter and interval.</returns>
     Private Function GetValues(tableNameSafe As String, wordIndex As Integer, indexColumn As String, what As String, intervalColumn As String, counterColumn As String) As Tuple(Of Integer, Integer)
         Dim command As String = "SELECT " & counterColumn & ", " & intervalColumn & " FROM [" & tableNameSafe & "] WHERE [" & indexColumn & "] = ?"
-        DBConnection.ExecuteReader(command, EscapeSingleQuotes(New List(Of Object) From {wordIndex}))
+        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {wordIndex}))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("Cards for " & what & " not found.")
                                   End Function)
