@@ -233,6 +233,17 @@ Public Class DatabaseTransferGroupTests
         _target.Group.Load(TargetGroup("Test", "Empty")).WordCount.Should().Be(0)
     End Sub
 
+    <Test>
+    Public Sub CopyGroup_ApostropheSubGroupAndExample_ArriveUnchanged()
+        _sourceDb.ExecuteNonQuery("UPDATE Groups SET GroupSubName = 'Lezione 8 - Sapori d''Italia' WHERE GroupSubName = 'Example'", Array.Empty(Of Object))
+        _sourceDb.ExecuteNonQuery("UPDATE [GroupTest-Example01] SET Example = 'Auf geht''s!' WHERE WordIndex = 2", Array.Empty(Of Object))
+
+        _transfer.CopyGroup("Test")
+
+        Dim copied As GroupDto = _target.Group.Load(TargetGroup("Test", "Lezione 8 - Sapori d'Italia"))
+        copied.Entries.Single(Function(t) t.Word = "word2").Example.Should().Be("Auf geht's!")
+    End Sub
+
     Private Function TargetGroup(groupName As String, subGroupName As String) As GroupEntry
         Return _target.Groups.GetGroup(groupName, subGroupName)
     End Function

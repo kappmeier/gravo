@@ -198,4 +198,11 @@ Public Class GroupDaoTests
         _groupDao.GetMainLanguages(exampleGroup).Should.BeEquivalentTo(New List(Of String) From {"targetLang"})
     End Sub
 
+    <Test>
+    Public Sub AddTestEntry_ExampleWithApostrophe_IsStoredUnchanged()
+        _groupDao.Add(exampleGroup, word3, False, "Auf geht's!")
+
+        _groupDao.Load(exampleGroup, word3).Example.Should.Be("Auf geht's!")
+    End Sub
+
 End Class

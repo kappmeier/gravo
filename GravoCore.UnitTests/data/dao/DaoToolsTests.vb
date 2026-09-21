@@ -39,15 +39,21 @@ Public Class DaoToolsTests
     End Sub
 
     <Test>
-    Public Sub EscapeSingleQuotes_EmptyList_RemainsEmpty()
-        Dim result As IEnumerable(Of Object) = DaoTools.EscapeSingleQuotes(New List(Of Object))
+    Public Sub ToDbParameters_EmptyList_RemainsEmpty()
+        Dim result As IEnumerable(Of Object) = DaoTools.ToDbParameters(New List(Of Object))
         CollectionAssert.AreEqual(New List(Of String), result)
     End Sub
 
     <Test>
-    Public Sub EscapeSingleQuotes_EmptyList_EscapesAllEntries()
-        Dim result As IEnumerable(Of Object) = DaoTools.EscapeSingleQuotes(New List(Of Object) From {"2", "'", "can't"})
-        CollectionAssert.AreEqual(New List(Of String) From {"2", "''", "can''t"}, result)
+    Public Sub ToDbParameters_Strings_ArePassedThroughUnescaped()
+        Dim result As IEnumerable(Of Object) = DaoTools.ToDbParameters(New List(Of Object) From {"2", "'", "can't"})
+        CollectionAssert.AreEqual(New List(Of String) From {"2", "'", "can't"}, result)
+    End Sub
+
+    <Test>
+    Public Sub ToDbParameters_Booleans_BecomeOneAndZero()
+        Dim result As IEnumerable(Of Object) = DaoTools.ToDbParameters(New List(Of Object) From {True, False, 7})
+        CollectionAssert.AreEqual(New List(Of Object) From {"1", "0", 7}, result)
     End Sub
 
     <Test>

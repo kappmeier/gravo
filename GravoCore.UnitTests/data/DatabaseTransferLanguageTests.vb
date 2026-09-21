@@ -170,6 +170,34 @@ Public Class DatabaseTransferLanguageTests
         result.SubEntries.Should().Be(0)
     End Sub
 
+    <Test>
+    Public Sub CopyLanguage_ApostropheEntries_ArriveUnchangedOverTwoHops()
+        _sourceDb.ExecuteNonQuery("INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage) VALUES ('po''', 'lang', 'targetLang')", Array.Empty(Of Object))
+        _sourceDb.ExecuteNonQuery("INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular) SELECT [Index], 'un po'' di', 'l''', '', 3, 'ein bisschen', 'Sapori d''Italia', 0 FROM DictionaryMain WHERE WordEntry = 'po'''", Array.Empty(Of Object))
+        Dim thirdPath As String = Path.GetTempFileName()
+        ManagementDao.CreateNewVocabularyDatabase(thirdPath)
+        Dim thirdDb As IDataBaseOperation = New SQLiteDataBaseOperation()
+        thirdDb.Open(thirdPath)
+        Try
+            _transfer.CopyLanguage("lang", mainLanguage, False)
+            Dim third As New VocabularyDatabase(thirdDb)
+            Dim secondHop As New DatabaseTransfer(_target, third)
+            secondHop.CopyLanguage("lang", mainLanguage, False)
+
+            Dim main As MainEntry = third.Dictionary.GetMainEntry("po'", "lang", mainLanguage)
+            main.Word.Should().Be("po'")
+            third.Dictionary.GetEntry(main, "un po' di", "ein bisschen").Should().Be(
+                New WordEntry("un po' di", "l'", "", WordType.Simple, "ein bisschen", "Sapori d'Italia", False))
+            Dim again As TransferResult = _transfer.CopyLanguage("lang", mainLanguage, False)
+            again.MainEntries.Should().Be(0)
+            again.SubEntries.Should().Be(0)
+        Finally
+            thirdDb.Close()
+            SqliteConnection.ClearAllPools()
+            File.Delete(thirdPath)
+        End Try
+    End Sub
+
     Private Function MainWords(language As String) As IEnumerable(Of String)
         Return _target.Dictionary.GetMainEntries(language, mainLanguage).Select(Function(m) m.Word)
     End Function
