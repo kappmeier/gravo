@@ -320,4 +320,27 @@ Public Class GroupsDaoTests
         Assert.IsTrue(dao.GroupExists("Language Book", "Sapori d'Italia"))
         Assert.AreEqual("Sapori d'Italia", dao.GetGroup("Language Book", "Sapori d'Italia").SubGroup)
     End Sub
+
+    <Test>
+    Public Sub AddGroup_WithDoubleQuote_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _groupsDao.AddGroup("Language Book", "Unit ""3"""))
+
+        Assert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
+    End Sub
+
+    <Test>
+    Public Sub EditGroup_WithDoubleQuote_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _groupsDao.EditGroup("Language Book", "Language ""Book"""))
+
+        Assert.IsTrue(_groupsDao.GroupExists("Language Book"))
+    End Sub
+
+    <Test>
+    Public Sub EditSubGroup_WithDoubleQuote_ThrowsInputException()
+        Dim dao As IGroupsDao = _groupsDao
+
+        Assert.Throws(Of InputException)(Sub() dao.EditSubGroup("Language Book", "Unit 1", "Unit ""1"""))
+
+        Assert.IsTrue(dao.GroupExists("Language Book", "Unit 1"))
+    End Sub
 End Class

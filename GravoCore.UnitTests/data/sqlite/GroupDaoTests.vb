@@ -205,4 +205,11 @@ Public Class GroupDaoTests
         _groupDao.Load(exampleGroup, word3).Example.Should.Be("Auf geht's!")
     End Sub
 
+    <Test>
+    Public Sub AddTestEntry_ExampleWithDoubleQuote_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _groupDao.Add(exampleGroup, word3, False, "say ""hi"""))
+
+        _groupDao.Load(exampleGroup).Entries.Should.HaveCount(3)
+    End Sub
+
 End Class

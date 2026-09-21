@@ -92,6 +92,7 @@ Public Class DictionaryDao
     End Function
 
     Public Function AddEntry(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As MainEntry Implements IDictionaryDao.AddEntry
+        CheckAllowedText(Word, Language, MainLanguage)
         If Word = "" Then Throw New InputException(InputException.ErrorType.NoWord)
         If Language = "" Then Throw New InputException(InputException.ErrorType.NoLanguage)
         Try
@@ -115,6 +116,7 @@ Public Class DictionaryDao
     End Function
 
     Public Sub AddSubEntry(ByRef Entry As WordEntry, ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
+        CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo)
         Dim mainIndex As Integer
         Try
             mainIndex = GetEntryIndex(MainEntry, Language, MainLanguage)
@@ -142,6 +144,7 @@ Public Class DictionaryDao
     End Sub
 
     Function ChangeEntry(ByRef entry As WordEntry, ByVal updateData As IDictionaryDao.UpdateData) As WordEntry Implements IDictionaryDao.ChangeEntry
+        CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo)
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
             Dim newMeaning = updateData.MeaningDefault(entry)
@@ -337,6 +340,7 @@ Public Class DictionaryDao
     End Function
 
     Function ChangeMainEntry(ByRef mainEntry As MainEntry, ByVal newWord As String) As MainEntry Implements IDictionaryDao.ChangeMainEntry
+        CheckAllowedText(newWord)
         ' Verify that the original entry exists
         CheckMainEntry(mainEntry)
 

@@ -6,6 +6,7 @@ Public Class InputException
         NoMeaning
         NoLanguage
         IllegalWordType
+        IllegalCharacter
     End Enum
 
     Public Sub New()
@@ -30,6 +31,8 @@ Public Class InputException
                 Return "No entry for the language."
             Case ErrorType.IllegalWordType
                 Return "Illegal word type."
+            Case ErrorType.IllegalCharacter
+                Return "Input must not contain a double quote ("")."
         End Select
     End Function
 

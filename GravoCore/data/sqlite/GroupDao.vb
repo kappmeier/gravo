@@ -17,6 +17,7 @@ Public Class GroupDao
     ''' <param name="group"></param>
     ''' <param name="data"></param>
     Sub Add(ByRef group As GroupEntry, ByRef word As WordEntry, ByRef marked As Boolean, ByRef example As String) Implements IGroupDao.Add
+        CheckAllowedText(example)
         ' TODO Exception, falls GroupTable nicht existiert, evtl. update von marked falls schon vorhanden...?
 
         If Exists(group, word) Then
