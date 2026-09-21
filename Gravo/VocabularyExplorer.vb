@@ -254,9 +254,19 @@ Public Class VocabularyExplorer
         ElseIf IsGroupNode() Then
             Select Case tvSelectedNode.Level
                 Case NODE_LEVEL_GROUP
-                    GroupsDao.EditGroup(oldName, newName)
+                    Try
+                        GroupsDao.EditGroup(oldName, newName)
+                    Catch ex As InputException
+                        MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+                        e.CancelEdit = True
+                    End Try
                 Case NODE_LEVEL_SUBGROUP
-                    GroupsDao.EditSubGroup(GetGroupFromNode(), oldName, newName)
+                    Try
+                        GroupsDao.EditSubGroup(GetGroupFromNode(), oldName, newName)
+                    Catch ex As InputException
+                        MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+                        e.CancelEdit = True
+                    End Try
                 Case NODE_LEVEL_GROUP_ENTRY
                     Dim item As ListViewItem = ListView.Items.Item(0)
                     Dim testWord As TestWord = item.Tag
@@ -269,6 +279,9 @@ Public Class VocabularyExplorer
                         item.SubItems(GetColumnIndex(ColumnName.EntryWord)).Text = updatedWord.word
                         ' TODO: update test word in item.tag after update and also the texts in the list
                         Throw New Exception()
+                    Catch ex As InputException
+                        MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+                        e.CancelEdit = True
                     Catch ex As EntryExistsException
                         MsgBox("Eintrag existiert bereits.")
                         e.CancelEdit = True
@@ -730,6 +743,8 @@ Public Class VocabularyExplorer
             End If
 
             UpdateListViewAfterWordEdit(selectedIndex, newEntry)
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
         Catch ex As EntryExistsException
             MsgBox("Eintrag existiert bereits: " & txtWord.Text)
         End Try
@@ -792,7 +807,12 @@ Public Class VocabularyExplorer
     Private Sub cmdMultiChange_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdMultiChange.Click
         Dim newMainEntry As MainEntry = Nothing
         If chkEnableMultiMainEntry.Checked Then
-            newMainEntry = DataTools.GetOrCreateMainEntry(DictionaryDao, txtMultiMainEntry.Text, GetLanguageFromNode, "german")
+            Try
+                newMainEntry = DataTools.GetOrCreateMainEntry(DictionaryDao, txtMultiMainEntry.Text, GetLanguageFromNode, "german")
+            Catch ex As InputException
+                MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+                Exit Sub
+            End Try
         End If
 
         For Each index As Integer In ListView.SelectedIndices
@@ -816,6 +836,8 @@ Public Class VocabularyExplorer
             End If
 
             UpdateListViewAfterWordEdit(selectedIndex, newEntry)
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
         Catch ex As EntryExistsException
             MsgBox("Eintrag existiert bereits: " & txtMultiWord.Text)
         End Try
@@ -1475,6 +1497,9 @@ Public Class VocabularyExplorer
         End If
         Try
             DictionaryDao.AddSubEntry(deWord, txtMainEntry.Text, language, mainLanguage)
+        Catch ex As InputException
+            MsgBox(ex.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
+            Exit Sub
         Catch ex As EntryExistsException
             ' Existiert schon, nix zu tun, index feststellen
         Catch ex As EntryNotFoundException
@@ -1483,8 +1508,8 @@ Public Class VocabularyExplorer
             If res = MsgBoxResult.Yes Then
                 Try
                     DictionaryDao.AddEntry(Trim(txtMainEntry.Text), language, mainLanguage)
-                Catch ex2 As Exception When TypeOf ex2 Is LanguageNotFoundException OrElse TypeOf ex2 Is EntryNotFoundException
-                    MsgBox(ex2.Message, MsgBoxStyle.Information, "Unkorrekte Eingabe")
+                Catch ex2 As Exception When TypeOf ex2 Is LanguageNotFoundException OrElse TypeOf ex2 Is EntryNotFoundException OrElse TypeOf ex2 Is InputException
+                    MsgBox(ex2.Message, MsgBoxStyle.Information, "Fehlerhafte Eingabe")
                 End Try
                 ' Untereintrag hinzufügen
                 Try
