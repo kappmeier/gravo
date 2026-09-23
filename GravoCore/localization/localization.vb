@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 
 Public Class localization
     Inherits localizationBase
+    Implements ILocalization
 
     Public Const DISCLAIMER_1 = 1
     Public Const COPYRIGHT_OLD = 2
@@ -145,7 +146,7 @@ Public Class localization
         MyBase.New(db)
     End Sub
 
-    Public Property Language() As String
+    Public Property Language() As String Implements ILocalization.Language
         Get
             Return m_language
         End Get
@@ -154,12 +155,12 @@ Public Class localization
         End Set
     End Property
 
-    Public Function GetText(ByVal name As String) As String
+    Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
         ' existiert, weil es einfacher ist in manchen fällen
         Return GetText(NameToCode(name))
     End Function
 
-    Public Function GetText(ByVal value As Integer) As String
+    Public Function GetText(ByVal value As Integer) As String Implements ILocalization.GetText
         Dim command As String = "SELECT [Text] FROM [" & Language & "] WHERE [Field] = " & value & ";"
         DBConnection.ExecuteReader(command)
         DBConnection.DBCursor.Read()
@@ -199,7 +200,7 @@ Public Class localization
     ''' Returns a list of unique names for available language sets.
     ''' </summary>
     ''' <returns>The list of unique names of languages.</returns>
-    Public Function GetLanguageNames() As Collection(Of String)
+    Public Function GetLanguageNames() As Collection(Of String) Implements ILocalization.GetLanguageNames
         Dim languages As New Collection(Of String)
         Dim command As String = "SELECT [Name] FROM [languages] ORDER BY [Name];"
 
@@ -273,7 +274,7 @@ Public Class localization
         Return value
     End Function
 
-    Public Sub SwitchToLanguage(ByVal name As String)
+    Public Sub SwitchToLanguage(ByVal name As String) Implements ILocalization.SwitchToLanguage
         Language = GetTableFor(name)
     End Sub
 End Class

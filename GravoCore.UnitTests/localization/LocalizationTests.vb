@@ -91,4 +91,15 @@ Public Class LocalizationTests
 
         _loc.Language.Should.Be("german")
     End Sub
+
+    <Test>
+    Public Sub Localization_AsILocalization_RoutesAllMembers()
+        Dim loc As ILocalization = _loc
+        loc.Language.Should.Be("german")
+        loc.GetLanguageNames.Should.Equal("Deutsch", "English")
+        loc.GetText(localization.WORD_TYPE_VERB).Should.Be(_loc.GetText(localization.WORD_TYPE_VERB))
+        loc.GetText("WORD_TYPE_VERB").Should.Be(loc.GetText(localization.WORD_TYPE_VERB))
+        loc.SwitchToLanguage("English")
+        loc.Language.Should.Be("english")
+    End Sub
 End Class
