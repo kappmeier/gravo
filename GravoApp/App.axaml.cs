@@ -1,0 +1,22 @@
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using GravoApp.Views;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("GravoApp.Tests")]
+
+namespace GravoApp;
+
+public partial class App : Application
+{
+    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = new MainWindow();
+        }
+        base.OnFrameworkInitializationCompleted();
+    }
+}

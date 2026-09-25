@@ -38,7 +38,19 @@ jobs:
         echo "Tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
         [ "${passed:-0}" -ge "$TEST_FLOOR" ]
       env:
-        TEST_FLOOR: 335
+        TEST_FLOOR: 336
+    - name: Build desktop app
+      run: dotnet build GravoApp.Desktop -c Release
+    - name: UI tests
+      # Ensures tests are executed, see Unit Tests section above.
+      shell: bash
+      run: |
+        dotnet test GravoApp.Tests -c Release | tee ui-test.log
+        passed=$(grep -oP 'Passed:\s*\K[0-9]+' ui-test.log | tail -1)
+        echo "UI tests passed: ${passed:-0} (floor: $UI_TEST_FLOOR)"
+        [ "${passed:-0}" -ge "$UI_TEST_FLOOR" ]
+      env:
+        UI_TEST_FLOOR: 22
     - name: Coverage report
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10
