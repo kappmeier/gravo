@@ -40,7 +40,7 @@ public static class Fakes
 
     /// <summary>
     /// A simple dialog service mock. Messages succeed, Confirm answers <paramref name="confirm"/>, and the pickers
-    /// return c>null</c>.
+    /// return <c>null</c>.
     /// </summary>
     public static Mock<IDialogService> Dialogs(bool confirm = true)
     {

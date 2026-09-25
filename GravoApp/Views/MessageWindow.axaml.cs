@@ -5,7 +5,7 @@ using GravoApp.Localization;
 namespace GravoApp.Views;
 
 /// <summary>
-/// A dialog window shoing OK, or yes/no when <c>confirm</c> is set.
+/// A dialog window showing OK, or yes/no when <c>confirm</c> is set.
 /// </summary>
 /// <remarks>Replacement for <c>MsgBox</c> in Windows applications.</remarks>
 /// <returns><c>true</c> when the user accepts (OK or Yes), <c>false</c> when the user rejects (No).</returns>
