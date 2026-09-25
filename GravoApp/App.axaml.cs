@@ -3,6 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using GravoApp.Views;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("GravoApp.Tests")]
+
 namespace GravoApp;
 
 public partial class App : Application
