@@ -50,7 +50,7 @@ jobs:
         echo "UI tests passed: ${passed:-0} (floor: $UI_TEST_FLOOR)"
         [ "${passed:-0}" -ge "$UI_TEST_FLOOR" ]
       env:
-        UI_TEST_FLOOR: 1
+        UI_TEST_FLOOR: 22
     - name: Coverage report
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10
