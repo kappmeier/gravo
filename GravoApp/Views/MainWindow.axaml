@@ -1,6 +1,45 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
         x:Class="GravoApp.Views.MainWindow"
-        Title="Gravo" Width="800" Height="600">
-    <TextBlock Text="Gravo" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Title}" Width="800" Height="600">
+    <DockPanel>
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top">
+            <MenuItem Header="{Binding Texts[MAIN_MENU_FILE]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_SAVE_AS]}" Command="{Binding SaveDatabaseAsCommand}" />
+                <Separator />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_EXIT]}" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <!-- To be added: Explorer, Wörterbuch erweitern, Gruppen eingeben and Test. -->
+            <MenuItem x:Name="VocabularyMenu" Header="{Binding Texts[MAIN_MENU_VOCABULARY]}" />
+            <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS]}">
+                <!-- To be added here: Datenverwaltung. -->
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_CHECK_DATABASE]}"
+                          Command="{Binding CheckDatabaseCommand}" />
+                <Separator />
+                <!-- To be added here: Optionen. -->
+                <MenuItem x:Name="LanguageMenu" Header="{Binding Texts[MAIN_MENU_EXTRAS_LANGUAGE]}"
+                          ItemsSource="{Binding Languages}">
+                    <MenuItem.Styles>
+                        <Style Selector="MenuItem#LanguageMenu MenuItem" x:DataType="vm:LanguageMenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="ToggleType" Value="CheckBox" />
+                            <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=TwoWay}" />
+                            <Setter Property="Command" Value="{Binding SelectCommand}" />
+                        </Style>
+                    </MenuItem.Styles>
+                </MenuItem>
+            </MenuItem>
+            <!-- To be added here: Info. -->
+            <MenuItem x:Name="HelpMenu" Header="{Binding Texts[MAIN_MENU_HELP]}" />
+        </Menu>
+        <TabControl x:Name="MainTabs" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}">
+            <TabControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ViewModelBase">
+                    <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+    </DockPanel>
 </Window>
