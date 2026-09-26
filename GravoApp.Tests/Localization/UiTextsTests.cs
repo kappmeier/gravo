@@ -31,7 +31,7 @@ public class UiTextsTests
     }
 
     [Test]
-    public void IndexerAndGet_MapWinFormsMnemonicsToAccessKeys()
+    public void Indexer_MapsWinFormsMnemonicsToAccessKeys()
     {
         var loc = Fakes.Localization();
         loc.Setup(l => l.GetText(localization.MAIN_MENU_FILE)).Returns("&Datei");
@@ -39,10 +39,21 @@ public class UiTextsTests
         loc.Setup(l => l.GetText(localization.DISCLAIMER_1)).Returns("x_y");
         var texts = Fakes.Texts(loc);
         texts["MAIN_MENU_FILE"].Should().Be("_Datei");
-        texts.Get(localization.MAIN_MENU_FILE).Should().Be("_Datei");
         texts["HINT"].Should().Be("A & B");
+        texts["DISCLAIMER_1"].Should().Be("x__y");
+    }
+
+    [Test]
+    public void Get_RemovesWinFormsMnemonics()
+    {
+        var loc = Fakes.Localization();
+        loc.Setup(l => l.GetText(localization.MAIN_MENU_FILE_SAVE_AS)).Returns("Speichern &unter ...");
+        loc.Setup(l => l.GetText(localization.HINT)).Returns("A && B");
+        loc.Setup(l => l.GetText(localization.DISCLAIMER_1)).Returns("x_y");
+        var texts = Fakes.Texts(loc);
+        texts.Get(localization.MAIN_MENU_FILE_SAVE_AS).Should().Be("Speichern unter ...");
         texts.Get(localization.HINT).Should().Be("A & B");
-        texts.Get(localization.DISCLAIMER_1).Should().Be("x__y");
+        texts.Get(localization.DISCLAIMER_1).Should().Be("x_y");
     }
 
     [Test]

@@ -20,17 +20,25 @@ public sealed class UiTexts : ObservableObject
 
     public UiTexts(ILocalization loc) => _loc = loc;
 
-    public string this[string constantName] => Codes.TryGetValue(constantName, out var code) ? Get(code) : constantName;
-
     /// <summary>
-    /// Returns the text for <paramref name="code"/> supporting menu access keys.
+    /// Returns the localized text for the constant <paramref name="constantName"/> with access keys.
+    /// (See <see cref="localization"/>.)
     /// </summary>
     /// <remarks>
-    /// WinForms mnemonics in the stored localization entries are converted into Avalonia access keys:
-    /// "&amp;x" becomes "_x", "&amp;&amp;" becomes "&amp;", and a literal "_" is escaped as "__".
-    /// The "&amp;&amp;" is never read as a mnemonic.
+    /// XAML binds this indexer to menus and buttons. WinForms mnemonics in the stored entries become Avalonia access
+    /// keys, so "&amp;x" becomes "_x", "&amp;&amp;" becomes "&amp;" and a literal "_" is escaped as "__". Unknown
+    /// names return the name itself.
     /// </remarks>
-    public string Get(int code) => ToAccessKeys(_loc.GetText(code));
+    public string this[string constantName] =>
+        Codes.TryGetValue(constantName, out var code) ? ToAccessKeys(_loc.GetText(code)) : constantName;
+
+    /// <summary>
+    /// Returns the text for <paramref name="code"/> as plain text for window titles, pickers and messages.
+    /// </summary>
+    /// <remarks>
+    /// WinForms mnemonics are removed, so "&amp;x" becomes "x" and "&amp;&amp;" becomes "&amp;". A "_" stays as it is.
+    /// </remarks>
+    public string Get(int code) => Regex.Replace(_loc.GetText(code), "&(&?)", "$1");
 
     private static string ToAccessKeys(string text) =>
         Regex.Replace(text, "&&|&|_", m => m.Value switch { "&&" => "&", "&" => "_", _ => "__" });
