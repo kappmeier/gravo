@@ -28,4 +28,21 @@ public static class Strings
 
     public const string CheckDatabaseClean =
         "Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden keine Fehler gefunden.";
+
+    // Options
+    public const string OptionsTitle = "Optionen";
+    public const string OptionsTestSection = "Standard-Test-Einstellungen";
+    public const string OptionsTestTargetLanguage = "Frage Wörter in fremder Sprache ab";
+    public const string OptionsTestSetPhrases = "Frage Redewendungen ab";
+    public const string OptionsDisplaySection = "Anzeige Einstellungen";
+    public const string OptionsSaveWindowPosition = "Fensterposition speichern";
+    public const string OptionsStrategies = "Lernstrategien:";
+    public const string OptionsUseCards = "Karteikartensystem";
+    public const string OptionsInitialValue = "Startwert:";
+
+    public const string OptionsCardsHint =
+        "Hinweis: Das Karteikartensystem ist immer aktiviert, der Startwert ist 1. Diese Option ist erst in "
+        + "späteren Versionen aktiviert.";
+
+    public const string OptionsCopyCards = "Globale Karteikarten in Gruppen kopieren";
 }

@@ -201,6 +201,13 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task ShowOptions_OpensOptionsDialog()
+    {
+        await Create().ShowOptionsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<OptionsViewModel>()), Times.Once);
+    }
+
+    [Test]
     public void ShowTab_AddsOnceSelectsAndRemovesOnClose()
     {
         var vm = Create();
