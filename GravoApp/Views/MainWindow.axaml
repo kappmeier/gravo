@@ -18,7 +18,7 @@
                 <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_CHECK_DATABASE]}"
                           Command="{Binding CheckDatabaseCommand}" />
                 <Separator />
-                <!-- To be added here: Optionen. -->
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_OPTIONS]}" Command="{Binding ShowOptionsCommand}" />
                 <MenuItem x:Name="LanguageMenu" Header="{Binding Texts[MAIN_MENU_EXTRAS_LANGUAGE]}"
                           ItemsSource="{Binding Languages}">
                     <MenuItem.Styles>
