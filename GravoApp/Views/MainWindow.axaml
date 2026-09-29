@@ -31,8 +31,9 @@
                     </MenuItem.Styles>
                 </MenuItem>
             </MenuItem>
-            <!-- To be added here: Info. -->
-            <MenuItem x:Name="HelpMenu" Header="{Binding Texts[MAIN_MENU_HELP]}" />
+            <MenuItem x:Name="HelpMenu" Header="{Binding Texts[MAIN_MENU_HELP]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_HELP_ABOUT]}" Command="{Binding ShowInfoCommand}" />
+            </MenuItem>
         </Menu>
         <TabControl x:Name="MainTabs" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}">
             <TabControl.ItemTemplate>

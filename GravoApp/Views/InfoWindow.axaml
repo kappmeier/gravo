@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        xmlns:loc="using:GravoApp.Localization"
+        x:Class="GravoApp.Views.InfoWindow"
+        x:DataType="vm:InfoViewModel"
+        Title="{Binding Title}"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" Spacing="8" MinWidth="360" MaxWidth="480">
+        <TextBlock Text="{x:Static loc:Strings.InfoProductName}" FontSize="24" FontWeight="Bold" />
+        <TextBlock Text="{Binding VersionText}" />
+        <TextBlock Text="{Binding DbVersionText}" />
+        <TextBlock x:Name="DisclaimerText" Text="{Binding Disclaimer}" TextWrapping="Wrap" MaxWidth="480" />
+        <CheckBox Content="{x:Static loc:Strings.InfoGermanCheckbox}" IsChecked="{Binding German, Mode=TwoWay}" />
+        <TextBlock Text="{Binding CopyrightOld}" />
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="{x:Static loc:Strings.InfoCopyright}" />
+            <TextBlock Text="{x:Static loc:Strings.InfoCopyrightName}" />
+        </StackPanel>
+        <TextBlock Text="{x:Static loc:Strings.InfoLink}" />
+        <Button x:Name="CloseButton" MinWidth="80" IsDefault="True" IsCancel="True"
+                HorizontalAlignment="Right" Command="{Binding CloseCommand}"
+                Content="{Binding Texts[BUTTON_CLOSE]}" />
+    </StackPanel>
+</Window>
