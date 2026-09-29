@@ -208,6 +208,15 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task ShowInfo_OpensInfoDialog()
+    {
+        _management.Setup(m => m.LatestVersion)
+            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        await Create().ShowInfoCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<InfoViewModel>()), Times.Once);
+    }
+
+    [Test]
     public void ShowTab_AddsOnceSelectsAndRemovesOnClose()
     {
         var vm = Create();

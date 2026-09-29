@@ -45,4 +45,29 @@ public static class Strings
         + "späteren Versionen aktiviert.";
 
     public const string OptionsCopyCards = "Globale Karteikarten in Gruppen kopieren";
+
+    // Info
+    public const string InfoTitle = "Gravo 7 Sprachtrainer info";
+    public const string InfoGermanCheckbox = "Deutsch";
+    public const string InfoProductName = "Gravo";
+    public const string InfoCopyrightName = "Jan-Philipp Kappmeier";
+    public const string InfoCopyright = "© 1995-2026";
+    public const string InfoLink = "http://www.kappmeier.de";
+    public static string InfoVersion(string version) => "Version: " + version;
+    public static string InfoDbVersion(string version) => "DB-Version: " + version;
+    public const string InfoCopyrightOldEnglish = "based on Vokabeltrainer, © 1995-2007";
+    public const string InfoCopyrightOldGerman = "basiert auf Vokabeltrainer, © 1995-2007";
+    public const string InfoDisclaimerEnglish =
+        "Working with this version of Gravo should be possible without problems, however, some smaller errors "
+        + "could occur. We recommend to save your database whenever you've added some vocabulary and to not "
+        + "change the database manually. This software is distributed \"as is\", we are neither responisble for "
+        + "anything that happens using this software nor responsible for the correct function of this piece of "
+        + "software.";
+
+    public const string InfoDisclaimerGerman =
+        "Das Arbeiten mit dieser Version von Gravo sollte problemlos möglich sein, dennoch können noch kleinere "
+        + "Fehler auftreten. Wir emfehlen nach jeder Vokabeleingabe die Datenbank zu sichern und keine Änderungen "
+        + "an der Datenbank manuell durchzufüren. Diese Software wird vertrieben \"wie sie ist\", wir sind nicht "
+        + "verantwortlich für das, was durch Benutzung dieser Software geschieht, noch kann die "
+        + "Funktionsfähigkeit dieser Software garantiert werden.";
 }

@@ -146,5 +146,9 @@ public sealed partial class MainViewModel : ViewModelBase
         await _s.Dialogs.ShowDialogAsync(new OptionsViewModel(_s.Settings, _s.Management, _s.Dialogs, _s.Texts));
 
     [RelayCommand]
+    private async Task ShowInfoAsync() =>
+        await _s.Dialogs.ShowDialogAsync(new InfoViewModel(_s.Management, _s.Texts));
+
+    [RelayCommand]
     private void Exit() => RequestClose(true);
 }
