@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        x:Class="GravoApp.Views.TestSelectWindow"
+        x:DataType="vm:TestSelectViewModel"
+        Title="{Binding Title}"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" Spacing="8" MinWidth="300">
+        <Label x:Name="GroupLabel" Target="{Binding #GroupBox}" Padding="0"
+               Content="{Binding Texts[TEST_SELECT_GROUP], StringFormat='{}{0}:'}" />
+        <ComboBox x:Name="GroupBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Groups}"
+                  SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+        <Label x:Name="SubGroupLabel" Target="{Binding #SubGroupBox}" Padding="0"
+               Content="{Binding Texts[TEST_SELECT_SUBGROUP], StringFormat='{}{0}:'}" />
+        <ComboBox x:Name="SubGroupBox" HorizontalAlignment="Stretch" ItemsSource="{Binding SubGroups}"
+                  SelectedItem="{Binding SelectedSubGroup, Mode=TwoWay}" />
+        <TextBlock Text="{Binding WordCountText}" />
+
+        <CheckBox Content="{Binding Texts[TEST_SELECT_TEST_DIRECTION]}"
+                  IsChecked="{Binding TestTargetLanguage, Mode=TwoWay}" />
+        <CheckBox Content="{Binding Texts[TEST_SELECT_ONLY_MARKED]}" IsChecked="{Binding TestMarked, Mode=TwoWay}" />
+        <CheckBox Content="{Binding Texts[TEST_SELECT_PHRASES]}" IsChecked="{Binding TestPhrases, Mode=TwoWay}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button x:Name="OkButton" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"
+                    Content="{Binding Texts[BUTTON_OK]}" />
+            <Button x:Name="CancelButton" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"
+                    Content="{Binding Texts[BUTTON_CANCEL]}" />
+        </StackPanel>
+    </StackPanel>
+</Window>
