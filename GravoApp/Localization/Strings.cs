@@ -29,6 +29,10 @@ public static class Strings
     public const string CheckDatabaseClean =
         "Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden keine Fehler gefunden.";
 
+    // TestSelect
+    public static string WordsToTest(int count) =>
+        count == 1 ? count + " Vokabel abzufragen." : count + " Vokabeln abzufragen.";
+
     // Options
     public const string OptionsTitle = "Optionen";
     public const string OptionsTestSection = "Standard-Test-Einstellungen";
