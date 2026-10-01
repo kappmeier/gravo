@@ -99,6 +99,25 @@ public sealed partial class MainViewModel : ViewModelBase
         SelectedTab = tab;
     }
 
+    /// <summary>Opens the dialog to add words to the dictionary.</summary>
+    /// <remarks>If there are invalid word types in the database an error is shown instead of the dialog.</remarks>
+    [RelayCommand]
+    private async Task AddWordsAsync()
+    {
+        WordInputViewModel input;
+        try
+        {
+            input = new WordInputViewModel(_s.Vocabulary.Dictionary, _s.Vocabulary.Groups, _s.Vocabulary.Group,
+                _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
+        }
+        catch (DataInvalidException ex)
+        {
+            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            return;
+        }
+        await _s.Dialogs.ShowDialogAsync(input);
+    }
+
     /// <summary>Starts a quiz over the words in a group. The group is selected first by the user.</summary>
     /// <remarks>Nothing happens when the dialog is cancelled or the chosen group has no sub group.</remarks>
     [RelayCommand]

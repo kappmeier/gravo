@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        xmlns:loc="using:GravoApp.Localization"
+        x:Class="GravoApp.Views.WordInputWindow"
+        x:DataType="vm:WordInputViewModel"
+        Title="{Binding Title}"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+    <Window.Styles>
+        <Style Selector="Grid.form > :is(Control)">
+            <Setter Property="Margin" Value="0,3" />
+        </Style>
+    </Window.Styles>
+    <Grid Margin="16" ColumnDefinitions="260,24,260" RowDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="8">
+            <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto" Classes="form">
+                <TextBlock Text="{x:Static loc:Strings.LabelLanguage}" VerticalAlignment="Center" />
+                <ComboBox x:Name="LanguageBox" Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                          IsEnabled="{Binding !NewLanguages}" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LanguageText, Mode=TwoWay}"
+                         IsEnabled="{Binding NewLanguages}"
+                         MaxLength="{Binding Limits.DictionaryMainMaxLengthLanguage}" />
+                <TextBlock Grid.Row="2" Text="{x:Static loc:Strings.LabelMainLanguage}" VerticalAlignment="Center" />
+                <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding MainLanguages}"
+                          SelectedItem="{Binding SelectedMainLanguage, Mode=TwoWay}"
+                          IsEnabled="{Binding !NewLanguages}" />
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding MainLanguageText, Mode=TwoWay}"
+                         IsEnabled="{Binding NewLanguages}"
+                         MaxLength="{Binding Limits.DictionaryMainMaxLengthMainLanguage}" />
+            </Grid>
+            <CheckBox Content="{x:Static loc:Strings.NewLanguages}" IsChecked="{Binding NewLanguages, Mode=TwoWay}" />
+
+            <CheckBox x:Name="DirectAddCheck" Margin="0,24,0,0" Content="{x:Static loc:Strings.DirectAdd}"
+                      IsChecked="{Binding DirectAdd, Mode=TwoWay}" IsEnabled="{Binding CanDirectAdd}" />
+            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Groups}"
+                      SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" IsEnabled="{Binding DirectAdd}" />
+            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding SubGroups}"
+                      SelectedItem="{Binding SelectedSubGroup, Mode=TwoWay}" IsEnabled="{Binding DirectAdd}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Spacing="8">
+            <TextBlock Text="{x:Static loc:Strings.WordInputSection}" FontWeight="Bold" />
+            <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                  Classes="form">
+                <TextBlock Text="{x:Static loc:Strings.LabelMainEntry}" VerticalAlignment="Center" />
+                <TextBox x:Name="MainEntryBox" Grid.Column="1" Text="{Binding MainEntry, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryMainMaxLengthWordEntry}" />
+                <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.LabelPre}" VerticalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Pre, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryWordsMaxLengthPre}" />
+                <TextBlock Grid.Row="2" Text="{x:Static loc:Strings.LabelSubEntry}" VerticalAlignment="Center" />
+                <TextBox x:Name="WordBox" Grid.Row="2" Grid.Column="1" Text="{Binding Word, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryWordsMaxLengthWord}" />
+                <TextBlock Grid.Row="3" Text="{x:Static loc:Strings.LabelPost}" VerticalAlignment="Center" />
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Post, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryWordsMaxLengthPost}" />
+                <TextBlock Grid.Row="4" Text="{x:Static loc:Strings.LabelMeaning}" VerticalAlignment="Center" />
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Meaning, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryWordsMaxLengthMeaning}" />
+                <TextBlock Grid.Row="5" Text="{x:Static loc:Strings.LabelWordInfo}" VerticalAlignment="Center" />
+                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding AdditionalInfo, Mode=TwoWay}"
+                         MaxLength="{Binding Limits.DictionaryWordsMaxLengthAdditionalTargetLangInfo}" />
+                <TextBlock Grid.Row="6" Text="{x:Static loc:Strings.LabelWordType}" VerticalAlignment="Top" />
+                <ListBox x:Name="WordTypeList" Grid.Row="6" Grid.Column="1" Height="120"
+                         SelectionMode="AlwaysSelected" ItemsSource="{Binding WordTypeDisplays}"
+                         SelectedIndex="{Binding SelectedWordTypeIndex, Mode=TwoWay}" />
+            </Grid>
+            <CheckBox Margin="100,0,0,0" Content="{x:Static loc:Strings.Irregular}"
+                      IsChecked="{Binding Irregular, Mode=TwoWay}" />
+            <CheckBox Margin="100,0,0,0" Content="{x:Static loc:Strings.ImportantWord}"
+                      IsChecked="{Binding Marked, Mode=TwoWay}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="0,12,0,0" Spacing="8">
+            <Button x:Name="AddButton" MinWidth="80" IsDefault="True" Command="{Binding AddSubEntryCommand}"
+                    Content="{Binding Texts[BUTTON_ADD]}" />
+            <Button x:Name="CloseButton" MinWidth="80" IsCancel="True" Command="{Binding CloseCommand}"
+                    Content="{Binding Texts[BUTTON_CLOSE]}" />
+        </StackPanel>
+    </Grid>
+</Window>

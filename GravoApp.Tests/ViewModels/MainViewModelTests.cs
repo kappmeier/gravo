@@ -92,6 +92,28 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task AddWords_OpensWordInputDialog()
+    {
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        _dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        await Create().AddWordsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<WordInputViewModel>()), Times.Once);
+    }
+
+    [Test]
+    public async Task AddWords_InvalidWordTypes_ShowsErrorWithoutDialog()
+    {
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        _dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        _properties.Setup(p => p.LoadWordTypes()).Throws(new DataInvalidException("Word type invalid."));
+        await Create().AddWordsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowMessageAsync("Fehler", "Word type invalid."), Times.Once);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<ViewModelBase>()), Times.Never);
+    }
+
+    [Test]
     public async Task TestGroups_Cancelled_OpensNoQuiz()
     {
         SetUpGroup(new TestWord(new WordEntry("house", "", "", WordType.Substantive, "Haus", "", false), false, ""));
