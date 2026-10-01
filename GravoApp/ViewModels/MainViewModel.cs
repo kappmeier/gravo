@@ -99,6 +99,44 @@ public sealed partial class MainViewModel : ViewModelBase
         SelectedTab = tab;
     }
 
+    /// <summary>Starts a quiz over the words in a group. The group is selected first by the user.</summary>
+    /// <remarks>Nothing happens when the dialog is cancelled or the chosen group has no sub group.</remarks>
+    [RelayCommand]
+    private async Task TestGroupsAsync()
+    {
+        var select = new TestSelectViewModel(_s.Vocabulary.Groups, _s.Vocabulary.Group, _s.Settings, Texts);
+        if (!await _s.Dialogs.ShowDialogAsync(select) || select.SelectedGroupEntry is null)
+        {
+            return;
+        }
+        var data = TestDataFactory.Create(_s.Vocabulary.Group, _s.Cards, select.SelectedGroupEntry,
+            select.TestPhrases, select.TestMarked, select.QueryLanguage);
+        await StartQuizAsync(data, select.QueryLanguage);
+    }
+
+    /// <summary>Starts a quiz over all the words in a language. The language is selected first by the user.</summary>
+    /// <remarks>Nothing happens when the dialog is cancelled.</remarks>
+    [RelayCommand]
+    private async Task TestLanguageAsync()
+    {
+        var select = new LanguageSelectViewModel(
+            _s.Vocabulary.Dictionary, _s.Settings, Texts, AppServices.MainLanguage);
+        if (!await _s.Dialogs.ShowDialogAsync(select) || select.SelectedLanguage is null)
+        {
+            return;
+        }
+        var data = TestDataFactory.Create(_s.Vocabulary.Dictionary, _s.Cards, select.SelectedLanguage,
+            select.TestPhrases, select.QueryLanguage, AppServices.MainLanguage);
+        await StartQuizAsync(data, select.QueryLanguage);
+    }
+
+    private async Task StartQuizAsync(TestData data, QueryLanguage direction)
+    {
+        var quiz = new QuizViewModel(new TestController(data, direction, _s.Db), Texts, _s.Dialogs);
+        _s.Dialogs.ShowWindow(quiz);
+        await quiz.StartAsync();
+    }
+
     [RelayCommand]
     private void SwitchLanguage(string name)
     {

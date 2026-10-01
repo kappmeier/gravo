@@ -82,6 +82,74 @@ public class MainViewModelTests
         vm.Title.Should().Be("Gravo");
     }
 
+    private void SetUpGroup(params TestWord[] words)
+    {
+        var entry = new GroupEntry(1, "G", "U", "Group1");
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string> { "G" });
+        _groups.Setup(g => g.GetSubGroups("G")).Returns(new List<GroupEntry> { entry });
+        _groups.Setup(g => g.GetGroup("G", "U")).Returns(entry);
+        _group.Setup(g => g.Load(ref It.Ref<GroupEntry>.IsAny)).Returns(new GroupDto(entry, words.ToList()));
+    }
+
+    [Test]
+    public async Task TestGroups_Cancelled_OpensNoQuiz()
+    {
+        SetUpGroup(new TestWord(new WordEntry("house", "", "", WordType.Substantive, "Haus", "", false), false, ""));
+        _dialogs.Setup(d => d.ShowDialogAsync(It.IsAny<TestSelectViewModel>())).ReturnsAsync(false);
+        await Create().TestGroupsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowWindow(It.IsAny<ViewModelBase>()), Times.Never);
+    }
+
+    [Test]
+    public async Task TestGroups_AcceptedWithoutSubGroup_OpensNoQuiz()
+    {
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string> { "G" });
+        _groups.Setup(g => g.GetSubGroups("G")).Returns(new List<GroupEntry>());
+        await Create().TestGroupsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<TestSelectViewModel>()), Times.Once);
+        _dialogs.Verify(d => d.ShowWindow(It.IsAny<ViewModelBase>()), Times.Never);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task TestGroups_Accepted_OpensQuizInOriginalLanguage()
+    {
+        _settings = Fakes.DefaultSettings(out _store, new Dictionary<string, string> { ["TestTargetLanguage"] = "0" });
+        SetUpGroup(new TestWord(new WordEntry("house", "", "", WordType.Substantive, "Haus", "", false), false, ""));
+        QuizViewModel? quiz = null;
+        _dialogs.Setup(d => d.ShowWindow(It.IsAny<QuizViewModel>()))
+            .Callback<ViewModelBase>(v => quiz = (QuizViewModel)v);
+        await Create().TestGroupsCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowWindow(It.IsAny<QuizViewModel>()), Times.Once);
+        quiz!.Question.Should().Be("Haus");
+        quiz.CountText.Should().Be("1");
+    }
+
+    [Test]
+    public async Task TestLanguage_Accepted_OpensQuizInTargetLanguage()
+    {
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        _dictionary.Setup(d => d.GetWords("english", "german")).Returns(new List<WordEntry>
+        {
+            new("house", "", "", WordType.Substantive, "Haus", "", false),
+        });
+        QuizViewModel? quiz = null;
+        _dialogs.Setup(d => d.ShowWindow(It.IsAny<QuizViewModel>()))
+            .Callback<ViewModelBase>(v => quiz = (QuizViewModel)v);
+        await Create().TestLanguageCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<LanguageSelectViewModel>()), Times.Once);
+        quiz!.Question.Should().Be("house");
+    }
+
+    [Test]
+    public async Task TestLanguage_Cancelled_OpensNoQuiz()
+    {
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        _dialogs.Setup(d => d.ShowDialogAsync(It.IsAny<LanguageSelectViewModel>())).ReturnsAsync(false);
+        await Create().TestLanguageCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowWindow(It.IsAny<ViewModelBase>()), Times.Never);
+    }
+
     [Test]
     public void SwitchLanguage_SwitchesChecksAndRefreshesTexts()
     {
