@@ -11,8 +11,16 @@
                 <Separator />
                 <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_EXIT]}" Command="{Binding ExitCommand}" />
             </MenuItem>
-            <!-- To be added: Explorer, Wörterbuch erweitern, Gruppen eingeben and Test. -->
-            <MenuItem x:Name="VocabularyMenu" Header="{Binding Texts[MAIN_MENU_VOCABULARY]}" />
+            <MenuItem x:Name="VocabularyMenu" Header="{Binding Texts[MAIN_MENU_VOCABULARY]}">
+                <!-- To be added here: Explorer, Wörterbuch erweitern and Gruppen eingeben. -->
+                <Separator />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST]}">
+                    <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST_GROUPS]}"
+                              Command="{Binding TestGroupsCommand}" />
+                    <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST_LANGUAGE]}"
+                              Command="{Binding TestLanguageCommand}" />
+                </MenuItem>
+            </MenuItem>
             <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS]}">
                 <!-- To be added here: Datenverwaltung. -->
                 <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_CHECK_DATABASE]}"

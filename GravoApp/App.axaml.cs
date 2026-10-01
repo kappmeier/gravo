@@ -32,8 +32,9 @@ public partial class App : Application
             else
             {
                 MainWindow? window = null;
-                var services = AppServices.Create(
-                    dbPath, languagesPath, texts => new DialogService(() => window!, texts));
+                // Messages belong to the active window, so closing one returns the focus there.
+                var services = AppServices.Create(dbPath, languagesPath, texts => new DialogService(
+                    () => desktop.Windows.FirstOrDefault(w => w.IsActive) ?? window!, texts));
                 window = new MainWindow { DataContext = new MainViewModel(services) };
                 desktop.MainWindow = window;
             }
