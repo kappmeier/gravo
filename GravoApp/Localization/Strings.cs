@@ -33,6 +33,52 @@ public static class Strings
     public static string WordsToTest(int count) =>
         count == 1 ? count + " Vokabel abzufragen." : count + " Vokabeln abzufragen.";
 
+    // WordInput
+    public const string SelectExistingGroup =
+        "Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!";git
+
+    public const string NewLanguageTitle = "Neue Sprache";
+
+    public static string NoEntryInGroupYet(string language, string mainLanguage) =>
+        "Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den Sprachen '"
+        + language + "' und '" + mainLanguage + "' erstellt werden?";
+
+    public static string SecondLanguageInGroup(string language, string mainLanguage) =>
+        "Sie beabsichtigen einen eintrag mit den zweiten Sprachen '" + language + "' und '" + mainLanguage
+        + "' zu erstellen. Soll damit fortgefahren werden?";
+
+    public const string MainEntryMissingTitle = "Haupteintrag nicht vorhanden";
+
+    public static string MainEntryMissing(string mainEntry) =>
+        "Der Haupteintrag " + mainEntry + " ist für die gewählten Sprachen nicht vorhanden. Soll er erstellt werden?";
+
+    public static string EntryConflict(string message) =>
+        "Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion."
+        + Environment.NewLine + "Fehler: " + message;
+
+    public const string LanguageNotAutoSelected =
+        "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.";
+
+    public const string MainLanguageNotAutoSelected =
+        "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.";
+
+    public const string AddNotPossibleTitle = "Hinzufügen nicht möglich";
+    public const string WordAlreadyInGroup = "Wort bereits in der Gruppe enthalten";
+    public const string WordInputSection = "Eintrag hinzufügen:";
+    public const string LabelMainEntry = "Haupteintrag:";
+    public const string LabelSubEntry = "Untereintrag:";
+    public const string LabelPre = "Pre:";
+    public const string LabelPost = "Post:";
+    public const string LabelMeaning = "Bedeutung:";
+    public const string LabelWordInfo = "Vokabelinfo:";
+    public const string LabelWordType = "Worttyp:";
+    public const string Irregular = "Unregelmäßig";
+    public const string ImportantWord = "Wichtiges Wort";
+    public const string DirectAdd = "Vokabeln sofort einer Gruppe hinzufügen";
+    public const string LabelLanguage = "Sprache:";
+    public const string LabelMainLanguage = "Hauptsprache:";
+    public const string NewLanguages = "Neue Sprachen anlegen";
+
     // Options
     public const string OptionsTitle = "Optionen";
     public const string OptionsTestSection = "Standard-Test-Einstellungen";

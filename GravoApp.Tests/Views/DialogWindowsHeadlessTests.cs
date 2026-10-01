@@ -15,6 +15,29 @@ namespace GravoApp.Tests.Views;
 public class DialogWindowsHeadlessTests
 {
     [AvaloniaTest]
+    public void WordInput_CreatesWordInputWindowWithTitleAndButtonCaptions()
+    {
+        var dictionary = new Mock<IDictionaryDao>();
+        dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
+        var groups = new Mock<IGroupsDao>();
+        groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        var vm = new WordInputViewModel(dictionary.Object, groups.Object, new Mock<IGroupDao>().Object,
+            Fakes.Properties().Object, Fakes.Texts(), Fakes.Dialogs().Object, AppServices.MainLanguage);
+        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<WordInputWindow>().Which;
+        fixture.Show();
+        fixture.Title.Should().Be("T59");
+        fixture.AddButton.Content.Should().Be("T82");
+        fixture.CloseButton.Content.Should().Be("T84");
+        fixture.LanguageBox.SelectedItem.Should().Be("english");
+        fixture.WordTypeList.SelectedIndex.Should().Be(0);
+        fixture.DirectAddCheck.IsEnabled.Should().BeFalse();
+        vm.MainEntry = "Haus";
+        Dispatcher.UIThread.RunJobs();
+        fixture.WordBox.Text.Should().Be("Haus");
+    }
+
+    [AvaloniaTest]
     public void TestSelect_CreatesTestSelectWindowWithLocalizedTexts()
     {
         var groups = new Mock<IGroupsDao>();
