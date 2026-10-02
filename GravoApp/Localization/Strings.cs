@@ -35,7 +35,7 @@ public static class Strings
 
     // WordInput
     public const string SelectExistingGroup =
-        "Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!";git
+        "Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!";
 
     public const string NewLanguageTitle = "Neue Sprache";
 
