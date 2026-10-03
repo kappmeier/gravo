@@ -307,6 +307,23 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task ShowManagement_OpensManagementDialog()
+    {
+        _management.Setup(m => m.GetNextVersion()).Returns((Properties.DBVersion)null!);
+        _management.Setup(m => m.GetCurrentVersion())
+            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string>());
+        ManagementViewModel? management = null;
+        _dialogs.Setup(d => d.ShowDialogAsync(It.IsAny<ManagementViewModel>()))
+            .Callback<ViewModelBase>(v => management = (ManagementViewModel)v)
+            .ReturnsAsync(false);
+        await Create().ShowManagementCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<ManagementViewModel>()), Times.Once);
+        management!.VersionButtonText.Should().Be("Auf aktueller Version 1.7");
+    }
+
+    [Test]
     public void ShowTab_AddsOnceSelectsAndRemovesOnClose()
     {
         var vm = Create();
