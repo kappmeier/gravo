@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        x:Class="GravoApp.Views.LanguageSelectWindow"
+        x:DataType="vm:LanguageSelectViewModel"
+        Title="{Binding Title}"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" Spacing="8" MinWidth="300">
+        <Label x:Name="LanguageLabel" Target="{Binding #LanguageBox}" Padding="0"
+               Content="{Binding Texts[WORDS_LANGUAGE], StringFormat='{}{0}:'}" />
+        <ComboBox x:Name="LanguageBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Languages}"
+                  SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}" />
+
+        <CheckBox Content="{Binding Texts[TEST_SELECT_TEST_DIRECTION]}"
+                  IsChecked="{Binding TestTargetLanguage, Mode=TwoWay}" />
+        <CheckBox Content="{Binding Texts[TEST_SELECT_PHRASES]}" IsChecked="{Binding TestPhrases, Mode=TwoWay}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button x:Name="OkButton" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"
+                    Content="{Binding Texts[BUTTON_OK]}" />
+            <Button x:Name="CancelButton" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"
+                    Content="{Binding Texts[BUTTON_CANCEL]}" />
+        </StackPanel>
+    </StackPanel>
+</Window>
