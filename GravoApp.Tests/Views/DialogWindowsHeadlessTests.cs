@@ -121,4 +121,23 @@ public class DialogWindowsHeadlessTests
         Dispatcher.UIThread.RunJobs();
         window.DisclaimerText.Text.Should().StartWith("Das Arbeiten mit dieser Version von Gravo");
     }
+
+    [AvaloniaTest]
+    public void Management_CreatesManagementWindowWithLocalizedButtonsAndGroups()
+    {
+        using var live = new TempVocabulary();
+        live.SeedStandard();
+        var vm = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
+            Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage, _ => new Mock<IDataBaseOperation>().Object,
+            CoreFactory.Management);
+        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<ManagementWindow>().Which;
+        fixture.Show();
+        fixture.Title.Should().Be("Daten-Management");
+        fixture.GroupAddButton.Content.Should().Be("T82");
+        fixture.GroupEditButton.Content.Should().Be("T83");
+        fixture.CloseButton.Content.Should().Be("T84");
+        fixture.GroupList.SelectedItem.Should().Be("Book");
+        fixture.GroupNameBox.Text.Should().Be("Book");
+        fixture.GroupInfoText.Text.Should().Be("2 Einträge");
+    }
 }

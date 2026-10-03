@@ -198,6 +198,21 @@ public sealed partial class MainViewModel : ViewModelBase
             Strings.HintTitle, errors > 0 ? Strings.CheckDatabaseFixed(errors) : Strings.CheckDatabaseClean);
     }
 
+    /// <summary>Opens the data management dialog.</summary>
+    /// <remarks>The dialog imports and exports to a second database file.</remarks>
+    [RelayCommand]
+    private async Task ShowManagementAsync() =>
+        await _s.Dialogs.ShowDialogAsync(new ManagementViewModel(_s.Vocabulary, _s.Management, _s.Properties,
+            _s.Dialogs, _s.Texts, _s.DbPath, AppServices.MainLanguage, OpenDatabase, CoreFactory.Management));
+
+    /// <summary>Opens a new database connection for data management operations.</summary>
+    private static IDataBaseOperation OpenDatabase(string path)
+    {
+        IDataBaseOperation db = new SQLiteDataBaseOperation();
+        db.Open(path);
+        return db;
+    }
+
     [RelayCommand]
     private async Task ShowOptionsAsync() =>
         await _s.Dialogs.ShowDialogAsync(new OptionsViewModel(_s.Settings, _s.Management, _s.Dialogs, _s.Texts));

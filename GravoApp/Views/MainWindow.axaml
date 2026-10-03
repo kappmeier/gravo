@@ -25,7 +25,8 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS]}">
-                <!-- To be added here: Datenverwaltung. -->
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_DATA_MANAGEMENT]}"
+                          Command="{Binding ShowManagementCommand}" />
                 <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_CHECK_DATABASE]}"
                           Command="{Binding CheckDatabaseCommand}" />
                 <Separator />
