@@ -12,7 +12,8 @@
                 <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_EXIT]}" Command="{Binding ExitCommand}" />
             </MenuItem>
             <MenuItem x:Name="VocabularyMenu" Header="{Binding Texts[MAIN_MENU_VOCABULARY]}">
-                <!-- To be added here: Explorer. -->
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_EXPLORER]}"
+                          Command="{Binding ShowExplorerCommand}" />
                 <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY]}"
                           Command="{Binding AddWordsCommand}" />
                 <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_INSERT_GROUPS]}"

@@ -6,6 +6,7 @@ using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
+using GravoApp.ViewModels.Explorer;
 using Moq;
 using NUnit.Framework;
 
@@ -89,6 +90,35 @@ public class MainViewModelTests
         _groups.Setup(g => g.GetSubGroups("G")).Returns(new List<GroupEntry> { entry });
         _groups.Setup(g => g.GetGroup("G", "U")).Returns(entry);
         _group.Setup(g => g.Load(ref It.Ref<GroupEntry>.IsAny)).Returns(new GroupDto(entry, words.ToList()));
+    }
+
+    [Test]
+    public async Task ShowExplorer_AddsExplorerTabOnce()
+    {
+        _dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+
+        var fixture = Create();
+        await fixture.ShowExplorerCommand.ExecuteAsync(null);
+        await fixture.ShowExplorerCommand.ExecuteAsync(null); // Second call, shold have no effect
+
+        var tab = fixture.Tabs.Should().ContainSingle().Which.Should().BeOfType<ExplorerViewModel>().Which;
+        fixture.SelectedTab.Should().BeSameAs(tab);
+        tab.Roots[0].Children.Should().ContainSingle().Which.Children.Should().ContainSingle()
+            .Which.Title.Should().Be("english");
+    }
+
+    [Test]
+    public async Task ShowExplorer_WordTypesUnavailable_ShowsMessageDialog()
+    {
+        _properties.Setup(p => p.LoadWordTypes()).Throws(new DataInvalidException("Word type invalid."));
+
+        var fixture = Create();
+        await fixture.ShowExplorerCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "Word type invalid."), Times.Once);
+        fixture.Tabs.Should().BeEmpty();
     }
 
     [Test]

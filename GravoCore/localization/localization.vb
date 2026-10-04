@@ -20,8 +20,8 @@ Public Class localization
     Public Const NO = 14
     Public Const TREE_DICTIONARY = 15
     Public Const TREE_GROUPS = 16
-    Public Const EXPLORER_HEADLINE_TOTAL_ENTRYS = 17
-    Public Const EXPLORER_HEADLINE_MAIN_ENTRYS = 18
+    Public Const EXPLORER_HEADLINE_TOTAL_ENTRIES = 17
+    Public Const EXPLORER_HEADLINE_MAIN_ENTRIES = 18
     Public Const EXPLORER_HEADLINE_LANGUAGE = 19
     Public Const EXPLORER_HEADLINE_MAIN_LANGUAGE = 20
     Public Const EXPLORER_HEADLINE_ADDITIONAL_INFO = 21
@@ -33,7 +33,7 @@ Public Class localization
     Public Const EXPLORER_HEADLINE_WORD = 27
     Public Const EXPLORER_HEADLINE_MARKED = 28
     Public Const EXPLORER_HEADLINE_SUBGROUP = 29
-    Public Const EXPLORER_HEADLINE_ENTRYS = 30
+    Public Const EXPLORER_HEADLINE_ENTRIES = 30
     Public Const EXPLORER_HEADLINE_GROUPS = 31
     Public Const EXPLORER_HEADLINE_SUBGROUPS = 32
     Public Const EXCEPTION_UNKNOWN_HEADLINE = 33
@@ -125,7 +125,7 @@ Public Class localization
     Public Const TEST_SELECT_TITLE = 108
     Public Const TEST_SELECT_GROUP = GROUP
     Public Const TEST_SELECT_SUBGROUP = SUBGROUP
-    Public Const TEST_SELECT_ENTRYS = 109
+    Public Const TEST_SELECT_ENTRIES = 109
     Public Const TEST_SELECT_ENTRY = 110
     Public Const TEST_SELECT_ONLY_MARKED = 111
     Public Const TEST_SELECT_TEST_DIRECTION = 112
@@ -156,7 +156,7 @@ Public Class localization
     End Property
 
     Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
-        ' existiert, weil es einfacher ist in manchen fällen
+        ' existiert, weil es einfacher ist in manchen fï¿½llen
         Return GetText(NameToCode(name))
     End Function
 
