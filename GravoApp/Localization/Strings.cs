@@ -79,6 +79,34 @@ public static class Strings
     public const string LabelMainLanguage = "Hauptsprache:";
     public const string NewLanguages = "Neue Sprachen anlegen";
 
+    // GroupInput
+    public static string EntriesInLanguage(int count) =>
+        count + (count == 1 ? " Eintrag" : " Einträge") + " in der Sprache.";
+
+    public static string DistinctEntriesInGroup(int count) =>
+        count + (count == 1 ? " verschiedener Eintrag" : " verschiedene Einträge");
+
+    public static readonly string InTheGroupSeparator = " in der Gruppe," + Environment.NewLine;
+
+    public static string EntriesTotal(int count) =>
+        count + (count == 1 ? " Eintrag insgesamt" : " Einträge insgesamt") + ".";
+
+    public static string EntriesInWholeGroup(int count) =>
+        count + (count == 1 ? " Eintrag" : " Einträge") + " in der Gruppe insgesamt.";
+
+    public const string ReselectWord = "Bitte wählen sie das Wort erneut aus!";
+    public const string ErrorOccurredTitle = "Fehler aufgetreten!";
+    public const string GroupRowsForWord = "Einträge in der Gruppe zum gewählten Wort:";
+    public const string DictionaryRowsForWord = "Einträge in der Datenbank zum gewählten Wort:";
+    public const string SearchEntry = "Eintrag in der Datenbank suchen:";
+    public const string Mark = "Markieren";
+    public const string SelectWord = "<<";
+    public const string DeselectWord = ">>";
+    public const string EntryPre = "Pre";
+    public const string EntryWord = "Word";
+    public const string EntryPost = "Post";
+    public const string EntryMeaning = "Bedeutung";
+
     // Management
     public const string ManagementTitle = "Daten-Management";
     public const string ProductName = "Gravo";

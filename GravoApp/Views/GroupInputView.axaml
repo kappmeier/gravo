@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GravoApp.ViewModels"
+             xmlns:loc="using:GravoApp.Localization"
+             x:Class="GravoApp.Views.GroupInputView"
+             x:DataType="vm:GroupInputViewModel">
+    <Grid Margin="12" ColumnDefinitions="*,9,*,9,*" RowDefinitions="Auto,Auto,*">
+        <ComboBox x:Name="GroupBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Groups}"
+                  SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+        <ComboBox x:Name="SubGroupBox" Grid.Column="2" HorizontalAlignment="Stretch" ItemsSource="{Binding SubGroups}"
+                  SelectedItem="{Binding SelectedSubGroup, Mode=TwoWay}" />
+        <ComboBox x:Name="LanguageBox" Grid.Column="4" HorizontalAlignment="Stretch" ItemsSource="{Binding Languages}"
+                  SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}" />
+        <TextBlock x:Name="WordsInGroupText" Grid.Row="1" Margin="0,3,0,0" Text="{Binding WordsInGroupText}" />
+        <TextBlock x:Name="WordsInSubGroupText" Grid.Row="1" Grid.Column="2" Margin="0,3,0,0"
+                   Text="{Binding WordsInSubGroupText}" />
+        <TextBlock x:Name="WordsInLanguageText" Grid.Row="1" Grid.Column="4" Margin="0,3,0,0"
+                   Text="{Binding WordsInLanguageText}" />
+
+        <Grid Grid.Row="2" Margin="0,12,0,0" ColumnDefinitions="*,9,Auto" RowDefinitions="*,*">
+            <ListBox x:Name="WordsInGroupList" Grid.RowSpan="2" ItemsSource="{Binding WordsInGroup}"
+                     SelectedItem="{Binding SelectedWordInGroup, Mode=TwoWay}" />
+            <Button x:Name="DeselectButton" Grid.Column="2" VerticalAlignment="Center" MinWidth="75"
+                    HorizontalContentAlignment="Center" Command="{Binding DeselectCommand}"
+                    Content="{x:Static loc:Strings.DeselectWord}" />
+            <StackPanel Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Spacing="6">
+                <Button x:Name="SelectButton" MinWidth="75" HorizontalContentAlignment="Center"
+                        Command="{Binding SelectCommand}" Content="{x:Static loc:Strings.SelectWord}" />
+                <CheckBox x:Name="MarkedCheck" IsChecked="{Binding Marked, Mode=TwoWay}"
+                          Content="{x:Static loc:Strings.Mark}" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,12,0,0"
+              RowDefinitions="Auto,*,Auto,*,Auto,Auto,Auto">
+            <TextBlock Text="{x:Static loc:Strings.GroupRowsForWord}" Margin="0,0,0,3" />
+            <DataGrid x:Name="MeaningsGrid" Grid.Row="1" ItemsSource="{Binding Meanings}"
+                      SelectedItem="{Binding SelectedMeaning, Mode=TwoWay}" IsReadOnly="True" SelectionMode="Single"
+                      AutoGenerateColumns="False" CanUserSortColumns="False" GridLinesVisibility="All">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryPre}" Binding="{Binding Pre}" Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryWord}" Binding="{Binding Word}"
+                                        Width="2*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryPost}" Binding="{Binding Post}" Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryMeaning}" Binding="{Binding Meaning}"
+                                        Width="2*" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Grid.Row="2" Text="{x:Static loc:Strings.DictionaryRowsForWord}" Margin="0,9,0,3" />
+            <DataGrid x:Name="WordsGrid" Grid.Row="3" ItemsSource="{Binding Words}"
+                      SelectedItem="{Binding SelectedWord, Mode=TwoWay}" IsReadOnly="True" SelectionMode="Single"
+                      AutoGenerateColumns="False" CanUserSortColumns="False" GridLinesVisibility="All">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryPre}" Binding="{Binding Pre}" Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryWord}" Binding="{Binding Word}"
+                                        Width="2*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryPost}" Binding="{Binding Post}" Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:Strings.EntryMeaning}" Binding="{Binding Meaning}"
+                                        Width="2*" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Grid.Row="4" Text="{x:Static loc:Strings.SearchEntry}" Margin="0,9,0,3" />
+            <TextBox x:Name="SearchBox" Grid.Row="5" Text="{Binding SearchText, Mode=TwoWay}" />
+            <Grid Grid.Row="6" Margin="0,3,0,0" ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="SimilarWordText" VerticalAlignment="Top" Text="{Binding SimilarWord}" />
+                <Button x:Name="CloseButton" Grid.Column="1" Margin="0,6,0,0" MinWidth="75"
+                        HorizontalContentAlignment="Center" Command="{Binding CloseCommand}"
+                        Content="{Binding Texts[BUTTON_CLOSE]}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

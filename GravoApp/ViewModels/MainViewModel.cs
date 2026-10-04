@@ -118,6 +118,12 @@ public sealed partial class MainViewModel : ViewModelBase
         await _s.Dialogs.ShowDialogAsync(input);
     }
 
+    /// <summary>Opens the group input tab, or selects it when it is open already.</summary>
+    [RelayCommand]
+    private void ShowGroupInput() => ShowTab(Tabs.OfType<GroupInputViewModel>().FirstOrDefault()
+        ?? new GroupInputViewModel(_s.Vocabulary.Groups, _s.Vocabulary.Dictionary, _s.Vocabulary.Group, _s.Dialogs,
+            Texts, AppServices.MainLanguage));
+
     /// <summary>Starts a quiz over the words in a group. The group is selected first by the user.</summary>
     /// <remarks>Nothing happens when the dialog is cancelled or the chosen group has no sub group.</remarks>
     [RelayCommand]

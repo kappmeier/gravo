@@ -162,6 +162,36 @@ public class QuizViewModelTests
     }
 
     [Test]
+    public async Task Answer_TwoAnswers_RequestFocusAfterEach()
+    {
+        var go = _voc.AddWord("go", "english", "go", "gehen", WordType.Verb);
+        var tree = _voc.AddWord("tree", "english", "tree", "Baum");
+        var answers = new Dictionary<string, string> { ["Haus"] = "house", ["gehen"] = "go", ["Baum"] = "tree" };
+        var fixture = Create(QueryLanguage.OriginalLanguage, _house, go, tree);
+        var focused = 0;
+        fixture.FocusInputRequested += () => focused++;
+        await fixture.StartAsync();
+        fixture.Input = answers[fixture.Question];
+        await fixture.AnswerCommand.ExecuteAsync(null);
+        fixture.Input = answers[fixture.Question];
+        await fixture.AnswerCommand.ExecuteAsync(null);
+        focused.Should().Be(2);
+        fixture.CountText.Should().Be("1");
+    }
+
+    [Test]
+    public async Task Answer_LastWord_DoesNotRequestFocus()
+    {
+        var fixture = Create(QueryLanguage.OriginalLanguage, _house);
+        var focused = 0;
+        fixture.FocusInputRequested += () => focused++;
+        await fixture.StartAsync();
+        fixture.Input = "house";
+        await fixture.AnswerCommand.ExecuteAsync(null);
+        focused.Should().Be(0);
+    }
+
+    [Test]
     public void Close_RequestsCloseWithFalse()
     {
         var fixture = Create(QueryLanguage.OriginalLanguage, _house);
