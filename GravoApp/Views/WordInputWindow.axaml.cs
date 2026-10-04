@@ -1,6 +1,4 @@
-using System.ComponentModel;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.Input;
 using GravoApp.ViewModels;
 
 namespace GravoApp.Views;
@@ -27,22 +25,18 @@ public partial class WordInputWindow : Window
         base.OnDataContextChanged(e);
         if (_viewModel is not null)
         {
-            _viewModel.AddSubEntryCommand.PropertyChanged -= OnAddSubEntryCommandChanged;
+            _viewModel.SelectMainEntryRequested -= SelectMainEntry;
         }
         _viewModel = DataContext as WordInputViewModel;
         if (_viewModel is not null)
         {
-            _viewModel.AddSubEntryCommand.PropertyChanged += OnAddSubEntryCommandChanged;
+            _viewModel.SelectMainEntryRequested += SelectMainEntry;
         }
     }
 
-    private void OnAddSubEntryCommandChanged(object? sender, PropertyChangedEventArgs e)
+    private void SelectMainEntry()
     {
-        if (e.PropertyName == nameof(IAsyncRelayCommand.IsRunning)
-                && sender is IAsyncRelayCommand { IsRunning: false })
-        {
-            MainEntryBox.Focus();
-            MainEntryBox.SelectAll();
-        }
+        MainEntryBox.Focus();
+        MainEntryBox.SelectAll();
     }
 }

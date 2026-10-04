@@ -107,6 +107,19 @@ public class WordInputViewModelTests
     }
 
     [Test]
+    public async Task AddSubEntry_TwoAdds_RequestMainEntrySelectionAfterEach()
+    {
+        SetUpAddSubEntry();
+        var fixture = Create();
+        var requested = 0;
+        fixture.SelectMainEntryRequested += () => requested++;
+        FillHouse(fixture);
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        requested.Should().Be(2);
+    }
+
+    [Test]
     public void NewLanguages_PrefillsAndUsesTypedTexts()
     {
         var fixture = Create();
@@ -257,6 +270,19 @@ public class WordInputViewModelTests
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_DirectAddWithoutGroup_DoesNotRequestMainEntrySelection()
+    {
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        var fixture = Create();
+        var requested = 0;
+        fixture.SelectMainEntryRequested += () => requested++;
+        FillHouse(fixture);
+        fixture.DirectAdd = true;
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        requested.Should().Be(0);
     }
 
     [Test]

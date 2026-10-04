@@ -72,6 +72,10 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
     public UiTexts Texts { get; }
 
+    /// <summary>An event raised when the main entry box should get the focus with its text selected.</summary>
+    /// <remarks>It is raised after each add attempt that got past the group checks including failed.</remarks>
+    public event Action? SelectMainEntryRequested;
+
     /// <summary>The maximum lengths of the input boxes.</summary>
     public Properties Limits { get; }
 
@@ -229,6 +233,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
             }
         }
         _wordEdited = false;
+        SelectMainEntryRequested?.Invoke();
     }
 
     private async Task<bool> ConfirmGroupLanguagesAsync(GroupEntry selected)
