@@ -114,6 +114,18 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void ShowGroupInput_AddsTabOnceAndSelectsIt()
+    {
+        _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+        _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string>());
+        var fixture = Create();
+        fixture.ShowGroupInputCommand.Execute(null);
+        fixture.ShowGroupInputCommand.Execute(null);
+        var tab = fixture.Tabs.Should().ContainSingle().Which.Should().BeOfType<GroupInputViewModel>().Which;
+        fixture.SelectedTab.Should().BeSameAs(tab);
+    }
+
+    [Test]
     public async Task TestGroups_Cancelled_OpensNoQuiz()
     {
         SetUpGroup(new TestWord(new WordEntry("house", "", "", WordType.Substantive, "Haus", "", false), false, ""));

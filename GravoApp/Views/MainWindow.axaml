@@ -15,7 +15,8 @@
                 <!-- To be added here: Explorer. -->
                 <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY]}"
                           Command="{Binding AddWordsCommand}" />
-                <!-- To be added here: Gruppen eingeben. -->
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_INSERT_GROUPS]}"
+                          Command="{Binding ShowGroupInputCommand}" />
                 <Separator />
                 <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST]}">
                     <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST_GROUPS]}"
