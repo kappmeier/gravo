@@ -8,6 +8,7 @@ namespace GravoApp.Views;
 /// <summary>
 /// The main window, which restores and stores its geometry through the <see cref="MainViewModel"/>.
 /// </summary>
+/// <remarks>When opened the window checks the database version and shows the explorer tab.</remarks>
 public partial class MainWindow : Window
 {
     public MainWindow()
@@ -34,6 +35,7 @@ public partial class MainWindow : Window
             WindowState = (WindowState)g.State;
         }
         await vm.CheckDatabaseVersionAsync();
+        await vm.ShowExplorerCommand.ExecuteAsync(null);
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)

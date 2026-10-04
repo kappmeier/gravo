@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gravo;
 using GravoApp.Localization;
+using GravoApp.ViewModels.Explorer;
 
 namespace GravoApp.ViewModels;
 
@@ -97,6 +98,27 @@ public sealed partial class MainViewModel : ViewModelBase
             Tabs.Add(tab);
         }
         SelectedTab = tab;
+    }
+
+    /// <summary>Opens the Explorer tab, or selects it when it is open already.</summary>
+    /// <remarks>If there are invalid word types in the database an error is shown instead of the tab.</remarks>
+    [RelayCommand]
+    private async Task ShowExplorerAsync()
+    {
+        var tab = Tabs.OfType<ExplorerViewModel>().FirstOrDefault();
+        if (tab is null)
+        {
+            try
+            {
+                tab = new ExplorerViewModel(_s.Vocabulary, _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
+            }
+            catch (DataInvalidException ex)
+            {
+                await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+                return;
+            }
+        }
+        ShowTab(tab);
     }
 
     /// <summary>Opens the dialog to add words to the dictionary.</summary>

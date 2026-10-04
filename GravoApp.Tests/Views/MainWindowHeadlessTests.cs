@@ -1,10 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using FluentAssertions;
 using Gravo;
 using GravoApp.Tests.Support;
 using GravoApp.Tests.ViewModels;
+using GravoApp.ViewModels;
+using GravoApp.ViewModels.Explorer;
 using GravoApp.Views;
 using NUnit.Framework;
 
@@ -27,5 +30,17 @@ public class MainWindowHeadlessTests
         menu.Items.OfType<MenuItem>().First().Header.Should().Be("Datei");
         panel.Children.OfType<TabControl>().Should().ContainSingle();
         window.Title.Should().Be("Gravo");
+    }
+
+    [AvaloniaTest]
+    public void Show_OpensExplorerTab()
+    {
+        var fixture = new MainWindow { DataContext = MainViewModelTests.CreateFor(Fakes.Localization()) };
+        fixture.Show();
+        Dispatcher.UIThread.RunJobs();
+        fixture.UpdateLayout();
+        fixture.DataContext.Should().BeOfType<MainViewModel>().Which.SelectedTab.Should().BeOfType<ExplorerViewModel>();
+        fixture.GetVisualDescendants().OfType<ExplorerView>().Should().ContainSingle();
+        fixture.Close();
     }
 }
