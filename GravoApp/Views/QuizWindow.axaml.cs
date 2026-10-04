@@ -1,14 +1,12 @@
-using System.ComponentModel;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.Input;
 using GravoApp.ViewModels;
 
 namespace GravoApp.Views;
 
 /// <summary>The quiz window view. All behavior lives in <c>QuizViewModel</c>.</summary>
 /// <remarks>
-/// The input box has the focus on opening and after each answer, once the answer command and its messages are
-/// done. It selects its text when the view model asks for it.
+/// The input box has the focus on opening and after each answer once its messages are closed. It selects its text
+/// when the view model requests it.
 /// </remarks>
 public partial class QuizWindow : Window
 {
@@ -26,23 +24,17 @@ public partial class QuizWindow : Window
         if (_viewModel is not null)
         {
             _viewModel.SelectInputRequested -= SelectInput;
-            _viewModel.AnswerCommand.PropertyChanged -= OnAnswerCommandChanged;
+            _viewModel.FocusInputRequested -= FocusInput;
         }
         _viewModel = DataContext as QuizViewModel;
         if (_viewModel is not null)
         {
             _viewModel.SelectInputRequested += SelectInput;
-            _viewModel.AnswerCommand.PropertyChanged += OnAnswerCommandChanged;
+            _viewModel.FocusInputRequested += FocusInput;
         }
     }
 
-    private void OnAnswerCommandChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(IAsyncRelayCommand.IsRunning) && sender is IAsyncRelayCommand { IsRunning: false })
-        {
-            InputBox.Focus();
-        }
-    }
+    private void FocusInput() => InputBox.Focus();
 
     private void SelectInput()
     {

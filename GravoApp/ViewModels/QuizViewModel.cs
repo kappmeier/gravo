@@ -40,6 +40,10 @@ public sealed partial class QuizViewModel : ViewModelBase
     /// <summary>An event raised when the view should select the whole input text.</summary>
     public event Action? SelectInputRequested;
 
+    /// <summary>An event raised when the view should focus the input box after an answer.</summary>
+    /// <remarks>It is raised when messages are closed, but not when the quiz is finished.</remarks>
+    public event Action? FocusInputRequested;
+
     /// <summary>Shows the first word, or finishes the quiz at once when there is no word to ask.</summary>
     public async Task StartAsync()
     {
@@ -78,6 +82,7 @@ public sealed partial class QuizViewModel : ViewModelBase
                     Feedback = Texts.Get(localization.TEST_TYPE_ERROR);
                     break;
             }
+            FocusInputRequested?.Invoke();
             return;
         }
         if (result == TestResult.Wrong)
@@ -90,6 +95,7 @@ public sealed partial class QuizViewModel : ViewModelBase
             return;
         }
         DisplayCurrentWord();
+        FocusInputRequested?.Invoke();
     }
 
     [RelayCommand]
