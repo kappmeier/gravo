@@ -39,6 +39,35 @@ public class TabViewsHeadlessTests
     }
 
     [AvaloniaTest]
+    public void Explorer_ShowsWordEditorForWordNodes()
+    {
+        using var voc = new TempVocabulary();
+        voc.SeedStandard();
+        var vm = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
+            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+
+        var fixture = new ViewLocator().Build(vm).Should().BeOfType<ExplorerView>().Which;
+        var window = new Window { Content = fixture };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var editor = fixture.FindControl<WordEditorView>("WordEditor")!;
+        editor.IsVisible.Should().BeFalse();
+        fixture.FindControl<MenuItem>("PanelsMenu")!.Header.Should().Be("T" + localization.EXPLORER_MENU_PANELS);
+
+        var english = vm.Roots[0].Children[0].Children[0];
+        english.IsExpanded = true;
+        vm.SelectedNode = english.Children.Single(n => n.Title == "H");
+        Dispatcher.UIThread.RunJobs();
+        editor.IsVisible.Should().BeTrue();
+        editor.FindControl<TextBox>("WordBox")!.Text.Should().Be("house");
+        editor.FindControl<TextBox>("MainEntryBox")!.Text.Should().Be("house");
+        editor.FindControl<Button>("AddButton")!.Content.Should().Be("T" + localization.BUTTON_ADD);
+        editor.FindControl<Button>("ChangeButton")!.Content.Should().Be("T" + localization.BUTTON_CHANGE);
+        editor.FindControl<CheckBox>("AddToGroupCheck")!.IsVisible.Should().BeFalse();
+        window.Close();
+    }
+
+    [AvaloniaTest]
     public void GroupInput_BuildsGroupInputViewWithBothGrids()
     {
         using var voc = new TempVocabulary();
