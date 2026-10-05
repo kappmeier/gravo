@@ -29,9 +29,26 @@ public static class Strings
     public const string CheckDatabaseClean =
         "Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden keine Fehler gefunden.";
 
-    // TestSelect
-    public static string WordsToTest(int count) =>
-        count == 1 ? count + " Vokabel abzufragen." : count + " Vokabeln abzufragen.";
+    // Explorer
+    public const string SelectOnlyOne = "Bitte nur einen Eintrag markieren!";
+    public const string SelectOne = "Sie müssen einen Eintrag markieren";
+
+    public const string TooManyLanguagesInGroup =
+        "Zu viele Sprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird nicht "
+        + "hinzugefügt.";
+
+    public const string TooManyMainLanguagesInGroup =
+        "Zu viele Zielsprachen in der Gruppe. Die Sprache kann nicht automatisch festgelegt werden! Eintrag wird "
+        + "nicht hinzugefügt.";
+
+    public const string CannotAddHere = "Eintrag kann nicht hinzugefügt werden.";
+    public const string LanguageRequired = "Bitte geben sie eine Sprache und eine Hauptsprache an.";
+
+    public static string MainEntryMissingForLanguages(string mainEntry, string mainLanguage, string language) =>
+        "Der Haupteintrag '" + mainEntry + "' ist für die gewählten Sprachen '" + mainLanguage + "' und '" + language
+        + "' nicht vorhanden. Soll er erstellt werden?";
+
+    public static string EntryExists(string word) => "Eintrag existiert bereits: " + word;
 
     // WordInput
     public const string SelectExistingGroup =
@@ -106,6 +123,10 @@ public static class Strings
     public const string EntryWord = "Word";
     public const string EntryPost = "Post";
     public const string EntryMeaning = "Bedeutung";
+
+    // TestSelect
+    public static string WordsToTest(int count) =>
+        count == 1 ? count + " Vokabel abzufragen." : count + " Vokabeln abzufragen.";
 
     // Management
     public const string ManagementTitle = "Daten-Management";
