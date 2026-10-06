@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ex="using:GravoApp.ViewModels.Explorer"
+             x:Class="GravoApp.Views.MultiEditView"
+             x:DataType="ex:ExplorerViewModel">
+    <UserControl.Styles>
+        <Style Selector="Grid.form > :is(Control)">
+            <Setter Property="Margin" Value="0,3" />
+        </Style>
+        <Style Selector="Grid.form > CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,3,8,3" />
+        </Style>
+    </UserControl.Styles>
+    <Grid ColumnDefinitions="Auto,24,Auto">
+        <Grid ColumnDefinitions="Auto,260" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Classes="form">
+            <CheckBox x:Name="EnablePreCheck" IsChecked="{Binding Multi.EnablePre, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_PRE], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Column="1" Text="{Binding Multi.Pre, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnablePre}" />
+            <CheckBox Grid.Row="1" IsChecked="{Binding Multi.EnableWord, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_WORD], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Multi.Word, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnableWord}" />
+            <CheckBox x:Name="EnablePostCheck" Grid.Row="2" IsChecked="{Binding Multi.EnablePost, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_POST], StringFormat='{}{0}:'}" />
+            <TextBox x:Name="MultiPostBox" Grid.Row="2" Grid.Column="1" Text="{Binding Multi.Post, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnablePost}" />
+            <CheckBox Grid.Row="3" IsChecked="{Binding Multi.EnableAdditionalInfo, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_ADDITIONAL_INFO], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Multi.AdditionalInfo, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnableAdditionalInfo}" />
+            <CheckBox Grid.Row="4" IsChecked="{Binding Multi.EnableMeaning, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_MEANING], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Multi.Meaning, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnableMeaning}" />
+            <CheckBox Grid.Row="5" IsChecked="{Binding Multi.EnableIrregular, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_IRREGULAR], StringFormat='{}{0}:'}" />
+            <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding Multi.Irregular, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_IRREGULAR]}" IsEnabled="{Binding Multi.EnableIrregular}" />
+            <CheckBox Grid.Row="6" VerticalAlignment="Top" IsChecked="{Binding Multi.EnableWordType, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_WORD_TYPE], StringFormat='{}{0}:'}" />
+            <ListBox x:Name="MultiWordTypeList" Grid.Row="6" Grid.Column="1" Height="96"
+                     ItemsSource="{Binding Multi.WordTypeDisplays}"
+                     SelectedIndex="{Binding Multi.WordTypeIndex, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnableWordType}" />
+            <CheckBox Grid.Row="7" IsChecked="{Binding Multi.EnableMainEntry, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_MAIN_ENTRY], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Multi.MainEntry, Mode=TwoWay}"
+                     IsEnabled="{Binding Multi.EnableMainEntry}" />
+            <CheckBox Grid.Row="8" IsChecked="{Binding Multi.EnableMarked, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_MARKED], StringFormat='{}{0}:'}" />
+            <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding Multi.Marked, Mode=TwoWay}"
+                      Content="{Binding Texts[WORDS_MARKED]}" IsEnabled="{Binding Multi.EnableMarked}" />
+        </Grid>
+        <Button x:Name="MultiChangeButton" Grid.Column="2" MinWidth="80" VerticalAlignment="Center"
+                Command="{Binding ChangeSelectedCommand}" Content="{Binding Texts[BUTTON_CHANGE]}" />
+    </Grid>
+</UserControl>

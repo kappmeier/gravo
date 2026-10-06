@@ -29,6 +29,7 @@ public enum PanelMode
 /// The tree loads the letters, main entries and group words of a node on its first expand. The leaf nodes show their
 /// content as a list in one of the <see cref="ListStyle"/> layouts. On a language node the selected main entry shows
 /// its words in a second list. The word panel below the lists shows the selected word and adds and changes words.
+/// The multi edit panel changes the enabled fields of all selected words at once.
 /// </remarks>
 public sealed partial class ExplorerViewModel : ViewModelBase
 {
@@ -84,6 +85,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         _wordTypes = properties.LoadWordTypes();
         Texts = texts;
         Editor = new WordEditorViewModel(_wordTypes.GetSupportedWordTypes(), texts, properties.LoadProperties());
+        Multi = new MultiEditViewModel(_wordTypes.GetSupportedWordTypes(), texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
         SelectedRows.CollectionChanged += (_, _) => NotifyPanels();
         LoadTree();
@@ -95,8 +97,18 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <summary>The fields of the word panel.</summary>
     public WordEditorViewModel Editor { get; }
 
+    /// <summary>The fields of the multi edit panel.</summary>
+    public MultiEditViewModel Multi { get; }
+
     /// <summary>Occurs when a word was added. Enables putting the focus back into the word panel.</summary>
     public event Action? WordAdded;
+
+    /// <summary>Occurs multiple selected rows are replaced by their new versions (in multi edit mode).</summary>
+    /// <remarks>
+    /// The argument holds the new selection, already contained in <see cref="SelectedRows"/>. The view selects
+    /// these rows in the list again.
+    /// </remarks>
+    public event Action<IReadOnlyList<ExplorerRow>>? RowsReplaced;
 
     /// <summary>The two tree roots, the dictionary and the groups.</summary>
     public ObservableCollection<ExplorerNode> Roots { get; } = new();
@@ -384,7 +396,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
                 _dictionary.ChangeEntry(updated, DataTools.GetOrCreateMainEntry(_dictionary, Editor.MainEntry,
                     node.Language ?? main.Language, _mainLanguage));
             }
-            ReplaceRow(row, updated, groupChanged ? Editor.Marked : null);
+            ReplaceRow(row, ChangedRow(row, updated, groupChanged ? Editor.Marked : null));
         }
         catch (InputException ex)
         {
@@ -394,6 +406,86 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             await _dialogs.ShowMessageAsync(Strings.ProductName, Strings.EntryExists(Editor.Word));
         }
+    }
+
+    /// <summary>
+    /// Updates rows for all selected words with content from the enabled fields of the multi edit panel.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An enabled main entry is looked up once before any word changes, or created if it did not exist. Its language
+    /// is taken from the node or from the first selected word for group nodes. Invalid input for the language stops
+    /// the whole change.
+    /// </para>
+    /// <para>
+    /// When marked is enabled on a sub group it is written to the group as well. If one of the words fails a message
+    /// is shown and  the remaining words are still changed. Rows without a word, such as main entries on a language
+    /// node, are skipped.
+    /// </para>
+    /// </remarks>
+    [RelayCommand]
+    private async Task ChangeSelectedAsync()
+    {
+        var node = SelectedNode;
+        var selection = SelectedRows.ToList();
+        var first = selection.Select(row => row.Entry).FirstOrDefault(entry => entry is not null);
+        if (node is null || first is null)
+        {
+            return;
+        }
+        MainEntry? newMain = null;
+        if (Multi.EnableMainEntry)
+        {
+            try
+            {
+                var language = node.Language ?? _dictionary.GetMainEntry(ref first).Language;
+                newMain = DataTools.GetOrCreateMainEntry(_dictionary, Multi.MainEntry, language, _mainLanguage);
+            }
+            catch (InputException ex)
+            {
+                await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+                return;
+            }
+        }
+
+        var groupChanged = IsSubGroupNode(node) && Multi.EnableMarked;
+        for (var i = 0; i < selection.Count; i++)
+        {
+            var row = selection[i];
+            if (row.Entry is not { } entry)
+            {
+                continue;
+            }
+            try
+            {
+                var updated = _dictionary.ChangeEntry(ref entry, Multi.ToUpdateData(_wordTypes));
+                if (groupChanged)
+                {
+                    ChangeMarked(node, updated, Multi.Marked);
+                }
+                if (newMain is not null)
+                {
+                    _dictionary.ChangeEntry(updated, newMain);
+                }
+                selection[i] = ChangedRow(row, updated, groupChanged ? Multi.Marked : null);
+                Rows[Rows.IndexOf(row)] = selection[i];
+            }
+            catch (InputException ex)
+            {
+                await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+            }
+            catch (EntryExistsException)
+            {
+                await _dialogs.ShowMessageAsync(Strings.ProductName, Strings.EntryExists(Multi.Word));
+            }
+        }
+
+        SelectedRows.Clear();
+        foreach (var row in selection)
+        {
+            SelectedRows.Add(row);
+        }
+        RowsReplaced?.Invoke(selection);
     }
 
     /// <summary>Builds the dictionary root with its main languages and languages and the groups root.</summary>
@@ -670,20 +762,21 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         _group.UpdateMarked(ref group, ref testWord, marked);
     }
 
-    /// <summary>Replaces <paramref name="row"/> by a row containing a changed word and selects it.</summary>
-    /// <remarks>A group row keeps its marked flag unless <paramref name="marked"/> is <c>true</c>.</remarks>
-    private void ReplaceRow(ExplorerRow row, WordEntry updated, bool? marked)
+    /// <summary>Replaces <paramref name="row"/> with a new row that shows the changed word.</summary>
+    /// <remarks>A group row keeps its marked flag when <paramref name="marked"/> is <c>null</c>.</remarks>
+    private ExplorerRow ChangedRow(ExplorerRow row, WordEntry updated, bool? marked)
     {
-        ExplorerRow changed;
-        if (row.Payload is TestWord word)
+        if (row.Payload is not TestWord word)
         {
-            var testWord = new TestWord(updated, marked ?? word.Marked, word.Example);
-            changed = EntryRow(updated, testWord, YesNo(testWord.Marked), row.SubGroup);
+            return EntryRow(updated, updated);
         }
-        else
-        {
-            changed = EntryRow(updated, updated);
-        }
+        var testWord = new TestWord(updated, marked ?? word.Marked, word.Example);
+        return EntryRow(updated, testWord, YesNo(testWord.Marked), row.SubGroup);
+    }
+
+    /// <summary>Replaces <paramref name="row"/> by the <paramref name="changed"/> row and selects it.</summary>
+    private void ReplaceRow(ExplorerRow row, ExplorerRow changed)
+    {
         if (ShowSubRows)
         {
             SubRows[SubRows.IndexOf(row)] = changed;
@@ -718,6 +811,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
         Title = Texts.Get(localization.EXPLORER_TITLE);
         Editor.RefreshTexts();
+        Multi.RefreshTexts();
         Roots[0].Title = Texts.Get(localization.TREE_DICTIONARY);
         Roots[1].Title = Texts.Get(localization.TREE_GROUPS);
         var selected = SelectedRow is null ? -1 : Rows.IndexOf(SelectedRow);

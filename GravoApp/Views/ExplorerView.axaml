@@ -110,6 +110,8 @@
                 </DataGrid.Columns>
             </DataGrid>
             <views:WordEditorView x:Name="WordEditor" Grid.Row="2" Margin="0,6,0,0" IsVisible="{Binding ShowEditor}" />
+            <views:MultiEditView x:Name="MultiEditor" Grid.Row="2" Margin="0,6,0,0"
+                                 IsVisible="{Binding ShowMultiEditor}" />
         </Grid>
     </Grid>
 </UserControl>
