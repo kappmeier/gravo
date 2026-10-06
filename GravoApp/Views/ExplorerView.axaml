@@ -24,6 +24,12 @@
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 </Style>
             </TreeView.Styles>
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{Binding Texts[BUTTON_CHANGE]}" Command="{Binding RenameNodeCommand}"
+                              CommandParameter="{Binding SelectedNode}" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
             <TreeView.ItemTemplate>
                 <TreeDataTemplate x:DataType="ex:ExplorerNode" ItemsSource="{Binding Children}">
                     <TextBlock Text="{Binding Title}" />
