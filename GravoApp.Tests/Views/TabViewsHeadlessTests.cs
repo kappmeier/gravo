@@ -68,6 +68,46 @@ public class TabViewsHeadlessTests
     }
 
     [AvaloniaTest]
+    public void Explorer_ShowsMultiEditorForSeveralRowsAndKeepsThemSelected()
+    {
+        using var voc = new TempVocabulary();
+        voc.SeedStandard();
+        var vm = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
+            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+
+        var fixture = new ViewLocator().Build(vm).Should().BeOfType<ExplorerView>().Which;
+        var window = new Window { Content = fixture };
+        window.Show();
+        var english = vm.Roots[0].Children[0].Children[0];
+        english.IsExpanded = true;
+        vm.SelectedNode = english.Children.Single(n => n.Title == "H");
+        Dispatcher.UIThread.RunJobs();
+        var grid = fixture.FindControl<DataGrid>("RowsGrid")!;
+        grid.SelectedItems.Add(vm.Rows[1]);
+        Dispatcher.UIThread.RunJobs();
+
+        var multi = fixture.FindControl<MultiEditView>("MultiEditor")!;
+        multi.IsVisible.Should().BeTrue();
+        fixture.FindControl<WordEditorView>("WordEditor")!.IsVisible.Should().BeFalse();
+        var post = multi.FindControl<TextBox>("MultiPostBox")!;
+        post.IsEnabled.Should().BeFalse();
+        multi.FindControl<CheckBox>("EnablePostCheck")!.IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+        post.IsEnabled.Should().BeTrue();
+        vm.Multi.EnablePost.Should().BeTrue();
+        multi.FindControl<Button>("MultiChangeButton")!.Content.Should().Be("T" + localization.BUTTON_CHANGE);
+
+        vm.Multi.Post = "(n)";
+        vm.ChangeSelectedCommand.Execute(null);
+        Dispatcher.UIThread.RunJobs();
+
+        grid.SelectedItems.Cast<ExplorerRow>().Select(r => r.Post).Should().Equal("(n)", "(n)");
+        vm.SelectedRows.Should().HaveCount(2);
+        multi.IsVisible.Should().BeTrue();
+        window.Close();
+    }
+
+    [AvaloniaTest]
     public void GroupInput_BuildsGroupInputViewWithBothGrids()
     {
         using var voc = new TempVocabulary();

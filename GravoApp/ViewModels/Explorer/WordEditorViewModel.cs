@@ -4,7 +4,7 @@ using GravoApp.Localization;
 
 namespace GravoApp.ViewModels.Explorer;
 
-/// <summary>Holds the fields of the word panel in the vocabulary explorer.</summary>
+/// <summary>Behavior and model of the word panel in the vocabulary explorer.</summary>
 /// <remarks>
 /// The panel shows the selected word and is the input for adding and changing words. The commands live in
 /// <c>ExplorerViewModel</c>. The word types are listed in the order of <see cref="WordTypeNames"/>.
