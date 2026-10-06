@@ -488,6 +488,130 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         RowsReplaced?.Invoke(selection);
     }
 
+    /// <summary>Renames a tree node to a user entered name.</summary>
+    /// <remarks>
+    /// <para>
+    /// Main entries, groups, sub groups and group words can be renamed. Together with a main entry also equal words
+    /// receive the new name. Letters keep their name without a message, the roots, main languages and languages
+    /// show a warning.
+    /// </para>
+    /// <para>
+    /// An empty or unchanged name does nothing. A failed rename shows the error and leaves the tree unchanged. After
+    /// a rename the list is loaded again.
+    /// </para>
+    /// </remarks>
+    [RelayCommand]
+    private async Task RenameNodeAsync(ExplorerNode? node)
+    {
+        if (node is null)
+        {
+            return;
+        }
+        var newName = (await _dialogs.PromptAsync(Strings.RenameTitle, Strings.NewName, node.Title))?.Trim();
+        if (string.IsNullOrEmpty(newName) || newName == node.Title)
+        {
+            return;
+        }
+        switch (node.Kind)
+        {
+            case NodeKind.MainEntry:
+                await RenameMainEntryAsync(node, newName);
+                break;
+            case NodeKind.Group or NodeKind.SubGroup:
+                await RenameGroupAsync(node, newName);
+                break;
+            case NodeKind.GroupWord:
+                await RenameGroupWordAsync(node, newName);
+                break;
+            case NodeKind.Letter or NodeKind.Placeholder:
+                break;
+            default:
+                await _dialogs.ShowMessageAsync(Strings.WarningTitle, Strings.ChangesNotApplied);
+                break;
+        }
+    }
+
+    private async Task RenameMainEntryAsync(ExplorerNode node, string newName)
+    {
+        var oldName = node.Title;
+        var main = _dictionary.GetMainEntry(ref oldName, node.Language!, node.MainLanguage!);
+        try
+        {
+            var updated = _dictionary.ChangeMainEntry(ref main, newName);
+            _dictionary.AdaptSubEntries(ref updated, oldName);
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowMessageAsync(Strings.CouldNotRename(oldName), ex.Message);
+            return;
+        }
+        node.Title = newName;
+        LoadList();
+    }
+
+    private async Task RenameGroupAsync(ExplorerNode node, string newName)
+    {
+        try
+        {
+            if (node.Kind == NodeKind.Group)
+            {
+                _groups.EditGroup(node.Title, newName);
+            }
+            else
+            {
+                _groups.EditSubGroup(node.Group!, node.Title, newName);
+            }
+        }
+        catch (InputException ex)
+        {
+            await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+            return;
+        }
+        catch (EntryExistsException ex)
+        {
+            await _dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            return;
+        }
+        node.Title = newName;
+        LoadList();
+    }
+
+    /// <summary>Renames the dictionary entry word of a group word and replaces its node.</summary>
+    /// <remarks>The new node holds the changed word. It is selected when the old node was selected.</remarks>
+    private async Task RenameGroupWordAsync(ExplorerNode node, string newName)
+    {
+        var word = (TestWord)node.Payload!;
+        var entry = word.WordEntry;
+        WordEntry updated;
+        try
+        {
+            updated = _dictionary.ChangeEntry(ref entry, new IDictionaryDao.UpdateData { Word = newName });
+        }
+        catch (InputException ex)
+        {
+            await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+            return;
+        }
+        catch (EntryExistsException)
+        {
+            await _dialogs.ShowMessageAsync(Strings.ProductName, Strings.EntryAlreadyExists);
+            return;
+        }
+        var parent = node.Parent!;
+        var replacement = CreateNode(NodeKind.GroupWord, updated.Word, parent,
+            payload: new TestWord(updated, word.Marked, word.Example));
+        var selected = SelectedNode == node;
+        parent.Children[parent.Children.IndexOf(node)] = replacement;
+        if (selected)
+        {
+            SelectedNode = replacement;
+        }
+        else
+        {
+            LoadList();
+        }
+    }
+
     /// <summary>Builds the dictionary root with its main languages and languages and the groups root.</summary>
     /// <remarks>
     /// Every further main language is nested as the last child of the previous one.

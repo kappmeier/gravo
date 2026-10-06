@@ -49,6 +49,11 @@ public static class Strings
         + "' nicht vorhanden. Soll er erstellt werden?";
 
     public static string EntryExists(string word) => "Eintrag existiert bereits: " + word;
+    public const string RenameTitle = "Umbenennen";
+    public const string NewName = "Neuer Name:";
+    public static string CouldNotRename(string name) => "\"" + name + "\" konnte nicht umbenannt werden.";
+    public const string ChangesNotApplied = "Änderungen werden nicht übernommen";
+    public const string EntryAlreadyExists = "Eintrag existiert bereits.";
 
     // WordInput
     public const string SelectExistingGroup =
