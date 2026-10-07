@@ -44,6 +44,30 @@ public class DialogServiceHeadlessTests
     }
 
     [AvaloniaTest]
+    public void ShowMessage_FocusesOkButton()
+    {
+        var owner = Owner();
+        _ = new DialogService(() => owner, Fakes.Texts()).ShowMessageAsync("t", "m");
+
+        var dialog = OpenedDialog<MessageWindow>(owner);
+        Dispatcher.UIThread.RunJobs();
+
+        dialog.OkButton.IsFocused.Should().BeTrue();
+    }
+
+    [AvaloniaTest]
+    public void Confirm_FocusesYesButton()
+    {
+        var owner = Owner();
+        _ = new DialogService(() => owner, Fakes.Texts()).ConfirmAsync("t", "m");
+
+        var dialog = OpenedDialog<MessageWindow>(owner);
+        Dispatcher.UIThread.RunJobs();
+
+        dialog.YesButton.IsFocused.Should().BeTrue();
+    }
+
+    [AvaloniaTest]
     public void Confirm_Yes_ReturnsTrue_No_ReturnsFalse()
     {
         var owner = Owner();
