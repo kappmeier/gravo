@@ -156,7 +156,7 @@ Public Class localization
     End Property
 
     Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
-        ' existiert, weil es einfacher ist in manchen f�llen
+        ' existiert, weil es einfacher ist in manchen fällen
         Return GetText(NameToCode(name))
     End Function
 
