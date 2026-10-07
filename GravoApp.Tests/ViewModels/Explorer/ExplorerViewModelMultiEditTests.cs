@@ -95,9 +95,9 @@ public class ExplorerViewModelMultiEditTests
         var fixture = Create();
         SelectAll(fixture, Letter);
 
-        fixture.Editor.WordTypeIndex = fixture.Editor.WordTypeNames.ToList().IndexOf("Adjective");
+        fixture.Editor.WordTypeIndex = fixture.Editor.WordTypeNames.ToList().IndexOf("WORD_TYPE_ADJECTIVE");
         fixture.Multi.EnableWordType = true;
-        fixture.Multi.WordTypeIndex = fixture.Multi.WordTypeNames.ToList().IndexOf("Verb");
+        fixture.Multi.WordTypeIndex = fixture.Multi.WordTypeNames.ToList().IndexOf("WORD_TYPE_VERB");
         await fixture.ChangeSelectedCommand.ExecuteAsync(null);
 
         HouseWords().Select(w => w.WordType).Should().Equal(WordType.Verb, WordType.Verb);

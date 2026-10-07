@@ -16,9 +16,11 @@ public static class WordTypeTexts
     };
 
     /// <summary>
-    /// Display name of a word type as stored in <c>SupportedWordTypes</c>. Names outside the enum are displayed
-    /// unchanged.
+    /// Display name of a word type as stored in <c>SupportedWordTypes</c>. The name is either a database key
+    /// (<c>WORD_TYPE_VERB</c>) or an enum name (<c>Verb</c>). Other names are displayed unchanged.
     /// </summary>
     public static string Display(UiTexts texts, string wordTypeName) =>
-        Codes.TryGetValue(wordTypeName, out var code) ? texts[code] : wordTypeName;
+        Codes.ContainsValue(wordTypeName) ? texts[wordTypeName]
+        : Codes.TryGetValue(wordTypeName, out var code) ? texts[code]
+        : wordTypeName;
 }
