@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Reflection;
 using Gravo;
 using GravoApp.Localization;
 using GravoApp.Services;
@@ -55,12 +57,15 @@ public static class Fakes
     }
 
     /// <summary>
-    /// An <c>IPropertiesDao</c> mock whose <c>LoadWordTypes</c> method returns the enum names.
+    /// An <c>IPropertiesDao</c> mock whose <c>LoadWordTypes</c> method returns the database keys
+    /// (<c>WORD_TYPE_*</c>) as <c>PropertiesDao</c> does.
     /// </summary>
     public static Mock<IPropertiesDao> Properties(Properties? limits = null)
     {
-        IDictionary<string, int> codes = Enum.GetValues<WordType>().ToDictionary(t => t.ToString(), t => (int)t);
-        IDictionary<string, WordType> found = Enum.GetValues<WordType>().ToDictionary(t => t.ToString(), t => t);
+        static string Key(WordType t) => typeof(WordType).GetField(t.ToString())!
+            .GetCustomAttribute<DescriptionAttribute>()!.Description;
+        IDictionary<string, int> codes = Enum.GetValues<WordType>().ToDictionary(Key, t => (int)t);
+        IDictionary<string, WordType> found = Enum.GetValues<WordType>().ToDictionary(Key, t => t);
         var m = new Mock<IPropertiesDao>();
         m.Setup(p => p.LoadWordTypes()).Returns(new WordTypes(ref codes, ref found));
         m.Setup(p => p.LoadProperties()).Returns(limits ?? new Properties(new Properties.PropertiesBuilder()));

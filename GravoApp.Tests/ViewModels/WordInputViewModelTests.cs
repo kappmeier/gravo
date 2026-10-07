@@ -77,7 +77,7 @@ public class WordInputViewModelTests
         fixture.SelectedGroup.Should().Be("Book");
         fixture.SubGroups.Should().Equal("Unit 1");
         fixture.SelectedGroupEntry.Should().BeSameAs(_unit1);
-        fixture.WordTypeNames[1].Should().Be("Verb");
+        fixture.WordTypeNames[1].Should().Be("WORD_TYPE_VERB");
         fixture.WordTypeDisplays[1].Should().Be("T4");
         fixture.CanDirectAdd.Should().BeTrue();
         fixture.DirectAdd.Should().BeFalse();
