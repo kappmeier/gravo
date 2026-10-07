@@ -25,6 +25,7 @@ public partial class MessageWindow : Window
         YesButton.IsVisible = confirm;
         YesButton.IsDefault = confirm;
         NoButton.IsVisible = confirm;
+        Opened += (_, _) => (confirm ? YesButton : OkButton).Focus();
     }
 
     private void OnAccept(object? sender, RoutedEventArgs e) => Close(true);
