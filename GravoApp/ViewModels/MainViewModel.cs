@@ -1,0 +1,254 @@
+using System.Collections.ObjectModel;
+using System.IO;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Gravo;
+using GravoApp.Localization;
+using GravoApp.ViewModels.Explorer;
+
+namespace GravoApp.ViewModels;
+
+/// <summary>
+/// The main window with its menu commands and the open tabs. Supports reading and writing settings to restore the
+/// state after a restart.
+/// </summary>
+public sealed partial class MainViewModel : ViewModelBase
+{
+    private const string DefaultLanguage = "Deutsch";
+    private const string DatabaseExtension = "s3db";
+
+    private readonly AppServices _s;
+
+    [ObservableProperty] private ViewModelBase? _selectedTab;
+
+    public MainViewModel(AppServices services)
+    {
+        _s = services;
+        Title = "Gravo";
+        Languages = new ObservableCollection<LanguageMenuItem>(
+            _s.Localization.GetLanguageNames().Select(n => new LanguageMenuItem(n, SwitchLanguage)));
+        if (Languages.Any(l => l.Name == DefaultLanguage))
+        {
+            SwitchLanguage(DefaultLanguage);
+        }
+    }
+
+    public UiTexts Texts => _s.Texts;
+
+    public ObservableCollection<ViewModelBase> Tabs { get; } = new();
+
+    public ObservableCollection<LanguageMenuItem> Languages { get; }
+
+    /// <summary>
+    /// Shows a hint when the vocabulary database needs an update.
+    /// </summary>
+    public async Task CheckDatabaseVersionAsync()
+    {
+        if (!_s.Management.IsVersionUpToDate())
+        {
+            await _s.Dialogs.ShowMessageAsync(
+                Texts.Get(localization.HINT), Texts.Get(localization.DB_VERSION_OUTDATED));
+        }
+    }
+
+    /// <summary>
+    /// Returns the stored main window geometry.
+    /// </summary>
+    /// <returns>The stored geometry, or <c>null</c> when <c>SaveWindowPosition</c> is off.</returns>
+    public WindowGeometry? RestoreGeometry()
+    {
+        if (!_s.Settings.SaveWindowPosition)
+        {
+            return null;
+        }
+        var w = _s.Settings.MainWindowSettings;
+        return new WindowGeometry(w.posX, w.posY, w.width, w.height, _s.Settings.MainWindowState);
+    }
+
+    /// <summary>
+    /// Stores the main window state and saves the settings.
+    /// </summary>
+    /// <remarks>
+    /// Position and size are only taken over in the normal state, so a maximized window keeps its previous size.
+    /// </remarks>
+    public void SaveGeometry(int x, int y, int width, int height, WindowStateSetting state)
+    {
+        var w = _s.Settings.MainWindowSettings;
+        if (state == WindowStateSetting.Normal)
+        {
+            w.posX = x;
+            w.posY = y;
+            w.width = width;
+            w.height = height;
+        }
+        _s.Settings.MainWindowSettings = w;
+        _s.Settings.MainWindowState = state;
+        _s.Settings.SaveSettings();
+    }
+
+    /// <summary>
+    /// Adds a new <paramref name="tab"/> unless it is open already and selects it.
+    /// </summary>
+    /// <remarks>The tab is removed again when it requests to close.</remarks>
+    internal void ShowTab(ViewModelBase tab)
+    {
+        if (!Tabs.Contains(tab))
+        {
+            tab.CloseRequested += _ => Tabs.Remove(tab);
+            Tabs.Add(tab);
+        }
+        SelectedTab = tab;
+    }
+
+    /// <summary>Opens the Explorer tab, or selects it when it is open already.</summary>
+    /// <remarks>If there are invalid word types in the database an error is shown instead of the tab.</remarks>
+    [RelayCommand]
+    private async Task ShowExplorerAsync()
+    {
+        var tab = Tabs.OfType<ExplorerViewModel>().FirstOrDefault();
+        if (tab is null)
+        {
+            try
+            {
+                tab = new ExplorerViewModel(_s.Vocabulary, _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
+            }
+            catch (DataInvalidException ex)
+            {
+                await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+                return;
+            }
+        }
+        ShowTab(tab);
+    }
+
+    /// <summary>Opens the dialog to add words to the dictionary.</summary>
+    /// <remarks>If there are invalid word types in the database an error is shown instead of the dialog.</remarks>
+    [RelayCommand]
+    private async Task AddWordsAsync()
+    {
+        WordInputViewModel input;
+        try
+        {
+            input = new WordInputViewModel(_s.Vocabulary.Dictionary, _s.Vocabulary.Groups, _s.Vocabulary.Group,
+                _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
+        }
+        catch (DataInvalidException ex)
+        {
+            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            return;
+        }
+        await _s.Dialogs.ShowDialogAsync(input);
+    }
+
+    /// <summary>Opens the group input tab, or selects it when it is open already.</summary>
+    [RelayCommand]
+    private void ShowGroupInput() => ShowTab(Tabs.OfType<GroupInputViewModel>().FirstOrDefault()
+        ?? new GroupInputViewModel(_s.Vocabulary.Groups, _s.Vocabulary.Dictionary, _s.Vocabulary.Group, _s.Dialogs,
+            Texts, AppServices.MainLanguage));
+
+    /// <summary>Starts a quiz over the words in a group. The group is selected first by the user.</summary>
+    /// <remarks>Nothing happens when the dialog is cancelled or the chosen group has no sub group.</remarks>
+    [RelayCommand]
+    private async Task TestGroupsAsync()
+    {
+        var select = new TestSelectViewModel(_s.Vocabulary.Groups, _s.Vocabulary.Group, _s.Settings, Texts);
+        if (!await _s.Dialogs.ShowDialogAsync(select) || select.SelectedGroupEntry is null)
+        {
+            return;
+        }
+        var data = TestDataFactory.Create(_s.Vocabulary.Group, _s.Cards, select.SelectedGroupEntry,
+            select.TestPhrases, select.TestMarked, select.QueryLanguage);
+        await StartQuizAsync(data, select.QueryLanguage);
+    }
+
+    /// <summary>Starts a quiz over all the words in a language. The language is selected first by the user.</summary>
+    /// <remarks>Nothing happens when the dialog is cancelled.</remarks>
+    [RelayCommand]
+    private async Task TestLanguageAsync()
+    {
+        var select = new LanguageSelectViewModel(
+            _s.Vocabulary.Dictionary, _s.Settings, Texts, AppServices.MainLanguage);
+        if (!await _s.Dialogs.ShowDialogAsync(select) || select.SelectedLanguage is null)
+        {
+            return;
+        }
+        var data = TestDataFactory.Create(_s.Vocabulary.Dictionary, _s.Cards, select.SelectedLanguage,
+            select.TestPhrases, select.QueryLanguage, AppServices.MainLanguage);
+        await StartQuizAsync(data, select.QueryLanguage);
+    }
+
+    private async Task StartQuizAsync(TestData data, QueryLanguage direction)
+    {
+        var quiz = new QuizViewModel(new TestController(data, direction, _s.Db), Texts, _s.Dialogs);
+        _s.Dialogs.ShowWindow(quiz);
+        await quiz.StartAsync();
+    }
+
+    [RelayCommand]
+    private void SwitchLanguage(string name)
+    {
+        _s.Localization.SwitchToLanguage(name);
+        foreach (var item in Languages)
+        {
+            item.IsChecked = item.Name == name;
+        }
+        Texts.Refresh();
+    }
+
+    [RelayCommand]
+    private async Task SaveDatabaseAsAsync()
+    {
+        var target = await _s.Dialogs.PickSaveFileAsync(
+            Texts.Get(localization.MAIN_MENU_FILE_SAVE_AS), DatabaseExtension, Path.GetFileName(_s.DbPath));
+        if (target is null)
+        {
+            return;
+        }
+        try
+        {
+            File.Copy(_s.DbPath, target, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, Strings.CopyFailed(ex.Message));
+        }
+    }
+
+    [RelayCommand]
+    private async Task CheckDatabaseAsync()
+    {
+        if (!await _s.Dialogs.ConfirmAsync(Strings.HintTitle, Strings.CheckDatabaseQuestion))
+        {
+            return;
+        }
+        var errors = _s.Management.Reorganize();
+        await _s.Dialogs.ShowMessageAsync(
+            Strings.HintTitle, errors > 0 ? Strings.CheckDatabaseFixed(errors) : Strings.CheckDatabaseClean);
+    }
+
+    /// <summary>Opens the data management dialog.</summary>
+    /// <remarks>The dialog imports and exports to a second database file.</remarks>
+    [RelayCommand]
+    private async Task ShowManagementAsync() =>
+        await _s.Dialogs.ShowDialogAsync(new ManagementViewModel(_s.Vocabulary, _s.Management, _s.Properties,
+            _s.Dialogs, _s.Texts, _s.DbPath, AppServices.MainLanguage, OpenDatabase, CoreFactory.Management));
+
+    /// <summary>Opens a new database connection for data management operations.</summary>
+    private static IDataBaseOperation OpenDatabase(string path)
+    {
+        IDataBaseOperation db = new SQLiteDataBaseOperation();
+        db.Open(path);
+        return db;
+    }
+
+    [RelayCommand]
+    private async Task ShowOptionsAsync() =>
+        await _s.Dialogs.ShowDialogAsync(new OptionsViewModel(_s.Settings, _s.Management, _s.Dialogs, _s.Texts));
+
+    [RelayCommand]
+    private async Task ShowInfoAsync() =>
+        await _s.Dialogs.ShowDialogAsync(new InfoViewModel(_s.Management, _s.Texts));
+
+    [RelayCommand]
+    private void Exit() => RequestClose(true);
+}

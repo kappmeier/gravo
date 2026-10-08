@@ -1,7 +1,9 @@
-﻿Imports System.Collections.Immutable
+﻿Imports Microsoft.Data.Sqlite
+Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Data.Common
-Imports Microsoft.Data.Sqlite
 Imports System.Globalization
+Imports System.Reflection
 Imports Gravo
 
 Public Class PropertiesDao
@@ -94,22 +96,37 @@ Public Class PropertiesDao
             Dim command As String = "SELECT [Type], [Index] FROM [SupportedWordTypes]"
             DBConnection.ExecuteReader(command)
             While DBConnection.DBCursor.Read
-                Dim wordType As String = DBConnection.SecureGetString(0)
+                Dim wordTypeInDb As String = DBConnection.SecureGetString(0)
                 Dim index As Integer = DBConnection.SecureGetInt32(1)
 
-                Dim parsedWordType As WordType
-                If [Enum].TryParse(wordType, parsedWordType) Then
-                    foundWordTypes.Add(wordType, parsedWordType)
+                Dim wordTypeCandidate As WordType? = FromTechnicalName(Of WordType)(wordTypeInDb)
+                If wordTypeCandidate.HasValue Then
+                    foundWordTypes.Add(wordTypeInDb, wordTypeCandidate.Value)
                 End If
-                wordTypes.Add(wordType, index)
+                wordTypes.Add(wordTypeInDb, index)
             End While
             DBConnection.DBCursor.Close()
         End If
 
-        If foundWordTypes.Count <> [Enum].GetNames(GetType(WordType)).Length Then
-            Throw New DataInvalidException("Not all word types stored in database")
+        Dim foundWordCount = foundWordTypes.Count
+        Dim expectedWordCount = [Enum].GetNames(GetType(WordType)).Length
+        If foundWordCount <> expectedWordCount Then
+            Throw New DataInvalidException(String.Format(CultureInfo.InvariantCulture,
+                    "Not all word types stored in database. Should be {0}, but only found {1}.", expectedWordCount, foundWordCount
+                    ))
         End If
 
         Return New WordTypes(wordTypes, foundWordTypes)
+    End Function
+
+    Private Function FromTechnicalName(Of T As Structure)(name As String) As T?
+        For Each f In GetType(T).GetFields(BindingFlags.Public Or BindingFlags.Static)
+            Dim attribute = f.GetCustomAttribute(Of DescriptionAttribute)()
+            If attribute IsNot Nothing AndAlso
+                    String.Equals(attribute.Description, name, StringComparison.OrdinalIgnoreCase) Then
+                Return DirectCast(f.GetValue(Nothing), T)
+            End If
+        Next
+        Return Nothing
     End Function
 End Class

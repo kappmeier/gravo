@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ex="using:GravoApp.ViewModels.Explorer"
+             xmlns:views="using:GravoApp.Views"
+             x:Class="GravoApp.Views.ExplorerView"
+             x:DataType="ex:ExplorerViewModel">
+    <Grid Margin="12,0,12,12" ColumnDefinitions="250,6,*" RowDefinitions="Auto,*">
+        <Menu Grid.ColumnSpan="3" Margin="0,0,0,6">
+            <MenuItem x:Name="PanelsMenu" Header="{Binding Texts[EXPLORER_MENU_PANELS]}">
+                <MenuItem Header="{Binding Texts[EXPLORER_MENU_PANELS_DEFAULT]}" ToggleType="Radio"
+                          GroupName="Panels" IsChecked="{Binding IsDefaultPanel, Mode=TwoWay}" />
+                <MenuItem Header="{Binding Texts[EXPLORER_MENU_PANELS_WORD_INPUT]}" ToggleType="Radio"
+                          GroupName="Panels" IsChecked="{Binding IsInputPanel, Mode=TwoWay}" />
+                <MenuItem Header="{Binding Texts[EXPLORER_MENU_PANELS_SEARCH]}" ToggleType="Radio"
+                          GroupName="Panels" IsChecked="{Binding IsSearchPanel, Mode=TwoWay}" />
+                <MenuItem Header="{Binding Texts[EXPLORER_MENU_PANELS_MULTI_EDIT]}" ToggleType="Radio"
+                          GroupName="Panels" IsChecked="{Binding IsMultiPanel, Mode=TwoWay}" />
+            </MenuItem>
+        </Menu>
+        <TreeView x:Name="Tree" Grid.Row="1" ItemsSource="{Binding Roots}"
+                  SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+            <TreeView.Styles>
+                <Style Selector="TreeViewItem" x:DataType="ex:ExplorerNode">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.Styles>
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{Binding Texts[BUTTON_CHANGE]}" Command="{Binding RenameNodeCommand}"
+                              CommandParameter="{Binding SelectedNode}" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate x:DataType="ex:ExplorerNode" ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Title}" />
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <GridSplitter Grid.Row="1" Grid.Column="1" ResizeDirection="Columns" />
+        <Grid Grid.Row="1" Grid.Column="2" RowDefinitions="*,Auto,Auto">
+            <DataGrid x:Name="RowsGrid" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                      SelectionMode="Extended" IsReadOnly="True" AutoGenerateColumns="False"
+                      CanUserSortColumns="True" CanUserResizeColumns="True" GridLinesVisibility="All">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_MAIN_LANGUAGE]}"
+                                        Binding="{Binding MainLanguage}" Width="110"
+                                        IsVisible="{Binding ShowMainLanguageColumn}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_LANGUAGE]}"
+                                        Binding="{Binding Language}" Width="110"
+                                        IsVisible="{Binding ShowDictionaryColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_MAIN_ENTRIES]}"
+                                        Binding="{Binding Count1}" Width="110"
+                                        IsVisible="{Binding ShowDictionaryColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_TOTAL_ENTRIES]}"
+                                        Binding="{Binding Count2}" Width="110"
+                                        IsVisible="{Binding ShowDictionaryColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_WORD]}"
+                                        Binding="{Binding Word}" Width="110" IsVisible="{Binding ShowWordOnly}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_PRE]}"
+                                        Binding="{Binding Pre}" Width="45" IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_WORD]}"
+                                        Binding="{Binding Word}" Width="110" IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_POST]}"
+                                        Binding="{Binding Post}" Width="45" IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_MEANING]}"
+                                        Binding="{Binding Meaning}" Width="110"
+                                        IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_WORD_TYPE]}"
+                                        Binding="{Binding WordType}" Width="65"
+                                        IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_IRREGULAR]}"
+                                        Binding="{Binding Irregular}" Width="45"
+                                        IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_ADDITIONAL_INFO]}"
+                                        Binding="{Binding AdditionalInfo}" Width="110"
+                                        IsVisible="{Binding ShowWordColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_MARKED]}"
+                                        Binding="{Binding Marked}" Width="45"
+                                        IsVisible="{Binding ShowMarkedColumn}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_SUBGROUP]}"
+                                        Binding="{Binding SubGroup}" Width="110"
+                                        IsVisible="{Binding ShowSubGroupColumn}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_GROUPS]}"
+                                        Binding="{Binding GroupName}" Width="110"
+                                        IsVisible="{Binding ShowGroupsColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_SUBGROUPS]}"
+                                        Binding="{Binding SubGroupCount}" Width="110"
+                                        IsVisible="{Binding ShowGroupsColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_ENTRIES]}"
+                                        Binding="{Binding Count1}" Width="110"
+                                        IsVisible="{Binding ShowGroupsColumns}" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_GROUP_LANGUAGE_COUNT]}"
+                                        Binding="{Binding LanguageCount}" Width="110"
+                                        IsVisible="{Binding ShowGroupsColumns}" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <DataGrid x:Name="SubRowsGrid" Grid.Row="1" Height="150" Margin="0,6,0,0" ItemsSource="{Binding SubRows}"
+                      SelectedItem="{Binding SelectedSubRow, Mode=TwoWay}" IsVisible="{Binding ShowSubRows}"
+                      SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False"
+                      CanUserSortColumns="True" CanUserResizeColumns="True" GridLinesVisibility="All">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_PRE]}"
+                                        Binding="{Binding Pre}" Width="45" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_WORD]}"
+                                        Binding="{Binding Word}" Width="110" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_POST]}"
+                                        Binding="{Binding Post}" Width="45" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_MEANING]}"
+                                        Binding="{Binding Meaning}" Width="110" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_WORD_TYPE]}"
+                                        Binding="{Binding WordType}" Width="65" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_IRREGULAR]}"
+                                        Binding="{Binding Irregular}" Width="45" />
+                    <DataGridTextColumn Header="{Binding Texts[EXPLORER_HEADLINE_ADDITIONAL_INFO]}"
+                                        Binding="{Binding AdditionalInfo}" Width="110" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <views:WordEditorView x:Name="WordEditor" Grid.Row="2" Margin="0,6,0,0" IsVisible="{Binding ShowEditor}" />
+            <views:MultiEditView x:Name="MultiEditor" Grid.Row="2" Margin="0,6,0,0"
+                                 IsVisible="{Binding ShowMultiEditor}" />
+        </Grid>
+    </Grid>
+</UserControl>

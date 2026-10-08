@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        x:Class="GravoApp.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Title}" Width="800" Height="600">
+    <DockPanel>
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top">
+            <MenuItem Header="{Binding Texts[MAIN_MENU_FILE]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_SAVE_AS]}" Command="{Binding SaveDatabaseAsCommand}" />
+                <Separator />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_FILE_EXIT]}" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem x:Name="VocabularyMenu" Header="{Binding Texts[MAIN_MENU_VOCABULARY]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_EXPLORER]}"
+                          Command="{Binding ShowExplorerCommand}" />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY]}"
+                          Command="{Binding AddWordsCommand}" />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_INSERT_GROUPS]}"
+                          Command="{Binding ShowGroupInputCommand}" />
+                <Separator />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST]}">
+                    <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST_GROUPS]}"
+                              Command="{Binding TestGroupsCommand}" />
+                    <MenuItem Header="{Binding Texts[MAIN_MENU_VOCABULARY_TEST_LANGUAGE]}"
+                              Command="{Binding TestLanguageCommand}" />
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_DATA_MANAGEMENT]}"
+                          Command="{Binding ShowManagementCommand}" />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_CHECK_DATABASE]}"
+                          Command="{Binding CheckDatabaseCommand}" />
+                <Separator />
+                <MenuItem Header="{Binding Texts[MAIN_MENU_EXTRAS_OPTIONS]}" Command="{Binding ShowOptionsCommand}" />
+                <MenuItem x:Name="LanguageMenu" Header="{Binding Texts[MAIN_MENU_EXTRAS_LANGUAGE]}"
+                          ItemsSource="{Binding Languages}">
+                    <MenuItem.Styles>
+                        <Style Selector="MenuItem#LanguageMenu MenuItem" x:DataType="vm:LanguageMenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="ToggleType" Value="CheckBox" />
+                            <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=TwoWay}" />
+                            <Setter Property="Command" Value="{Binding SelectCommand}" />
+                        </Style>
+                    </MenuItem.Styles>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem x:Name="HelpMenu" Header="{Binding Texts[MAIN_MENU_HELP]}">
+                <MenuItem Header="{Binding Texts[MAIN_MENU_HELP_ABOUT]}" Command="{Binding ShowInfoCommand}" />
+            </MenuItem>
+        </Menu>
+        <TabControl x:Name="MainTabs" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}">
+            <TabControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ViewModelBase">
+                    <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+    </DockPanel>
+</Window>

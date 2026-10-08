@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 
 Public Class localization
     Inherits localizationBase
+    Implements ILocalization
 
     Public Const DISCLAIMER_1 = 1
     Public Const COPYRIGHT_OLD = 2
@@ -19,8 +20,8 @@ Public Class localization
     Public Const NO = 14
     Public Const TREE_DICTIONARY = 15
     Public Const TREE_GROUPS = 16
-    Public Const EXPLORER_HEADLINE_TOTAL_ENTRYS = 17
-    Public Const EXPLORER_HEADLINE_MAIN_ENTRYS = 18
+    Public Const EXPLORER_HEADLINE_TOTAL_ENTRIES = 17
+    Public Const EXPLORER_HEADLINE_MAIN_ENTRIES = 18
     Public Const EXPLORER_HEADLINE_LANGUAGE = 19
     Public Const EXPLORER_HEADLINE_MAIN_LANGUAGE = 20
     Public Const EXPLORER_HEADLINE_ADDITIONAL_INFO = 21
@@ -32,7 +33,7 @@ Public Class localization
     Public Const EXPLORER_HEADLINE_WORD = 27
     Public Const EXPLORER_HEADLINE_MARKED = 28
     Public Const EXPLORER_HEADLINE_SUBGROUP = 29
-    Public Const EXPLORER_HEADLINE_ENTRYS = 30
+    Public Const EXPLORER_HEADLINE_ENTRIES = 30
     Public Const EXPLORER_HEADLINE_GROUPS = 31
     Public Const EXPLORER_HEADLINE_SUBGROUPS = 32
     Public Const EXCEPTION_UNKNOWN_HEADLINE = 33
@@ -124,7 +125,7 @@ Public Class localization
     Public Const TEST_SELECT_TITLE = 108
     Public Const TEST_SELECT_GROUP = GROUP
     Public Const TEST_SELECT_SUBGROUP = SUBGROUP
-    Public Const TEST_SELECT_ENTRYS = 109
+    Public Const TEST_SELECT_ENTRIES = 109
     Public Const TEST_SELECT_ENTRY = 110
     Public Const TEST_SELECT_ONLY_MARKED = 111
     Public Const TEST_SELECT_TEST_DIRECTION = 112
@@ -145,7 +146,7 @@ Public Class localization
         MyBase.New(db)
     End Sub
 
-    Public Property Language() As String
+    Public Property Language() As String Implements ILocalization.Language
         Get
             Return m_language
         End Get
@@ -154,12 +155,12 @@ Public Class localization
         End Set
     End Property
 
-    Public Function GetText(ByVal name As String) As String
-        ' existiert, weil es einfacher ist in manchen f‰llen
+    Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
+        ' existiert, weil es einfacher ist in manchen f√§llen
         Return GetText(NameToCode(name))
     End Function
 
-    Public Function GetText(ByVal value As Integer) As String
+    Public Function GetText(ByVal value As Integer) As String Implements ILocalization.GetText
         Dim command As String = "SELECT [Text] FROM [" & Language & "] WHERE [Field] = " & value & ";"
         DBConnection.ExecuteReader(command)
         DBConnection.DBCursor.Read()
@@ -199,7 +200,7 @@ Public Class localization
     ''' Returns a list of unique names for available language sets.
     ''' </summary>
     ''' <returns>The list of unique names of languages.</returns>
-    Public Function GetLanguageNames() As Collection(Of String)
+    Public Function GetLanguageNames() As Collection(Of String) Implements ILocalization.GetLanguageNames
         Dim languages As New Collection(Of String)
         Dim command As String = "SELECT [Name] FROM [languages] ORDER BY [Name];"
 
@@ -273,7 +274,7 @@ Public Class localization
         Return value
     End Function
 
-    Public Sub SwitchToLanguage(ByVal name As String)
+    Public Sub SwitchToLanguage(ByVal name As String) Implements ILocalization.SwitchToLanguage
         Language = GetTableFor(name)
     End Sub
 End Class

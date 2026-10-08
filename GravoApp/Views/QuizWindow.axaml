@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GravoApp.ViewModels"
+        x:Class="GravoApp.Views.QuizWindow"
+        x:DataType="vm:QuizViewModel"
+        Title="{Binding Title}"
+        SizeToContent="Height" Width="460" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="16" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <TextBlock x:Name="QuestionText" Grid.ColumnSpan="2" Margin="0,0,0,8" MinHeight="40"
+                   Text="{Binding Question}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" />
+
+        <Label x:Name="InfoLabel" Grid.Row="1" Margin="0,0,12,8" Padding="0"
+               Content="{Binding Texts[TEST_INFO]}" />
+        <TextBlock x:Name="InfoText" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"
+                   Text="{Binding Info}" TextWrapping="Wrap" />
+
+        <Label x:Name="FeedbackLabel" Grid.Row="2" Margin="0,0,12,8" Padding="0"
+               Content="{Binding Texts[TEST_TEST]}" />
+        <TextBlock x:Name="FeedbackText" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" MinHeight="48"
+                   Text="{Binding Feedback}" TextWrapping="Wrap" />
+
+        <Label x:Name="InputLabel" Grid.Row="3" Margin="0,0,12,8" Padding="0" VerticalAlignment="Center"
+               Target="{Binding #InputBox}" Content="{Binding Texts[TEST_MEANING]}" />
+        <TextBox x:Name="InputBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"
+                 Text="{Binding Input, Mode=TwoWay}" />
+
+        <TextBlock x:Name="CountText" Grid.Row="4" VerticalAlignment="Center" Text="{Binding CountText}" />
+        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button x:Name="OkButton" MinWidth="80" IsDefault="True" Command="{Binding AnswerCommand}"
+                    Content="{Binding Texts[BUTTON_OK]}" />
+            <Button x:Name="CloseButton" MinWidth="80" IsCancel="True" Command="{Binding CloseCommand}"
+                    Content="{Binding Texts[BUTTON_CLOSE]}" />
+        </StackPanel>
+    </Grid>
+</Window>

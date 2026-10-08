@@ -1184,9 +1184,9 @@ Public Class VocabularyExplorer
     Private Function GetColumnText(ByVal column As ColumnName) As String
         Select Case column
             Case ColumnName.DictCountEntrys
-                Return GetLoc.GetText(EXPLORER_HEADLINE_TOTAL_ENTRYS)
+                Return GetLoc.GetText(EXPLORER_HEADLINE_TOTAL_ENTRIES)
             Case ColumnName.DictCountMainEntry
-                Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_ENTRYS)
+                Return GetLoc.GetText(EXPLORER_HEADLINE_MAIN_ENTRIES)
             Case ColumnName.DictLanguage
                 Return GetLoc.GetText(EXPLORER_HEADLINE_LANGUAGE)
             Case ColumnName.DictMainLanguage
@@ -1210,7 +1210,7 @@ Public Class VocabularyExplorer
             Case ColumnName.GroupEntrySubgroup
                 Return GetLoc.GetText(EXPLORER_HEADLINE_SUBGROUP)
             Case ColumnName.GroupsCountEntry
-                Return GetLoc.GetText(EXPLORER_HEADLINE_ENTRYS)
+                Return GetLoc.GetText(EXPLORER_HEADLINE_ENTRIES)
             Case ColumnName.GroupsName
                 Return GetLoc.GetText(EXPLORER_HEADLINE_GROUPS)
             Case ColumnName.GroupsSubGroup

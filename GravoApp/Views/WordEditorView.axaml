@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ex="using:GravoApp.ViewModels.Explorer"
+             x:Class="GravoApp.Views.WordEditorView"
+             x:DataType="ex:ExplorerViewModel">
+    <UserControl.Styles>
+        <Style Selector="Grid.form > :is(Control)">
+            <Setter Property="Margin" Value="0,3" />
+        </Style>
+        <Style Selector="Grid.form > TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,3,8,3" />
+        </Style>
+    </UserControl.Styles>
+    <Grid ColumnDefinitions="260,24,260,24,Auto">
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Classes="form">
+            <TextBlock Text="{Binding Texts[WORDS_MAIN_ENTRY], StringFormat='{}{0}:'}" />
+            <TextBox x:Name="MainEntryBox" Grid.Column="1" Text="{Binding Editor.MainEntry, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryMainMaxLengthWordEntry}" />
+            <TextBlock Grid.Row="1" Text="{Binding Texts[WORDS_PRE], StringFormat='{}{0}:'}" />
+            <TextBox x:Name="PreBox" Grid.Row="1" Grid.Column="1" Text="{Binding Editor.Pre, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryWordsMaxLengthPre}" />
+            <TextBlock Grid.Row="2" Text="{Binding Texts[WORDS_WORD], StringFormat='{}{0}:'}" />
+            <TextBox x:Name="WordBox" Grid.Row="2" Grid.Column="1" Text="{Binding Editor.Word, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryWordsMaxLengthWord}" />
+            <TextBlock Grid.Row="3" Text="{Binding Texts[WORDS_POST], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Editor.Post, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryWordsMaxLengthPost}" />
+            <TextBlock Grid.Row="4" Text="{Binding Texts[WORDS_MEANING], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Editor.Meaning, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryWordsMaxLengthMeaning}" />
+            <TextBlock Grid.Row="5" Text="{Binding Texts[WORDS_ADDITIONAL_INFO], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Editor.AdditionalInfo, Mode=TwoWay}"
+                     MaxLength="{Binding Editor.Limits.DictionaryWordsMaxLengthAdditionalTargetLangInfo}" />
+        </Grid>
+
+        <Grid Grid.Column="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Classes="form">
+            <TextBlock Text="{Binding Texts[WORDS_WORD_TYPE], StringFormat='{}{0}:'}" VerticalAlignment="Top" />
+            <ListBox x:Name="WordTypeList" Grid.Column="1" Height="120"
+                     ItemsSource="{Binding Editor.WordTypeDisplays}"
+                     SelectedIndex="{Binding Editor.WordTypeIndex, Mode=TwoWay}" />
+            <TextBlock Grid.Row="1" Text="{Binding Texts[WORDS_LANGUAGE], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Editor.Language, Mode=TwoWay}" />
+            <TextBlock Grid.Row="2" Text="{Binding Texts[WORDS_MAIN_LANGUAGE], StringFormat='{}{0}:'}" />
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Editor.MainLanguage, Mode=TwoWay}" />
+        </Grid>
+
+        <StackPanel Grid.Column="4" Spacing="6">
+            <CheckBox Content="{Binding Texts[WORDS_IRREGULAR]}" IsChecked="{Binding Editor.Irregular, Mode=TwoWay}" />
+            <CheckBox Content="{Binding Texts[WORDS_MARKED]}" IsChecked="{Binding Editor.Marked, Mode=TwoWay}"
+                      IsVisible="{Binding ShowGroupFields}" />
+            <CheckBox x:Name="AddToGroupCheck" Content="{Binding Texts[WORDS_DIRECT_ADD]}"
+                      IsChecked="{Binding Editor.AddToGroup, Mode=TwoWay}" IsVisible="{Binding ShowGroupFields}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
+                <Button x:Name="AddButton" MinWidth="80" Command="{Binding AddWordCommand}"
+                        Content="{Binding Texts[BUTTON_ADD]}" />
+                <Button x:Name="ChangeButton" MinWidth="80" Command="{Binding ChangeWordCommand}"
+                        Content="{Binding Texts[BUTTON_CHANGE]}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>
