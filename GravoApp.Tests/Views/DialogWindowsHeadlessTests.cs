@@ -140,4 +140,49 @@ public class DialogWindowsHeadlessTests
         fixture.GroupNameBox.Text.Should().Be("Book");
         fixture.GroupInfoText.Text.Should().Be("2 Einträge");
     }
+
+    [AvaloniaTest]
+    public void Info_FocusesCloseButton()
+    {
+        var management = new Mock<IManagementDao>();
+        management.Setup(m => m.LatestVersion)
+            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        var vm = new InfoViewModel(management.Object, Fakes.Texts());
+
+        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<InfoWindow>().Which;
+        fixture.Show();
+
+        Dispatcher.UIThread.RunJobs();
+        fixture.CloseButton.IsFocused.Should().BeTrue();
+    }
+
+    [AvaloniaTest]
+    public void Options_FocusesOkButton()
+    {
+        var vm = new OptionsViewModel(
+            Fakes.DefaultSettings(out _), new Mock<IManagementDao>().Object, Fakes.Dialogs().Object,
+            Fakes.Texts());
+
+        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<OptionsWindow>().Which;
+        fixture.Show();
+
+        Dispatcher.UIThread.RunJobs();
+        fixture.OkButton.IsFocused.Should().BeTrue();
+    }
+
+    [AvaloniaTest]
+    public void Management_FocusesGroupList()
+    {
+        using var live = new TempVocabulary();
+        live.SeedStandard();
+        var vm = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
+            Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage, _ => new Mock<IDataBaseOperation>().Object,
+            CoreFactory.Management);
+
+        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<ManagementWindow>().Which;
+        fixture.Show();
+
+        Dispatcher.UIThread.RunJobs();
+        fixture.GroupList.ContainerFromIndex(fixture.GroupList.SelectedIndex)!.IsFocused.Should().BeTrue();
+    }
 }
