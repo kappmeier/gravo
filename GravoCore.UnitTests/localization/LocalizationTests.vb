@@ -72,12 +72,14 @@ Public Class LocalizationTests
     End Sub
 
     ''' <summary>
-    ''' Tests that requesting text for an unknown name falls back to the default with index 0.
+    ''' Tests that requesting text for an unknown name throws an exception.
     ''' </summary>
+    ''' <remarks>
+    ''' The method is legacy and should only be used for specificly defined constants.
+    ''' </remarks>
     <Test>
-    Public Sub GetText_UnknownName_RoutesToFieldZero()
-        _loc.GetText("NOT_A_FIELD_NAME").Should.Be(_loc.GetText(0))
-        _loc.GetText("NOT_A_FIELD_NAME").Should.Be("#")
+    Public Sub GetText_UnknownName_ThrowsException()
+        Assert.Throws(Of ArgumentException)(Sub() _loc.GetText("NOT_A_FIELD_NAME")).Message.Should.Be("Unsupported name NOT_A_FIELD_NAME")
     End Sub
 
     <Test>
