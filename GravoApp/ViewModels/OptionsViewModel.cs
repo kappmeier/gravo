@@ -6,7 +6,9 @@ using GravoApp.Services;
 
 namespace GravoApp.ViewModels;
 
-/// <summary>The "Options" dialog for the test direction, display, and card-strategy settings.</summary>
+/// <summary>
+/// Behavior and model for the options dialog specifying the test direction, display, and card-strategy settings.
+/// </summary>
 public sealed partial class OptionsViewModel : ViewModelBase
 {
     private readonly Settings _settings;

@@ -5,7 +5,7 @@ using GravoApp.Localization;
 
 namespace GravoApp.ViewModels;
 
-/// <summary>The "Info" dialog showing the product name, version, and copyright information.</summary>
+/// <summary>Behavior and model for the info dialog showing the product name, version, and copyright information, etc.</summary>
 public sealed partial class InfoViewModel : ViewModelBase
 {
     [ObservableProperty] private bool _german;

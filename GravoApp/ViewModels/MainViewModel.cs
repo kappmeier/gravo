@@ -9,8 +9,8 @@ using GravoApp.ViewModels.Explorer;
 namespace GravoApp.ViewModels;
 
 /// <summary>
-/// The main window with its menu commands and the open tabs. Supports reading and writing settings to restore the
-/// state after a restart.
+/// Behavior and model for the main window with its menu commands and the open tabs. Supports reading and writing
+/// settings to restore the main window state after a restart.
 /// </summary>
 public sealed partial class MainViewModel : ViewModelBase
 {
