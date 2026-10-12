@@ -165,7 +165,7 @@ Public Class Management
     End Sub
 
     Private Sub GroupDelete(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdGroupDelete.Click
-        If MsgBox("Wollen sie wirklich die komplette Gruppe löschen?", MsgBoxStyle.YesNo, "Warning") = MsgBoxResult.No Then Return
+        If MsgBox("Wollen Sie wirklich die komplette Gruppe löschen?", MsgBoxStyle.YesNo, "Warning") = MsgBoxResult.No Then Return
 
         GroupsDao.DeleteGroup(lstGroupList.SelectedItem)
         UpdateForm()
@@ -253,7 +253,7 @@ Public Class Management
                 lblImportDB.Text = "Datenbank: noch keine gewählt"
                 Me.cmdImportDictionary.Enabled = False
                 Me.cmdImportGroup.Enabled = False
-                MsgBox("Bitte geben sie eine existierende Datei an", MsgBoxStyle.Information, "Fehler")
+                MsgBox("Bitte geben Sie eine existierende Datei an", MsgBoxStyle.Information, "Fehler")
             End Try
         End If
     End Sub

@@ -79,10 +79,10 @@ public static class Strings
         + Environment.NewLine + "Fehler: " + message;
 
     public const string LanguageNotAutoSelected =
-        "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.";
+        "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell.";
 
     public const string MainLanguageNotAutoSelected =
-        "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.";
+        "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell.";
 
     public const string AddNotPossibleTitle = "Hinzufügen nicht möglich";
     public const string WordAlreadyInGroup = "Wort bereits in der Gruppe enthalten";
@@ -166,13 +166,13 @@ public static class Strings
     public const string DefaultUnit = "Untereintrag 1";
     public const string GroupNameTaken = "Gruppen können nur einmal unter einem Namen existieren.";
     public static string ErrorOccurred(string message) => "Ein Fehler ist aufgetreten: " + message;
-    public const string ConfirmDeleteGroup = "Wollen sie wirklich die komplette Gruppe löschen?";
+    public const string ConfirmDeleteGroup = "Wollen Sie wirklich die komplette Gruppe löschen?";
     public const string NoCheckYet = "Gefundene und behobene Fehler: keine Überprüfung durchgeführt";
     public static string ErrorsFixed(int count) => "Gefundene und behobene Fehler: " + count;
     public const string ConsistencyCheckDone = "Testen der Datenbank auf Konsistenz abgeschlossen.";
     public const string NoImportDatabase = "Datenbank: noch keine gewählt";
     public static string ImportDatabase(string path) => "Datenbank: " + path;
-    public const string PickExistingFile = "Bitte geben sie eine existierende Datei an";
+    public const string PickExistingFile = "Bitte geben Sie eine existierende Datei an";
 
     public const string DatabaseOutdated =
         "Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.";
