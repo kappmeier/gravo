@@ -76,11 +76,11 @@ public class MainViewModelTests
     [Test]
     public void Constructor_BuildsLanguageMenuAndSelectsDeutsch()
     {
-        var vm = Create();
-        vm.Languages.Select(l => l.Name).Should().Equal("Deutsch", "English");
-        vm.Languages.Single(l => l.IsChecked).Name.Should().Be("Deutsch");
+        var viewModel = Create();
+        viewModel.Languages.Select(l => l.Name).Should().Equal("Deutsch", "English");
+        viewModel.Languages.Single(l => l.IsChecked).Name.Should().Be("Deutsch");
         _loc.Verify(l => l.SwitchToLanguage("Deutsch"), Times.Once);
-        vm.Title.Should().Be("Gravo");
+        viewModel.Title.Should().Be("Gravo");
     }
 
     private void SetUpGroup(params TestWord[] words)
@@ -217,12 +217,12 @@ public class MainViewModelTests
     [Test]
     public void SwitchLanguage_SwitchesChecksAndRefreshesTexts()
     {
-        var vm = Create();
+        var viewModel = Create();
         var refreshed = false;
-        vm.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == "Item[]";
-        vm.Languages.Single(l => l.Name == "English").SelectCommand.Execute(null);
+        viewModel.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == "Item[]";
+        viewModel.Languages.Single(l => l.Name == "English").SelectCommand.Execute(null);
         _loc.Verify(l => l.SwitchToLanguage("English"), Times.Once);
-        vm.Languages.Single(l => l.IsChecked).Name.Should().Be("English");
+        viewModel.Languages.Single(l => l.IsChecked).Name.Should().Be("English");
         refreshed.Should().BeTrue();
     }
 
@@ -325,10 +325,10 @@ public class MainViewModelTests
     [Test]
     public void Exit_RequestsClose()
     {
-        var vm = Create();
+        var viewModel = Create();
         bool? result = null;
-        vm.CloseRequested += ok => result = ok;
-        vm.ExitCommand.Execute(null);
+        viewModel.CloseRequested += ok => result = ok;
+        viewModel.ExitCommand.Execute(null);
         result.Should().BeTrue();
     }
 
@@ -368,13 +368,15 @@ public class MainViewModelTests
     [Test]
     public void ShowTab_AddsOnceSelectsAndRemovesOnClose()
     {
-        var vm = Create();
-        var tab = new ProbeViewModel();
-        vm.ShowTab(tab);
-        vm.ShowTab(tab);
-        vm.Tabs.Should().ContainSingle().Which.Should().BeSameAs(tab);
-        vm.SelectedTab.Should().BeSameAs(tab);
-        tab.Close(false);
-        vm.Tabs.Should().BeEmpty();
+        var mainViewModel = Create();
+        var tabViewModel = new ProbeViewModel();
+
+        mainViewModel.ShowTab(tabViewModel);
+        mainViewModel.ShowTab(tabViewModel);
+        mainViewModel.Tabs.Should().ContainSingle().Which.Should().BeSameAs(tabViewModel);
+        mainViewModel.SelectedTab.Should().BeSameAs(tabViewModel);
+
+        tabViewModel.Close(false);
+        mainViewModel.Tabs.Should().BeEmpty();
     }
 }

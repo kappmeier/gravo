@@ -112,10 +112,10 @@ public class DialogServiceHeadlessTests
     public void ShowDialog_ClosesWithRequestCloseResult()
     {
         var owner = Owner();
-        var vm = new ProbeViewModel();
-        var task = new DialogService(() => owner, Fakes.Texts()).ShowDialogAsync(vm);
+        var viewModel = new ProbeViewModel();
+        var task = new DialogService(() => owner, Fakes.Texts()).ShowDialogAsync(viewModel);
         OpenedDialog<ProbeWindow>(owner).Should().NotBeNull();
-        vm.Close(true);
+        viewModel.Close(true);
         Dispatcher.UIThread.RunJobs();
         task.Result.Should().BeTrue();
     }

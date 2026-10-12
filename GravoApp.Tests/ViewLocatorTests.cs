@@ -11,19 +11,22 @@ public class ViewLocatorTests
     [AvaloniaTest]
     public void Build_MapsViewModelToViewAndSetsDataContext()
     {
-        var vm = new ProbeViewModel();
+        var viewModel = new ProbeViewModel();
+
         var locator = new ViewLocator();
-        locator.Match(vm).Should().BeTrue();
-        var view = locator.Build(vm);
+        locator.Match(viewModel).Should().BeTrue();
+
+        var view = locator.Build(viewModel);
         view.Should().BeOfType<ProbeView>();
-        view.DataContext.Should().BeSameAs(vm);
+        view.DataContext.Should().BeSameAs(viewModel);
     }
 
     [AvaloniaTest]
     public void CreateWindow_MapsViewModelToWindow()
     {
-        var vm = new ProbeViewModel();
-        ViewLocator.CreateWindow(vm).Should().BeOfType<ProbeWindow>().Which.DataContext.Should().BeSameAs(vm);
+        var viewModel = new ProbeViewModel();
+        ViewLocator.CreateWindow(viewModel).Should()
+            .BeOfType<ProbeWindow>().Which.DataContext.Should().BeSameAs(viewModel);
     }
 
     [Test]

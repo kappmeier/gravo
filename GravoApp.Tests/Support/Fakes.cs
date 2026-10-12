@@ -15,12 +15,12 @@ public static class Fakes
     /// </summary>
     public static Mock<ILocalization> Localization()
     {
-        var m = new Mock<ILocalization>();
-        m.SetupProperty(l => l.Language, "german");
-        m.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "T" + code);
-        m.Setup(l => l.GetText(It.IsAny<string>())).Returns((string name) => "T:" + name);
-        m.Setup(l => l.GetLanguageNames()).Returns(new Collection<string> { "Deutsch", "English" });
-        return m;
+        var localizationMock = new Mock<ILocalization>();
+        localizationMock.SetupProperty(l => l.Language, "german");
+        localizationMock.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "T" + code);
+        localizationMock.Setup(l => l.GetText(It.IsAny<string>())).Returns((string name) => "T:" + name);
+        localizationMock.Setup(l => l.GetLanguageNames()).Returns(new Collection<string> { "Deutsch", "English" });
+        return localizationMock;
     }
 
     public static UiTexts Texts(Mock<ILocalization>? loc = null) => new((loc ?? Localization()).Object);
@@ -44,14 +44,14 @@ public static class Fakes
     /// </summary>
     public static Mock<IDialogService> Dialogs(bool confirm = true)
     {
-        var m = new Mock<IDialogService>();
-        m.Setup(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-        m.Setup(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(confirm);
-        m.Setup(d => d.ShowDialogAsync(It.IsAny<ViewModelBase>())).ReturnsAsync(true);
-        m.Setup(d => d.PickOpenFileAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
-        m.Setup(d => d.PickSaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
+        var dialogMock = new Mock<IDialogService>();
+        dialogMock.Setup(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+        dialogMock.Setup(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(confirm);
+        dialogMock.Setup(d => d.ShowDialogAsync(It.IsAny<ViewModelBase>())).ReturnsAsync(true);
+        dialogMock.Setup(d => d.PickOpenFileAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
+        dialogMock.Setup(d => d.PickSaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
             .ReturnsAsync((string?)null);
-        return m;
+        return dialogMock;
     }
 
     /// <summary>
@@ -72,9 +72,9 @@ public static class Fakes
         };
         IDictionary<string, int> codes = keys.ToDictionary(k => k.Value, k => (int)k.Key);
         IDictionary<string, WordType> found = keys.ToDictionary(k => k.Value, k => k.Key);
-        var m = new Mock<IPropertiesDao>();
-        m.Setup(p => p.LoadWordTypes()).Returns(new WordTypes(ref codes, ref found));
-        m.Setup(p => p.LoadProperties()).Returns(limits ?? new Properties(new Properties.PropertiesBuilder()));
-        return m;
+        var propertiesMock = new Mock<IPropertiesDao>();
+        propertiesMock.Setup(p => p.LoadWordTypes()).Returns(new WordTypes(ref codes, ref found));
+        propertiesMock.Setup(p => p.LoadProperties()).Returns(limits ?? new Properties(new Properties.PropertiesBuilder()));
+        return propertiesMock;
     }
 }
