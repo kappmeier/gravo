@@ -6,7 +6,9 @@ using GravoApp.Localization;
 
 namespace GravoApp.ViewModels;
 
-/// <summary>The dialog that selects the dictionary language for a quiz over a whole language.</summary>
+/// <summary>
+/// Behavior and model for the dialog that selects the dictionary language for a quiz over a whole language.
+/// </summary>
 /// <remarks>The dialog lists the languages of the target language.</remarks>
 public sealed partial class LanguageSelectViewModel : ViewModelBase
 {

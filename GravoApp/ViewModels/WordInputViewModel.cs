@@ -8,7 +8,7 @@ using GravoApp.Services;
 namespace GravoApp.ViewModels;
 
 /// <summary>
-/// Behavior and model for the "Word input" dialog to enlarge the dictionary. One sub entry after the other is added
+/// Behavior and model for the input dialog to add words to the dictionary. One sub entry after the other is added
 /// to the dictionary.
 /// </summary>
 /// <remarks>
