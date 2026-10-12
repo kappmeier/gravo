@@ -156,7 +156,7 @@ Public Class localization
     End Property
 
     Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
-        ' existiert, weil es einfacher ist in manchen fällen
+        ' existiert, weil es einfacher ist in manchen Fällen
         Return GetText(NameToCode(name))
     End Function
 
@@ -172,25 +172,25 @@ Public Class localization
     Private Function NameToCode(ByVal name As String) As Integer
         Select Case name
             Case "DISCLAIMER_1"
-                Return 1
+                Return DISCLAIMER_1
             Case "COPYRIGHT_OLD"
-                Return 2
+                Return COPYRIGHT_OLD
             Case "WORD_TYPE_SUBSTANTIVE"
-                Return 3
+                Return WORD_TYPE_SUBSTANTIVE
             Case "WORD_TYPE_VERB"
-                Return 4
+                Return WORD_TYPE_VERB
             Case "WORD_TYPE_ADJECTIVE"
-                Return 5
+                Return WORD_TYPE_ADJECTIVE
             Case "WORD_TYPE_SIMPLE"
-                Return 6
+                Return WORD_TYPE_SIMPLE
             Case "WORD_TYPE_ADVERB"
-                Return 7
+                Return WORD_TYPE_ADVERB
             Case "WORD_TYPE_SET_PHRASE"
-                Return 8
+                Return WORD_TYPE_SET_PHRASE
             Case "WORD_TYPE_EXAMPLE"
-                Return 9
+                Return WORD_TYPE_EXAMPLE
             Case "DISCLAIMER_2"
-                Return 10
+                Return DISCLAIMER_2
             Case Else
                 Return 0
         End Select
