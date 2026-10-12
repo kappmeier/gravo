@@ -155,6 +155,14 @@ Public Class localization
         End Set
     End Property
 
+    ''' <summary>
+    ''' Legacy retrieval of localized text for a given field name.
+    ''' </summary>
+    ''' <param name="name">The name of the localization field.</param>
+    ''' <returns>The localized text corresponding to the field name.</returns>
+    ''' <remarks>
+    ''' Only supports legacy localization field names still used by WinForms. To be removed.
+    ''' </remarks>
     Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
         ' existiert, weil es einfacher ist in manchen Fällen
         Return GetText(NameToCode(name))
@@ -169,12 +177,16 @@ Public Class localization
         Return ret
     End Function
 
+    ''' <summary>
+    ''' Legacy conversion of a name of a localization field to its corresponding code.
+    ''' </summary>
+    ''' <remarks>
+    ''' Only supports legacy localization field names still used by WinForms. To be removed.
+    ''' </remarks>
+    ''' <param name="name">The name of the localization field.</param>
+    ''' <returns>The integer code corresponding to the field name.</returns>
     Private Function NameToCode(ByVal name As String) As Integer
         Select Case name
-            Case "DISCLAIMER_1"
-                Return DISCLAIMER_1
-            Case "COPYRIGHT_OLD"
-                Return COPYRIGHT_OLD
             Case "WORD_TYPE_SUBSTANTIVE"
                 Return WORD_TYPE_SUBSTANTIVE
             Case "WORD_TYPE_VERB"
@@ -189,10 +201,8 @@ Public Class localization
                 Return WORD_TYPE_SET_PHRASE
             Case "WORD_TYPE_EXAMPLE"
                 Return WORD_TYPE_EXAMPLE
-            Case "DISCLAIMER_2"
-                Return DISCLAIMER_2
             Case Else
-                Return 0
+                Throw New ArgumentException("Unsupported name " & name)
         End Select
     End Function
 
