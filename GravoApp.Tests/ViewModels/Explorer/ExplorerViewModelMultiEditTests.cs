@@ -95,14 +95,14 @@ public class ExplorerViewModelMultiEditTests
         var fixture = Create();
         SelectAll(fixture, Letter);
 
-        fixture.Editor.WordTypeIndex = fixture.Editor.WordTypeNames.ToList().IndexOf("WORD_TYPE_ADJECTIVE");
+        fixture.Editor.WordTypeIndex = fixture.Editor.WordTypeValues.ToList().IndexOf(WordType.Adjective);
         fixture.Multi.EnableWordType = true;
-        fixture.Multi.WordTypeIndex = fixture.Multi.WordTypeNames.ToList().IndexOf("WORD_TYPE_VERB");
+        fixture.Multi.WordTypeIndex = fixture.Multi.WordTypeValues.ToList().IndexOf(WordType.Verb);
         await fixture.ChangeSelectedCommand.ExecuteAsync(null);
 
         HouseWords().Select(w => w.WordType).Should().Equal(WordType.Verb, WordType.Verb);
         fixture.Rows.Select(r => r.WordType).Should()
-            .Equal("T" + localization.WORD_TYPE_VERB, "T" + localization.WORD_TYPE_VERB);
+            .Equal("T" + localization.WordTypeCodes[WordType.Verb], "T" + localization.WordTypeCodes[WordType.Verb]);
     }
 
     [Test]
@@ -231,6 +231,6 @@ public class ExplorerViewModelMultiEditTests
             fixture.EnableMarked,
         }.Should().OnlyContain(enabled => !enabled);
         fixture.WordTypeIndex.Should().Be(0);
-        fixture.WordTypeDisplays.Should().HaveCount(fixture.WordTypeNames.Count);
+        fixture.WordTypeDisplays.Should().HaveCount(fixture.WordTypeValues.Count);
     }
 }

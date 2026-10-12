@@ -15,7 +15,7 @@ public class UiTextsTests
     {
         var texts = Fakes.Texts();
         texts["MAIN_MENU_FILE"].Should().Be("T" + localization.MAIN_MENU_FILE);
-        texts["WORD_TYPE_SET_PHRASE"].Should().Be("T8");
+        texts["EXPLORER_HEADLINE_WORD_TYPE"].Should().Be("T26");
     }
 
     [Test]
@@ -85,4 +85,18 @@ public class UiTextsTests
             File.Delete(temp);
         }
     }
+
+    [TestCase(WordType.Substantive, "T3")]
+    [TestCase(WordType.Verb, "T4")]
+    [TestCase(WordType.Adjective, "T5")]
+    [TestCase(WordType.Simple, "T6")]
+    [TestCase(WordType.Adverb, "T7")]
+    [TestCase(WordType.SetPhrase, "T8")]
+    [TestCase(WordType.Example, "T9")]
+    public void DisplayWordType_KnownType_UsesWordTypeCode(WordType type, string expected) =>
+        Fakes.Texts().DisplayWordType(type).Should().Be(expected);
+
+    [Test]
+    public void DisplayWordType_UnknownType_ReturnsEmptyText() =>
+        Fakes.Texts().DisplayWordType((WordType)42).Should().BeEmpty();
 }

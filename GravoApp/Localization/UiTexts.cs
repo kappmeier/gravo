@@ -49,4 +49,8 @@ public sealed class UiTexts : ObservableObject
         OnPropertyChanged("Item[]");
         OnPropertyChanged(string.Empty);
     }
+
+    /// <summary>Returns the localized name of <paramref name="type"/>, or an empty text for an unknown type.</summary>
+    public string DisplayWordType(WordType type) =>
+        localization.WordTypeCodes.TryGetValue(type, out var code) ? Get(code) : "";
 }

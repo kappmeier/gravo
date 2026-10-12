@@ -1,9 +1,7 @@
 ﻿Imports Microsoft.Data.Sqlite
 Imports System.Collections.Immutable
-Imports System.ComponentModel
 Imports System.Data.Common
 Imports System.Globalization
-Imports System.Reflection
 Imports Gravo
 
 Public Class PropertiesDao
@@ -76,6 +74,20 @@ Public Class PropertiesDao
     End Function
 
     ''' <summary>
+    ''' Word types by their name in <c>SupportedWordTypes</c>.
+    ''' </summary>
+    Private Shared ReadOnly WordTypeNames As IReadOnlyDictionary(Of String, WordType) =
+        New Dictionary(Of String, WordType)(StringComparer.OrdinalIgnoreCase) From {
+            {"WORD_TYPE_SUBSTANTIVE", WordType.Substantive},
+            {"WORD_TYPE_VERB", WordType.Verb},
+            {"WORD_TYPE_ADJECTIVE", WordType.Adjective},
+            {"WORD_TYPE_SIMPLE", WordType.Simple},
+            {"WORD_TYPE_ADVERB", WordType.Adverb},
+            {"WORD_TYPE_SET_PHRASE", WordType.SetPhrase},
+            {"WORD_TYPE_EXAMPLE", WordType.Example}
+        }
+
+    ''' <summary>
     ''' Loading word types:
     ''' By the database there is a mapping to id, it may be custom, so we have to get the mapping
     ''' from the database.
@@ -99,9 +111,9 @@ Public Class PropertiesDao
                 Dim wordTypeInDb As String = DBConnection.SecureGetString(0)
                 Dim index As Integer = DBConnection.SecureGetInt32(1)
 
-                Dim wordTypeCandidate As WordType? = FromTechnicalName(Of WordType)(wordTypeInDb)
-                If wordTypeCandidate.HasValue Then
-                    foundWordTypes.Add(wordTypeInDb, wordTypeCandidate.Value)
+                Dim known As WordType
+                If WordTypeNames.TryGetValue(wordTypeInDb, known) Then
+                    foundWordTypes.Add(wordTypeInDb, known)
                 End If
                 wordTypes.Add(wordTypeInDb, index)
             End While
@@ -117,16 +129,5 @@ Public Class PropertiesDao
         End If
 
         Return New WordTypes(wordTypes, foundWordTypes)
-    End Function
-
-    Private Function FromTechnicalName(Of T As Structure)(name As String) As T?
-        For Each f In GetType(T).GetFields(BindingFlags.Public Or BindingFlags.Static)
-            Dim attribute = f.GetCustomAttribute(Of DescriptionAttribute)()
-            If attribute IsNot Nothing AndAlso
-                    String.Equals(attribute.Description, name, StringComparison.OrdinalIgnoreCase) Then
-                Return DirectCast(f.GetValue(Nothing), T)
-            End If
-        Next
-        Return Nothing
     End Function
 End Class

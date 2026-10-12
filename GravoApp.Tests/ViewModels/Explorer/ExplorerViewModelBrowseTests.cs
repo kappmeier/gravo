@@ -187,7 +187,7 @@ public class ExplorerViewModelBrowseTests
         fixture.SelectedRow = fixture.Rows[1];
         fixture.ShowSubRows.Should().BeTrue();
         fixture.SubRows.Select(r => r.Word).Should().Equal("house", "houses");
-        fixture.SubRows[0].WordType.Should().Be("T" + localization.WORD_TYPE_SUBSTANTIVE);
+        fixture.SubRows[0].WordType.Should().Be("T" + localization.WordTypeCodes[WordType.Substantive]);
         fixture.SubRows[1].Meaning.Should().Be("Häuser");
         fixture.SelectedSubRow.Should().BeSameAs(fixture.SubRows[0]);
 
@@ -223,7 +223,7 @@ public class ExplorerViewModelBrowseTests
         row.Word.Should().Be("go");
         row.Meaning.Should().Be("gehen");
         row.Irregular.Should().Be(Yes);
-        row.WordType.Should().Be("T" + localization.WORD_TYPE_VERB);
+        row.WordType.Should().Be("T" + localization.WordTypeCodes[WordType.Verb]);
     }
 
     [Test]

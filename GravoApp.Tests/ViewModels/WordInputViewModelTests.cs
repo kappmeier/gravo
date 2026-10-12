@@ -77,7 +77,7 @@ public class WordInputViewModelTests
         fixture.SelectedGroup.Should().Be("Book");
         fixture.SubGroups.Should().Equal("Unit 1");
         fixture.SelectedGroupEntry.Should().BeSameAs(_unit1);
-        fixture.WordTypeNames[1].Should().Be("WORD_TYPE_VERB");
+        fixture.WordTypeValues[1].Should().Be(WordType.Verb);
         fixture.WordTypeDisplays[1].Should().Be("T4");
         fixture.CanDirectAdd.Should().BeTrue();
         fixture.DirectAdd.Should().BeFalse();
@@ -163,7 +163,7 @@ public class WordInputViewModelTests
     }
 
     [Test]
-    public async Task AddSubEntry_SelectedWordType_IsResolvedByName()
+    public async Task AddSubEntry_SelectedWordType_IsStored()
     {
         WordEntry? captured = null;
         _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))

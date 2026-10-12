@@ -7,7 +7,7 @@ namespace GravoApp.ViewModels.Explorer;
 /// <summary>Behavior and model of the word panel in the vocabulary explorer.</summary>
 /// <remarks>
 /// The panel shows the selected word and is the input for adding and changing words. The commands live in
-/// <c>ExplorerViewModel</c>. The word types are listed in the order of <see cref="WordTypeNames"/>.
+/// <c>ExplorerViewModel</c>. The word types are listed in the order of <see cref="WordTypeValues"/>.
 /// </remarks>
 public sealed partial class WordEditorViewModel : ObservableObject
 {
@@ -27,16 +27,15 @@ public sealed partial class WordEditorViewModel : ObservableObject
     [ObservableProperty] private bool _addToGroup;
     [ObservableProperty] private IReadOnlyList<string> _wordTypeDisplays = [];
 
-    public WordEditorViewModel(IEnumerable<string> wordTypeNames, UiTexts texts, Properties limits)
+    public WordEditorViewModel(UiTexts texts, Properties limits)
     {
         _texts = texts;
-        WordTypeNames = wordTypeNames.ToList();
         Limits = limits;
         RefreshTexts();
     }
 
-    /// <summary>The word type names as stored in the database.</summary>
-    public IReadOnlyList<string> WordTypeNames { get; }
+    /// <summary>The word types in the order of the selection lists.</summary>
+    public IReadOnlyList<WordType> WordTypeValues { get; } = Enum.GetValues<WordType>();
 
     /// <summary>The maximum lengths of the input boxes.</summary>
     public Properties Limits { get; }
@@ -44,9 +43,9 @@ public sealed partial class WordEditorViewModel : ObservableObject
     /// <summary>Fills the panel with a dictionary word and its main entry.</summary>
     /// <remarks>
     /// <see cref="Marked"/> and <see cref="AddToGroup"/> keep their values. A word type that is not in
-    /// <see cref="WordTypeNames"/> leaves no selected type.
+    /// <see cref="WordTypeValues"/> leaves no selected type.
     /// </remarks>
-    public void Show(WordEntry entry, MainEntry main, WordTypes types)
+    public void Show(WordEntry entry, MainEntry main)
     {
         MainEntry = main.Word;
         Pre = entry.Pre;
@@ -54,7 +53,7 @@ public sealed partial class WordEditorViewModel : ObservableObject
         Post = entry.Post;
         AdditionalInfo = entry.AdditionalTargetLangInfo;
         Meaning = entry.Meaning;
-        WordTypeIndex = WordTypeNames.ToList().IndexOf(types.GetWordType((int)entry.WordType) ?? "");
+        WordTypeIndex = WordTypeValues.ToList().IndexOf(entry.WordType);
         Irregular = entry.Irregular;
         Language = main.Language;
         MainLanguage = main.MainLanguage;
@@ -62,9 +61,9 @@ public sealed partial class WordEditorViewModel : ObservableObject
 
     /// <summary>Fills the panel with a group word and its main entry.</summary>
     /// <remarks><see cref="Marked"/> is only set when <paramref name="showMarked"/> is <c>true</c>.</remarks>
-    public void Show(TestWord word, MainEntry main, WordTypes types, bool showMarked)
+    public void Show(TestWord word, MainEntry main, bool showMarked)
     {
-        Show(word.WordEntry, main, types);
+        Show(word.WordEntry, main);
         if (showMarked)
         {
             Marked = word.Marked;
@@ -72,11 +71,11 @@ public sealed partial class WordEditorViewModel : ObservableObject
     }
 
     /// <summary>Returns the selected word type, or the first one when none is selected.</summary>
-    public WordType SelectedWordType(WordTypes types) => types.GetWordType(WordTypeNames[Math.Max(WordTypeIndex, 0)]);
+    public WordType SelectedWordType => WordTypeValues[Math.Max(WordTypeIndex, 0)];
 
     /// <summary>Returns the changes for every field of the dictionary word.</summary>
     /// <remarks>Without a selected word type the stored type stays unchanged.</remarks>
-    public IDictionaryDao.UpdateData ToUpdateData(WordTypes types)
+    public IDictionaryDao.UpdateData ToUpdateData()
     {
         var data = new IDictionaryDao.UpdateData
         {
@@ -89,7 +88,7 @@ public sealed partial class WordEditorViewModel : ObservableObject
         };
         if (WordTypeIndex >= 0)
         {
-            data.WordType = SelectedWordType(types);
+            data.WordType = SelectedWordType;
         }
         return data;
     }
@@ -98,7 +97,7 @@ public sealed partial class WordEditorViewModel : ObservableObject
     public void RefreshTexts()
     {
         var index = WordTypeIndex;
-        WordTypeDisplays = WordTypeNames.Select(name => WordTypeTexts.Display(_texts, name)).ToList();
+        WordTypeDisplays = WordTypeValues.Select(_texts.DisplayWordType).ToList();
         WordTypeIndex = index;
     }
 }

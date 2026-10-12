@@ -43,7 +43,6 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
     private readonly string _mainLanguage;
-    private readonly WordTypes _wordTypes;
     private bool _showSubRows;
     private bool _keepEditor;
 
@@ -82,10 +81,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         _group = vocabulary.Group;
         _dialogs = dialogs;
         _mainLanguage = mainLanguage;
-        _wordTypes = properties.LoadWordTypes();
+        // Throws DataInvalidException for a database without all known word types.
+        properties.LoadWordTypes();
         Texts = texts;
-        Editor = new WordEditorViewModel(_wordTypes.GetSupportedWordTypes(), texts, properties.LoadProperties());
-        Multi = new MultiEditViewModel(_wordTypes.GetSupportedWordTypes(), texts);
+        Editor = new WordEditorViewModel(texts, properties.LoadProperties());
+        Multi = new MultiEditViewModel(texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
         SelectedRows.CollectionChanged += (_, _) => NotifyPanels();
         LoadTree();
@@ -298,7 +298,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             return;
         }
 
-        var word = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType(_wordTypes),
+        var word = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType,
             Editor.Meaning, Editor.AdditionalInfo, Editor.Irregular);
         try
         {
@@ -384,7 +384,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var node = SelectedNode!;
         try
         {
-            var updated = _dictionary.ChangeEntry(ref entry, Editor.ToUpdateData(_wordTypes));
+            var updated = _dictionary.ChangeEntry(ref entry, Editor.ToUpdateData());
             var groupChanged = IsSubGroupNode(node);
             if (groupChanged)
             {
@@ -458,7 +458,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             }
             try
             {
-                var updated = _dictionary.ChangeEntry(ref entry, Multi.ToUpdateData(_wordTypes));
+                var updated = _dictionary.ChangeEntry(ref entry, Multi.ToUpdateData());
                 if (groupChanged)
                 {
                     ChangeMarked(node, updated, Multi.Marked);
@@ -786,16 +786,12 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             Word = entry.Word,
             Post = entry.Post,
             Meaning = entry.Meaning,
-            WordType = WordTypeName(entry.WordType),
+            WordType = Texts.DisplayWordType(entry.WordType),
             AdditionalInfo = entry.AdditionalTargetLangInfo,
             Irregular = YesNo(entry.Irregular),
             Marked = marked,
             SubGroup = subGroup,
         };
-
-    /// <summary>Returns the localized name of a word type, or an empty text for an unknown type.</summary>
-    private string WordTypeName(WordType type) =>
-        _wordTypes.GetWordType((int)type) is { } name ? WordTypeTexts.Display(Texts, name) : "";
 
     private string YesNo(bool value) => Texts.Get(value ? localization.YES : localization.NO);
 
@@ -829,11 +825,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var main = _dictionary.GetMainEntry(ref entry);
         if (row.Payload is TestWord word)
         {
-            Editor.Show(word, main, _wordTypes, IsSubGroupNode(SelectedNode));
+            Editor.Show(word, main, IsSubGroupNode(SelectedNode));
         }
         else
         {
-            Editor.Show(entry, main, _wordTypes);
+            Editor.Show(entry, main);
         }
     }
 

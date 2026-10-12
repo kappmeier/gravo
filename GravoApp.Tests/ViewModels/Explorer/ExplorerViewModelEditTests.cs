@@ -77,9 +77,9 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Marked.Should().BeTrue();
         fixture.Editor.Irregular.Should().BeFalse();
         fixture.Editor.WordTypeIndex.Should().Be(
-            fixture.Editor.WordTypeNames.ToList().IndexOf("WORD_TYPE_SUBSTANTIVE"));
+            fixture.Editor.WordTypeValues.ToList().IndexOf(WordType.Substantive));
         fixture.Editor.WordTypeDisplays[fixture.Editor.WordTypeIndex].Should()
-            .Be("T" + localization.WORD_TYPE_SUBSTANTIVE);
+            .Be("T" + localization.WordTypeCodes[WordType.Substantive]);
         fixture.ShowGroupFields.Should().BeTrue();
         fixture.ShowEditor.Should().BeTrue();
     }
@@ -95,7 +95,7 @@ public class ExplorerViewModelEditTests
         SelectRow(fixture, "house", Dictionary, "german", "english", "H");
         fixture.Editor.Irregular.Should().BeFalse();
         fixture.Editor.WordTypeIndex.Should().Be(
-            fixture.Editor.WordTypeNames.ToList().IndexOf("WORD_TYPE_SUBSTANTIVE"));
+            fixture.Editor.WordTypeValues.ToList().IndexOf(WordType.Substantive));
     }
 
     [Test]
