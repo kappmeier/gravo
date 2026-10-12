@@ -22,17 +22,19 @@ public class DialogWindowsHeadlessTests
         dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
         var groups = new Mock<IGroupsDao>();
         groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
-        var vm = new WordInputViewModel(dictionary.Object, groups.Object, new Mock<IGroupDao>().Object,
+        var viewModel = new WordInputViewModel(dictionary.Object, groups.Object, new Mock<IGroupDao>().Object,
             Fakes.Properties().Object, Fakes.Texts(), Fakes.Dialogs().Object, AppServices.MainLanguage);
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<WordInputWindow>().Which;
+
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<WordInputWindow>().Which;
         fixture.Show();
+
         fixture.Title.Should().Be("T59");
         fixture.AddButton.Content.Should().Be("T82");
         fixture.CloseButton.Content.Should().Be("T84");
         fixture.LanguageBox.SelectedItem.Should().Be("english");
         fixture.WordTypeList.SelectedIndex.Should().Be(0);
         fixture.DirectAddCheck.IsEnabled.Should().BeFalse();
-        vm.MainEntry = "Haus";
+        viewModel.MainEntry = "Haus";
         Dispatcher.UIThread.RunJobs();
         fixture.WordBox.Text.Should().Be("Haus");
     }
@@ -42,10 +44,12 @@ public class DialogWindowsHeadlessTests
     {
         var groups = new Mock<IGroupsDao>();
         groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
-        var vm = new TestSelectViewModel(
+        var viewModel = new TestSelectViewModel(
             groups.Object, new Mock<IGroupDao>().Object, Fakes.DefaultSettings(out _), Fakes.Texts());
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<TestSelectWindow>().Which;
+
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<TestSelectWindow>().Which;
         fixture.Show();
+
         fixture.Title.Should().Be("T108");
         fixture.GroupLabel.Content.Should().Be("T106:");
         fixture.SubGroupLabel.Content.Should().Be("T107:");
@@ -61,10 +65,12 @@ public class DialogWindowsHeadlessTests
         var data = new TestData(cards.Object, words, QueryLanguage.OriginalLanguage);
         var controller = new TestController(
             data, QueryLanguage.OriginalLanguage, new Mock<IDataBaseOperation>().Object);
-        var vm = new QuizViewModel(controller, Fakes.Texts(), Fakes.Dialogs().Object);
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<QuizWindow>().Which;
+        var viewModel = new QuizViewModel(controller, Fakes.Texts(), Fakes.Dialogs().Object);
+
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
         fixture.Show();
-        vm.StartAsync().Wait();
+
+        viewModel.StartAsync().Wait();
         Dispatcher.UIThread.RunJobs();
         fixture.Title.Should().Be("T105");
         fixture.InfoLabel.Content.Should().Be("T95");
@@ -82,9 +88,9 @@ public class DialogWindowsHeadlessTests
     {
         var dictionary = new Mock<IDictionaryDao>();
         dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string> { "english" });
-        var vm = new LanguageSelectViewModel(
+        var viewModel = new LanguageSelectViewModel(
             dictionary.Object, Fakes.DefaultSettings(out _), Fakes.Texts(), AppServices.MainLanguage);
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<LanguageSelectWindow>().Which;
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<LanguageSelectWindow>().Which;
         fixture.Show();
         fixture.Title.Should().Be("T64");
         fixture.LanguageLabel.Content.Should().Be("T19:");
@@ -96,10 +102,10 @@ public class DialogWindowsHeadlessTests
     [AvaloniaTest]
     public void Options_CreatesOptionsWindowWithTitleAndButtonCaptions()
     {
-        var vm = new OptionsViewModel(
+        var viewModel = new OptionsViewModel(
             Fakes.DefaultSettings(out _), new Mock<IManagementDao>().Object, Fakes.Dialogs().Object,
             Fakes.Texts());
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<OptionsWindow>().Which;
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<OptionsWindow>().Which;
         fixture.Show();
         fixture.Title.Should().Be("Optionen");
         fixture.OkButton.Content.Should().Be("T85");
@@ -127,11 +133,13 @@ public class DialogWindowsHeadlessTests
     {
         using var live = new TempVocabulary();
         live.SeedStandard();
-        var vm = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
-            Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage, _ => new Mock<IDataBaseOperation>().Object,
-            CoreFactory.Management);
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<ManagementWindow>().Which;
+        var viewModel = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties,
+            Fakes.Dialogs().Object, Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage,
+            _ => new Mock<IDataBaseOperation>().Object, CoreFactory.Management);
+
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<ManagementWindow>().Which;
         fixture.Show();
+
         fixture.Title.Should().Be("Daten-Management");
         fixture.GroupAddButton.Content.Should().Be("T82");
         fixture.GroupEditButton.Content.Should().Be("T83");
@@ -147,9 +155,9 @@ public class DialogWindowsHeadlessTests
         var management = new Mock<IManagementDao>();
         management.Setup(m => m.LatestVersion)
             .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
-        var vm = new InfoViewModel(management.Object, Fakes.Texts());
+        var viewModel = new InfoViewModel(management.Object, Fakes.Texts());
 
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<InfoWindow>().Which;
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<InfoWindow>().Which;
         fixture.Show();
 
         Dispatcher.UIThread.RunJobs();
@@ -159,11 +167,11 @@ public class DialogWindowsHeadlessTests
     [AvaloniaTest]
     public void Options_FocusesOkButton()
     {
-        var vm = new OptionsViewModel(
+        var viewModel = new OptionsViewModel(
             Fakes.DefaultSettings(out _), new Mock<IManagementDao>().Object, Fakes.Dialogs().Object,
             Fakes.Texts());
 
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<OptionsWindow>().Which;
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<OptionsWindow>().Which;
         fixture.Show();
 
         Dispatcher.UIThread.RunJobs();
@@ -175,11 +183,11 @@ public class DialogWindowsHeadlessTests
     {
         using var live = new TempVocabulary();
         live.SeedStandard();
-        var vm = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
+        var viewModel = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
             Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage, _ => new Mock<IDataBaseOperation>().Object,
             CoreFactory.Management);
 
-        var fixture = ViewLocator.CreateWindow(vm).Should().BeOfType<ManagementWindow>().Which;
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<ManagementWindow>().Which;
         fixture.Show();
 
         Dispatcher.UIThread.RunJobs();
