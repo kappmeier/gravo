@@ -21,7 +21,6 @@ public sealed partial class WordInputViewModel : ViewModelBase
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
-    private readonly WordTypes _wordTypes;
     private bool _wordEdited;
     private bool _syncing;
 
@@ -58,9 +57,9 @@ public sealed partial class WordInputViewModel : ViewModelBase
         Texts = texts;
         Title = texts.Get(localization.MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY);
         Limits = properties.LoadProperties();
-        _wordTypes = properties.LoadWordTypes();
-        WordTypeNames = _wordTypes.GetSupportedWordTypes().ToList();
-        WordTypeDisplays = WordTypeNames.Select(name => WordTypeTexts.Display(texts, name)).ToList();
+        // Throws DataInvalidException for a database without all known word types.
+        properties.LoadWordTypes();
+        WordTypeDisplays = WordTypeValues.Select(texts.DisplayWordType).ToList();
 
         Languages = new ObservableCollection<string>(dictionary.DictionaryLanguages(mainLanguage));
         SelectedLanguage = Languages.FirstOrDefault();
@@ -91,13 +90,13 @@ public sealed partial class WordInputViewModel : ViewModelBase
     /// </summary>
     public string MainLanguage => NewLanguages ? MainLanguageText : SelectedMainLanguage ?? "";
 
-    /// <summary>The word type names as stored in the database.</summary>
-    public IReadOnlyList<string> WordTypeNames { get; }
+    /// <summary>The word types in the order of the selection lists.</summary>
+    public IReadOnlyList<WordType> WordTypeValues { get; } = Enum.GetValues<WordType>();
 
-    /// <summary>The localized word type names in the order of <see cref="WordTypeNames"/>.</summary>
+    /// <summary>The localized word type names in the order of <see cref="WordTypeValues"/>.</summary>
     public IReadOnlyList<string> WordTypeDisplays { get; }
 
-    public WordType SelectedWordType => _wordTypes.GetWordType(WordTypeNames[SelectedWordTypeIndex]);
+    public WordType SelectedWordType => WordTypeValues[SelectedWordTypeIndex];
 
     public ObservableCollection<string> Groups { get; }
 

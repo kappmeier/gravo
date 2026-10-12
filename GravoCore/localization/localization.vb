@@ -6,13 +6,6 @@ Public Class localization
 
     Public Const DISCLAIMER_1 = 1
     Public Const COPYRIGHT_OLD = 2
-    Public Const WORD_TYPE_SUBSTANTIVE = 3
-    Public Const WORD_TYPE_VERB = 4
-    Public Const WORD_TYPE_ADJECTIVE = 5
-    Public Const WORD_TYPE_SIMPLE = 6
-    Public Const WORD_TYPE_ADVERB = 7
-    Public Const WORD_TYPE_SET_PHRASE = 8
-    Public Const WORD_TYPE_EXAMPLE = 9
     Public Const DISCLAIMER_2 = 10
     Public Const HINT = 11
     Public Const DB_VERSION_OUTDATED = 12
@@ -136,6 +129,20 @@ Public Class localization
     Public Const UP = 116
     Public Const DOWN = 117
 
+    ''' <summary>
+    ''' Mapping of word types to localization codes.
+    ''' </summary>
+    Public Shared ReadOnly WordTypeCodes As IReadOnlyDictionary(Of WordType, Integer) =
+        New ReadOnlyDictionary(Of WordType, Integer)(New Dictionary(Of WordType, Integer) From {
+            {WordType.Substantive, 3},
+            {WordType.Verb, 4},
+            {WordType.Adjective, 5},
+            {WordType.Simple, 6},
+            {WordType.Adverb, 7},
+            {WordType.SetPhrase, 8},
+            {WordType.Example, 9}
+        })
+
     Dim m_language As String = "german"
 
     Sub New()
@@ -188,19 +195,19 @@ Public Class localization
     Private Function NameToCode(ByVal name As String) As Integer
         Select Case name
             Case "WORD_TYPE_SUBSTANTIVE"
-                Return WORD_TYPE_SUBSTANTIVE
+                Return WordTypeCodes(WordType.Substantive)
             Case "WORD_TYPE_VERB"
-                Return WORD_TYPE_VERB
+                Return WordTypeCodes(WordType.Verb)
             Case "WORD_TYPE_ADJECTIVE"
-                Return WORD_TYPE_ADJECTIVE
+                Return WordTypeCodes(WordType.Adjective)
             Case "WORD_TYPE_SIMPLE"
-                Return WORD_TYPE_SIMPLE
+                Return WordTypeCodes(WordType.Simple)
             Case "WORD_TYPE_ADVERB"
-                Return WORD_TYPE_ADVERB
+                Return WordTypeCodes(WordType.Adverb)
             Case "WORD_TYPE_SET_PHRASE"
-                Return WORD_TYPE_SET_PHRASE
+                Return WordTypeCodes(WordType.SetPhrase)
             Case "WORD_TYPE_EXAMPLE"
-                Return WORD_TYPE_EXAMPLE
+                Return WordTypeCodes(WordType.Example)
             Case Else
                 Throw New ArgumentException("Unsupported name " & name)
         End Select

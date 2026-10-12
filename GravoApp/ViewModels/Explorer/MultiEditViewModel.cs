@@ -7,7 +7,7 @@ namespace GravoApp.ViewModels.Explorer;
 /// <summary>Behavior and model of the multi edit panel in the vocabulary explorer.</summary>
 /// <remarks>
 /// Every field has an <c>Enable</c> flag. Selected words are only updated for the enabled fields. The command is
-/// implemented in the <c>ExplorerViewModel</c>. The word types are listed in the order of <see cref="WordTypeNames"/>,
+/// implemented in the <c>ExplorerViewModel</c>. The word types are listed in the order of <see cref="WordTypeValues"/>,
 /// and the first one is selected at the start.
 /// </remarks>
 public sealed partial class MultiEditViewModel : ObservableObject
@@ -34,22 +34,21 @@ public sealed partial class MultiEditViewModel : ObservableObject
     [ObservableProperty] private bool _marked;
     [ObservableProperty] private IReadOnlyList<string> _wordTypeDisplays = [];
 
-    public MultiEditViewModel(IEnumerable<string> wordTypeNames, UiTexts texts)
+    public MultiEditViewModel(UiTexts texts)
     {
         _texts = texts;
-        WordTypeNames = wordTypeNames.ToList();
         RefreshTexts();
     }
 
-    /// <summary>The word type names as stored in the database.</summary>
-    public IReadOnlyList<string> WordTypeNames { get; }
+    /// <summary>The word types in the order of the selection lists.</summary>
+    public IReadOnlyList<WordType> WordTypeValues { get; } = Enum.GetValues<WordType>();
 
     /// <summary>Returns the changes of the enabled fields of the dictionary word.</summary>
     /// <remarks>
     /// The main entry and the marked flag are not part of the dictionary word. An enabled word type without a
     /// selection is left unchanged.
     /// </remarks>
-    public IDictionaryDao.UpdateData ToUpdateData(WordTypes types)
+    public IDictionaryDao.UpdateData ToUpdateData()
     {
         var data = new IDictionaryDao.UpdateData();
         if (EnableWord)
@@ -64,9 +63,9 @@ public sealed partial class MultiEditViewModel : ObservableObject
         {
             data.Post = Post;
         }
-        if (EnableWordType && WordTypeIndex >= 0 && WordTypeIndex < WordTypeNames.Count)
+        if (EnableWordType && WordTypeIndex >= 0 && WordTypeIndex < WordTypeValues.Count)
         {
-            data.WordType = types.GetWordType(WordTypeNames[WordTypeIndex]);
+            data.WordType = WordTypeValues[WordTypeIndex];
         }
         if (EnableMeaning)
         {
@@ -87,7 +86,7 @@ public sealed partial class MultiEditViewModel : ObservableObject
     public void RefreshTexts()
     {
         var index = WordTypeIndex;
-        WordTypeDisplays = WordTypeNames.Select(name => WordTypeTexts.Display(_texts, name)).ToList();
-        WordTypeIndex = WordTypeNames.Count == 0 ? -1 : index;
+        WordTypeDisplays = WordTypeValues.Select(_texts.DisplayWordType).ToList();
+        WordTypeIndex = index;
     }
 }

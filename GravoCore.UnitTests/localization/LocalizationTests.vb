@@ -67,7 +67,7 @@ Public Class LocalizationTests
 
     <Test>
     Public Sub GetText_ByName_MatchesCode()
-        _loc.GetText("WORD_TYPE_VERB").Should.Be(_loc.GetText(localization.WORD_TYPE_VERB))
+        _loc.GetText("WORD_TYPE_VERB").Should.Be(_loc.GetText(localization.WordTypeCodes(WordType.Verb)))
         _loc.GetText("WORD_TYPE_VERB").Should.Be("Verb")
     End Sub
 
@@ -99,8 +99,9 @@ Public Class LocalizationTests
         Dim loc As ILocalization = _loc
         loc.Language.Should.Be("german")
         loc.GetLanguageNames.Should.Equal("Deutsch", "English")
-        loc.GetText(localization.WORD_TYPE_VERB).Should.Be(_loc.GetText(localization.WORD_TYPE_VERB))
-        loc.GetText("WORD_TYPE_VERB").Should.Be(loc.GetText(localization.WORD_TYPE_VERB))
+        loc.GetText(localization.WordTypeCodes(WordType.Verb)).Should.Be(
+            _loc.GetText(localization.WordTypeCodes(WordType.Verb)))
+        loc.GetText("WORD_TYPE_VERB").Should.Be(loc.GetText(localization.WordTypeCodes(WordType.Verb)))
         loc.SwitchToLanguage("English")
         loc.Language.Should.Be("english")
     End Sub
