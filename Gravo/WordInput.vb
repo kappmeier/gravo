@@ -237,14 +237,14 @@ Public Class WordInput
             Dim language As String = GroupDao.GetUniqueLanguage(GroupEntry)
             cmbLanguages.SelectedItem = language
         Catch ex As LanguageException
-            MsgBox("Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
+            MsgBox("Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell.")
         End Try
 
         Try
             Dim mainLanguage = GroupDao.GetUniqueMainLanguage(GroupEntry)
             cmbMainLanguages.SelectedItem = mainLanguage
         Catch ex As LanguageException
-            MsgBox("Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell.")
+            MsgBox("Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell.")
         End Try
 
     End Sub

@@ -398,7 +398,7 @@ public class WordInputViewModelTests
             .Throws(new LanguageException("More than one language."));
         var fixture = Create();
         _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
-            "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell."), Times.Once);
+            "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
         fixture.SelectedLanguage.Should().Be("english");
     }
 
@@ -409,7 +409,7 @@ public class WordInputViewModelTests
             .Throws(new LanguageException("More than one language."));
         Create();
         _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
-            "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen sie manuell."), Times.Once);
+            "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
     }
 
     [Test]
