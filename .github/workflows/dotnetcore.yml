@@ -4,59 +4,57 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # Run tests, and ensure that the tests are actually executed. Enforce a passed-count floor.
+      # `dotnet test` exits 0 when no tests are discovered, this check avoids it.
+      # Bump both floors in the same commit that adds or removes tests.
+      TEST_FLOOR: 339
+      UI_TEST_FLOOR: 248
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-    - name: Build with dotnet
-      run: dotnet build GravoCore -c Release
-    - name: Build GravoCmd
-      run: dotnet build GravoCmd -c Release
+        global-json-file: global.json
+    - name: Build solution
+      run: dotnet build Gravo.sln -c Release
     - name: Smoke-run GravoCmd
-      # Asserts the CLI actually produces real output, not just a zero exit code.
+      # Asserts the CLI produces real output, not just a zero exit code.
       # `tee` then `grep` necessary to avoid grep closing the pipe early
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         printf '1\n' | dotnet run --project GravoCmd -c Release -- voc.s3db | tee smoke.log
         grep -q "Available Groups:" smoke.log
-    - name: Unit Tests
-      # Run tests, and ensure that the tests are actually executed.
-      # `dotnet test` exits 0 when no tests are discovered, this can easily happen after
-      # adapter/framework bumps. Enforce a passed-count floor.
-      # `shell: bash` is also required: it enables pipefail, required to correctly propagate
-      # errors when piping `tee`.
-      # Bump TEST_FLOOR (below in `env`) when tests are added or intentionally removed.
+    - name: Core tests
+      # `shell: bash` enables pipefail on both runners. The passed count is extracted with
+      # POSIX sed because the Windows runner's grep has no -P.
       shell: bash
       run: |
         dotnet test GravoCore.UnitTests -c Release --collect:"XPlat Code Coverage" --results-directory TestResults | tee test.log
-        passed=$(grep -oP 'Passed:\s*\K[0-9]+' test.log | tail -1)
-        echo "Tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
+        passed=$(sed -nE 's/.*Passed:[[:space:]]*([0-9]+).*/\1/p' test.log | tail -1)
+        echo "Core tests passed: ${passed:-0} (floor: $TEST_FLOOR)"
         [ "${passed:-0}" -ge "$TEST_FLOOR" ]
-      env:
-        TEST_FLOOR: 339
-    - name: Build desktop app
-      run: dotnet build GravoApp.Desktop -c Release
     - name: UI tests
-      # Ensures tests are executed, see Unit Tests section above.
       shell: bash
       run: |
-        dotnet test GravoApp.Tests -c Release | tee ui-test.log
-        passed=$(grep -oP 'Passed:\s*\K[0-9]+' ui-test.log | tail -1)
+        dotnet test GravoApp.Tests -c Release --collect:"XPlat Code Coverage" --results-directory TestResults | tee ui-test.log
+        passed=$(sed -nE 's/.*Passed:[[:space:]]*([0-9]+).*/\1/p' ui-test.log | tail -1)
         echo "UI tests passed: ${passed:-0} (floor: $UI_TEST_FLOOR)"
         [ "${passed:-0}" -ge "$UI_TEST_FLOOR" ]
-      env:
-        UI_TEST_FLOOR: 248
     - name: Coverage report
+      if: runner.os == 'Linux'
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.5.10
         reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coverage-report "-reporttypes:Html;MarkdownSummaryGithub"
         cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
     - name: Upload coverage report
+      if: runner.os == 'Linux'
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
