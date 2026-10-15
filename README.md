@@ -23,7 +23,7 @@ for the UI are stored in `languages.s3db`. The latter is copied next to the exec
 
 ## Requirements
 
-- .NET SDK 8.0 (defined in `global.json`)
+- .NET SDK 10.0 (defined in `global.json`)
 - Windows or desktop Linux.
 
 ## Build and test
@@ -45,7 +45,7 @@ dotnet test GravoApp.Tests -c Release
 If no local .NET SDK is available, Docker can be used:
 
 ```sh
-docker run --rm -v "$PWD":/src -w /src mcr.microsoft.com/dotnet/sdk:8.0 dotnet test Gravo.sln -c Release
+docker run --rm -v "$PWD":/src -w /src mcr.microsoft.com/dotnet/sdk:10.0 dotnet test Gravo.sln -c Release
 ```
 
 ## Run
