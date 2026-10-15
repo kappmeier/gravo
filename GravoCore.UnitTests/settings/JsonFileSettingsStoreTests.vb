@@ -1,7 +1,7 @@
 ﻿Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the <see cref="JsonFileSettingsStore"/> with a temporary file a. The default location

@@ -1,8 +1,9 @@
-﻿Imports NUnit.Framework
-Imports Moq
+﻿Imports System.Collections.ObjectModel
+Imports AwesomeAssertions
 Imports Gravo
-Imports System.Collections.ObjectModel
-Imports FluentAssertions
+Imports Moq
+Imports NUnit.Framework
+Imports NUnit.Framework.Legacy
 Imports GravoCore.UnitTests.DictionaryDaoTests
 
 Public Class DataToolsTests
@@ -32,7 +33,7 @@ Public Class DataToolsTests
 
         Dim result As Integer = DataTools.WordCount(groupsDaoMock.Object, groupDaoMock.Object, groupName)
 
-        Assert.AreEqual(15, result)
+        ClassicAssert.AreEqual(15, result)
     End Sub
 
     Private Shared Function CreateFakeTestWord() As TestWord

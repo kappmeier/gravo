@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using Gravo;
 using GravoApp.Localization;
 using GravoApp.Tests.Support;

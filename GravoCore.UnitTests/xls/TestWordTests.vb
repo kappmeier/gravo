@@ -1,6 +1,6 @@
+Imports AwesomeAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the GravoCore/data/dto/TestWord.vb class. Simple delegated wrapper of WordEntry.

@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using FluentAssertions;
+using AwesomeAssertions;
 using Gravo;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -48,6 +48,7 @@ public class TestSelectViewModelTests
     public void InitializedWith_FirstGroupSelectedAndSubGroupCounts()
     {
         var fixture = Create(Fakes.DefaultSettings(out _));
+
         fixture.Groups.Should().Equal("Language Book", "Other Group");
         fixture.SubGroups.Should().Equal("Unit 1", "Unit 2");
         fixture.SelectedGroup.Should().Be("Language Book");
@@ -64,7 +65,9 @@ public class TestSelectViewModelTests
             ["LastGroup"] = "Other Group",
             ["LastSubGroup"] = "Some Words",
         });
+
         var fixture = Create(settings);
+
         fixture.SelectedGroup.Should().Be("Other Group");
         fixture.SelectedSubGroup.Should().Be("Some Words");
         fixture.SelectedGroupEntry.Should().BeSameAs(_words);
@@ -79,7 +82,9 @@ public class TestSelectViewModelTests
             ["LastGroup"] = "Missing Group",
             ["LastSubGroup"] = "Unit 2",
         });
+
         var fixture = Create(settings);
+
         fixture.SelectedGroup.Should().Be("Language Book");
         fixture.SelectedSubGroup.Should().Be("Unit 2");
         fixture.WordCountText.Should().Be("1 Vokabel abzufragen.");
@@ -89,6 +94,7 @@ public class TestSelectViewModelTests
     public void InitializedWith_DirectionAndPhrasesFromSettings()
     {
         var fixture = Create(Fakes.DefaultSettings(out _));
+
         fixture.TestTargetLanguage.Should().BeTrue();
         fixture.TestPhrases.Should().BeFalse();
         fixture.TestMarked.Should().BeFalse();
@@ -98,6 +104,7 @@ public class TestSelectViewModelTests
     public void SelectGroup_ReloadsSubGroupsAndSelectsFirst()
     {
         var fixture = Create(Fakes.DefaultSettings(out _));
+
         fixture.SelectedGroup = "Other Group";
         fixture.SubGroups.Should().Equal("Some Words");
         fixture.SelectedSubGroup.Should().Be("Some Words");
@@ -108,6 +115,7 @@ public class TestSelectViewModelTests
     public void SelectSubGroup_WithOneWord_UsesSingular()
     {
         var fixture = Create(Fakes.DefaultSettings(out _));
+
         fixture.SelectedSubGroup = "Unit 2";
         fixture.SelectedGroupEntry.Should().BeSameAs(_unit2);
         fixture.WordCountText.Should().Be("1 Vokabel abzufragen.");
@@ -118,6 +126,7 @@ public class TestSelectViewModelTests
     public void QueryLanguage_FollowsCheckbox()
     {
         var fixture = Create(Fakes.DefaultSettings(out _));
+
         fixture.QueryLanguage.Should().Be(QueryLanguage.TargetLanguage);
         fixture.TestTargetLanguage = false;
         fixture.QueryLanguage.Should().Be(QueryLanguage.OriginalLanguage);
@@ -127,7 +136,9 @@ public class TestSelectViewModelTests
     public void Ok_SavesLastGroupAndCloses()
     {
         var settings = Fakes.DefaultSettings(out var store);
+
         var fixture = Create(settings);
+
         bool? closed = null;
         fixture.CloseRequested += ok => closed = ok;
         fixture.OkCommand.Execute(null);
@@ -141,7 +152,9 @@ public class TestSelectViewModelTests
     public void Cancel_DoesNotSave()
     {
         var settings = Fakes.DefaultSettings(out var store);
+
         var fixture = Create(settings);
+
         bool? closed = null;
         fixture.CloseRequested += ok => closed = ok;
         fixture.CancelCommand.Execute(null);

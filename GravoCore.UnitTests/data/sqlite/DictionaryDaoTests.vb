@@ -1,9 +1,10 @@
 ﻿Imports System.Collections.ObjectModel
-Imports Microsoft.Data.Sqlite
 Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
-Imports FluentAssertions
+Imports NUnit.Framework.Legacy
 
 <TestFixture>
 Public Class DictionaryDaoTests
@@ -166,7 +167,7 @@ Public Class DictionaryDaoTests
     Public Sub AddSubEntry_WithNewValues_AreAdded()
         _dictionaryDao.AddSubEntry(newWord, "wordx", language, targetLanguage)
 
-        Assert.AreEqual(newWordIndex, newWord.index)
+        ClassicAssert.AreEqual(newWordIndex, newWord.index)
 
         Dim updatedWords As Collection(Of WordEntry) = CType(_dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage), Collection(Of WordEntry))
         Dim expectedResult = New List(Of WordEntry) From {wordWithoutSubwords, newWord}
@@ -286,7 +287,7 @@ Public Class DictionaryDaoTests
 
         Dim expectedResult = New MockMainEntry(1, "word1", language, targetLanguage)
 
-        Assert.AreEqual(mainEntry, expectedResult)
+        ClassicAssert.AreEqual(mainEntry, expectedResult)
     End Sub
 
     <Test>

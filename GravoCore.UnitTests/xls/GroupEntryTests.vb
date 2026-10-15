@@ -1,6 +1,6 @@
+Imports AwesomeAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the GravoCore/xls/GroupEntry class. Equality and hashing are defined by the

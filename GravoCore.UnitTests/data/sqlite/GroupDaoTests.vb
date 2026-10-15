@@ -1,8 +1,9 @@
-﻿Imports Microsoft.Data.Sqlite
-Imports System.IO
+﻿Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
-Imports FluentAssertions
+Imports NUnit.Framework.Legacy
 
 <TestFixture>
 Public Class GroupDaoTests
@@ -154,7 +155,7 @@ Public Class GroupDaoTests
     <Test>
         Public Sub GetTestWord_Returns_CorrectIndex()
             Dim result = _groupDao.GetTestWord(exampleGroup, "word1", "m")
-            Assert.AreEqual(testWord1, result)
+            ClassicAssert.AreEqual(testWord1, result)
         End Sub
 
     <Test>

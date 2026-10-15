@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GravoApp.ViewModels.Explorer;
 using NUnit.Framework;
 

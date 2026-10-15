@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using FluentAssertions;
+using AwesomeAssertions;
 using Gravo;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
@@ -69,6 +69,7 @@ public class WordInputViewModelTests
     public void Constructor_LoadsLists()
     {
         var fixture = Create();
+
         fixture.Languages.Should().Equal("english", "italian");
         fixture.SelectedLanguage.Should().Be("english");
         fixture.MainLanguages.Should().Equal("german");
@@ -88,8 +89,10 @@ public class WordInputViewModelTests
     public void MainEntry_MirrorsIntoWord_UntilWordIsEdited()
     {
         var fixture = Create();
+
         fixture.MainEntry = "Haus";
         fixture.Word.Should().Be("Haus");
+
         fixture.Word = "Häuser";
         fixture.MainEntry = "Hausx";
         fixture.Word.Should().Be("Häuser");
@@ -99,10 +102,12 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_Done_MirrorsMainEntryAgain()
     {
         SetUpAddSubEntry();
+
         var fixture = Create();
         FillHouse(fixture);
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         fixture.MainEntry = "Baum";
+
         fixture.Word.Should().Be("Baum");
     }
 
@@ -110,12 +115,14 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_TwoAdds_RequestMainEntrySelectionAfterEach()
     {
         SetUpAddSubEntry();
+
         var fixture = Create();
         var requested = 0;
         fixture.SelectMainEntryRequested += () => requested++;
         FillHouse(fixture);
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
         requested.Should().Be(2);
     }
 
@@ -124,6 +131,7 @@ public class WordInputViewModelTests
     {
         var fixture = Create();
         fixture.NewLanguages = true;
+
         fixture.LanguageText.Should().Be("english");
         fixture.MainLanguageText.Should().Be("german");
         fixture.LanguageText = "spanish";
@@ -140,6 +148,7 @@ public class WordInputViewModelTests
         _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
             .Callback(new AddSubEntryCallback(
                 (ref WordEntry entry, string _, string _, string _) => captured = entry));
+
         var fixture = Create();
         fixture.MainEntry = "Haus";
         fixture.Word = "house";
@@ -150,6 +159,7 @@ public class WordInputViewModelTests
         fixture.SelectedWordTypeIndex = 0;
         fixture.Irregular = true;
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
         captured.Should().NotBeNull();
         captured!.Word.Should().Be("house");
         captured.Pre.Should().Be("the");
@@ -169,10 +179,13 @@ public class WordInputViewModelTests
         _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
             .Callback(new AddSubEntryCallback(
                 (ref WordEntry entry, string _, string _, string _) => captured = entry));
+
         var fixture = Create();
         FillHouse(fixture);
+
         fixture.SelectedWordTypeIndex = 5;
         fixture.SelectedWordType.Should().Be(WordType.SetPhrase);
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         captured!.WordType.Should().Be(WordType.SetPhrase);
     }
@@ -182,8 +195,10 @@ public class WordInputViewModelTests
     {
         _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
             .Throws(new InputException(InputException.ErrorType.IllegalCharacter));
+
         var fixture = Create();
         FillHouse(fixture);
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(
             d => d.ShowMessageAsync("Fehlerhafte Eingabe", "Input must not contain a double quote (\")."), Times.Once);
@@ -204,8 +219,10 @@ public class WordInputViewModelTests
         _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
             .Callback(() => mainAdded = true)
             .Returns(new MainEntry("Haus", "english", "german"));
+
         var fixture = Create();
         FillHouse(fixture);
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("Haupteintrag nicht vorhanden",
             "Der Haupteintrag Haus ist für die gewählten Sprachen nicht vorhanden. Soll er erstellt werden?"),
@@ -222,8 +239,10 @@ public class WordInputViewModelTests
         _dialogs = Fakes.Dialogs(confirm: false);
         _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
             .Throws(new EntryNotFoundException("Main entry missing."));
+
         var fixture = Create();
         FillHouse(fixture);
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dictionary.Verify(d => d.AddEntry(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         _dictionary.Verify(
@@ -244,8 +263,10 @@ public class WordInputViewModelTests
             }));
         _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
             .Throws(new LanguageNotFoundException("Language missing."));
+
         var fixture = Create();
         FillHouse(fixture);
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("Fehlerhafte Eingabe", "Language missing."), Times.Once);
         _dialogs.Verify(d => d.ShowMessageAsync("Fehler",
@@ -259,11 +280,15 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_DirectAddWithoutGroup_ShowsWarning()
     {
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+
         var fixture = Create();
+
         fixture.CanDirectAdd.Should().BeFalse();
         fixture.SelectedGroupEntry.Should().BeNull();
+
         FillHouse(fixture);
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("Warnung",
             "Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!"), Times.Once);
@@ -276,11 +301,13 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_DirectAddWithoutGroup_DoesNotRequestMainEntrySelection()
     {
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
+
         var fixture = Create();
         var requested = 0;
         fixture.SelectMainEntryRequested += () => requested++;
         FillHouse(fixture);
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         requested.Should().Be(0);
     }
@@ -290,9 +317,11 @@ public class WordInputViewModelTests
     {
         _dialogs = Fakes.Dialogs(confirm: false);
         _group.Setup(g => g.GetLanguages(ref It.Ref<GroupEntry>.IsAny)).Returns(new List<string>());
+
         var fixture = Create();
         FillHouse(fixture);
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
             "Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den "
@@ -306,10 +335,12 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_DirectAdd_SecondLanguage_ConfirmNo_Aborts()
     {
         _dialogs = Fakes.Dialogs(confirm: false);
+
         var fixture = Create();
         FillHouse(fixture);
         fixture.SelectedLanguage = "italian";
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
             "Sie beabsichtigen einen eintrag mit den zweiten Sprachen 'italian' und 'german' zu erstellen. Soll "
@@ -338,10 +369,12 @@ public class WordInputViewModelTests
                 capturedMarked = marked;
                 capturedExample = example;
             }));
+
         var fixture = Create();
         FillHouse(fixture);
         fixture.DirectAdd = true;
         fixture.Marked = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         capturedGroup.Should().BeSameAs(_unit1);
         capturedWord.Should().BeSameAs(word);
@@ -359,9 +392,11 @@ public class WordInputViewModelTests
         SetUpAddToGroup(out _, out _);
         _group.Setup(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
             ref It.Ref<string>.IsAny));
+
         var fixture = Create();
         FillHouse(fixture);
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _group.Verify(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
             ref It.Ref<string>.IsAny), Times.Once);
@@ -376,9 +411,11 @@ public class WordInputViewModelTests
         _group.Setup(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
                 ref It.Ref<string>.IsAny))
             .Throws(new EntryExistsException("Entry exists."));
+
         var fixture = Create();
         FillHouse(fixture);
         fixture.DirectAdd = true;
+
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(
             d => d.ShowMessageAsync("Hinzufügen nicht möglich", "Wort bereits in der Gruppe enthalten"), Times.Once);
@@ -396,6 +433,7 @@ public class WordInputViewModelTests
     {
         _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny))
             .Throws(new LanguageException("More than one language."));
+
         var fixture = Create();
         _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
             "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
@@ -419,6 +457,7 @@ public class WordInputViewModelTests
         bool? closed = null;
         fixture.CloseRequested += ok => closed = ok;
         fixture.CloseCommand.Execute(null);
+
         closed.Should().BeFalse();
     }
 }

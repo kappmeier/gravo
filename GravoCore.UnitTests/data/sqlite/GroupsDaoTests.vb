@@ -1,8 +1,9 @@
 ﻿Imports System.Collections.ObjectModel
-Imports Microsoft.Data.Sqlite
 Imports System.IO
 Imports Gravo
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
+Imports NUnit.Framework.Legacy
 
 ''' <summary>
 ''' Performs tests on a very simple test database.
@@ -84,8 +85,8 @@ Public Class GroupsDaoTests
 
     <Test>
     Public Sub SubGroupCount_OnExistingGroup_ReturnsCount()
-        Assert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
-        Assert.AreEqual(1, _groupsDao.SubGroupCount("Other Group"))
+        ClassicAssert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
+        ClassicAssert.AreEqual(1, _groupsDao.SubGroupCount("Other Group"))
     End Sub
 
     <Test>
@@ -150,15 +151,15 @@ Public Class GroupsDaoTests
             New GroupEntry(3, "Other Group", "Some Words", "GroupOtherGroup01")
         }
 
-        Assert.IsTrue(TableExists(newGroupName1))
-        Assert.IsTrue(TableExists(newGroupName2))
-        Assert.IsFalse(TableExists("GroupLanguageBook01"))
-        Assert.IsFalse(TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(TableExists(newGroupName1))
+        ClassicAssert.IsTrue(TableExists(newGroupName2))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
 
         CollectionAssert.AreEqual(expectedNewGroups, allNewGroups, "list of groups including sub groups not equal")
 
-        Assert.IsTrue(_groupsDao.GroupExists("Crazy Lecture"))
-        Assert.IsFalse(_groupsDao.GroupExists("Language Book"))
+        ClassicAssert.IsTrue(_groupsDao.GroupExists("Crazy Lecture"))
+        ClassicAssert.IsFalse(_groupsDao.GroupExists("Language Book"))
     End Sub
 
     <Test>
@@ -173,9 +174,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        Assert.IsFalse(TableExists("GroupLanguageBook01"))
-        Assert.IsFalse(TableExists("GroupLanguageBook02"))
-        Assert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -196,9 +197,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        Assert.IsTrue(TableExists("GroupLanguageBook01"))
-        Assert.IsFalse(TableExists("GroupLanguageBook02"))
-        Assert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
     End Sub
 
 
@@ -215,9 +216,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        Assert.IsTrue(TableExists("GroupLanguageBook01"))
-        Assert.IsFalse(TableExists("GroupLanguageBook02"))
-        Assert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -276,9 +277,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, result, "groups not swapped")
 
-        Assert.True(TableExists("GroupLanguageBook01"))
-        Assert.True(TableExists("GroupLanguageBook02"))
-        Assert.True(TableExists("GroupOtherGroup01"))
+        ClassicAssert.True(TableExists("GroupLanguageBook01"))
+        ClassicAssert.True(TableExists("GroupLanguageBook02"))
+        ClassicAssert.True(TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -288,8 +289,8 @@ Public Class GroupsDaoTests
 
         _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2")
 
-        Assert.False(TableHasRows("GroupLanguageBook01"), "table 01 should hold the former (empty) contents of table 02")
-        Assert.True(TableHasRows("GroupLanguageBook02"), "the marker row should move to table 02 with the physical table")
+        ClassicAssert.False(TableHasRows("GroupLanguageBook01"), "table 01 should hold the former (empty) contents of table 02")
+        ClassicAssert.True(TableHasRows("GroupLanguageBook02"), "the marker row should move to table 02 with the physical table")
     End Sub
 
     Private Function TableHasRows(tableName As String) As Boolean
@@ -317,22 +318,22 @@ Public Class GroupsDaoTests
 
         dao.AddGroup("Language Book", "Sapori d'Italia")
 
-        Assert.IsTrue(dao.GroupExists("Language Book", "Sapori d'Italia"))
-        Assert.AreEqual("Sapori d'Italia", dao.GetGroup("Language Book", "Sapori d'Italia").SubGroup)
+        ClassicAssert.IsTrue(dao.GroupExists("Language Book", "Sapori d'Italia"))
+        ClassicAssert.AreEqual("Sapori d'Italia", dao.GetGroup("Language Book", "Sapori d'Italia").SubGroup)
     End Sub
 
     <Test>
     Public Sub AddGroup_WithDoubleQuote_ThrowsInputException()
         Assert.Throws(Of InputException)(Sub() _groupsDao.AddGroup("Language Book", "Unit ""3"""))
 
-        Assert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
+        ClassicAssert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
     End Sub
 
     <Test>
     Public Sub EditGroup_WithDoubleQuote_ThrowsInputException()
         Assert.Throws(Of InputException)(Sub() _groupsDao.EditGroup("Language Book", "Language ""Book"""))
 
-        Assert.IsTrue(_groupsDao.GroupExists("Language Book"))
+        ClassicAssert.IsTrue(_groupsDao.GroupExists("Language Book"))
     End Sub
 
     <Test>
@@ -341,6 +342,6 @@ Public Class GroupsDaoTests
 
         Assert.Throws(Of InputException)(Sub() dao.EditSubGroup("Language Book", "Unit 1", "Unit ""1"""))
 
-        Assert.IsTrue(dao.GroupExists("Language Book", "Unit 1"))
+        ClassicAssert.IsTrue(dao.GroupExists("Language Book", "Unit 1"))
     End Sub
 End Class
