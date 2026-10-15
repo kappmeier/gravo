@@ -8,7 +8,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GravoApp\GravoApp.csproj" />
