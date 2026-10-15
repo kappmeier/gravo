@@ -1,16 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
 Imports Gravo
-Imports System.Runtime.CompilerServices
 Imports System.Diagnostics.Contracts
-
-Friend Module DictionaryExtensions
-
-    ' TODO: use System.Collections.Generic.GetValueOrDefault after updating to .NET Standard 2.1
-    <Extension()>
-    Public Function GetValueOrDefault(Of TKey, TValue)(dictionary As IReadOnlyDictionary(Of TKey, TValue), key As TKey, defaultValue As TValue) As TValue
-        If Not dictionary.TryGetValue(key, GetValueOrDefault) Then GetValueOrDefault = defaultValue
-    End Function
-End Module
 
 Public Class DictionaryDao
     Implements IDictionaryDao
