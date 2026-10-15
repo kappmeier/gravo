@@ -1,6 +1,6 @@
+Imports AwesomeAssertions
 Imports Gravo
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the GravoCore/xls/WordEntry class. For the simple data holder the

@@ -1,8 +1,8 @@
-﻿Imports Microsoft.Data.Sqlite
-Imports System.IO
+﻿Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests for the group part of <see cref="DatabaseTransfer"/>. Tests run on a copy of

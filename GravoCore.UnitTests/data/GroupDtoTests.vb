@@ -1,7 +1,8 @@
-﻿Imports Gravo
-Imports NUnit.Framework
-Imports FluentAssertions
+﻿Imports AwesomeAssertions
+Imports Gravo
 Imports GravoCore.UnitTests.GroupDaoTests
+Imports NUnit.Framework
+Imports NUnit.Framework.Legacy
 
 <TestFixture>
 Public Class GroupDtoTests
@@ -26,9 +27,9 @@ Public Class GroupDtoTests
     Public Sub GetMarked_Existing_ReturnsCorrectValue()
         Dim group As GroupDto = New GroupDto(exampleGroup, defaultWords)
 
-        Assert.IsTrue(GroupDto.IsMarked(group, 1))
-        Assert.IsTrue(GroupDto.IsMarked(group, 2))
-        Assert.False(GroupDto.IsMarked(group, 29))
+        ClassicAssert.IsTrue(GroupDto.IsMarked(group, 1))
+        ClassicAssert.IsTrue(GroupDto.IsMarked(group, 2))
+        ClassicAssert.False(GroupDto.IsMarked(group, 29))
     End Sub
 
     <Test>

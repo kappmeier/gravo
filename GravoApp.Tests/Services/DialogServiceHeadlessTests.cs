@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using FluentAssertions;
+using AwesomeAssertions;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;

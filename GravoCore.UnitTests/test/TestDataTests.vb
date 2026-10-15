@@ -1,7 +1,7 @@
+Imports AwesomeAssertions
 Imports Gravo
 Imports Moq
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the GravoCore/test/TestData.vb class behavior.

@@ -1,12 +1,11 @@
-﻿Imports Microsoft.Data.Sqlite
+﻿Imports System.Data.Common
 Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
-Imports NUnit.Framework
-Imports FluentAssertions
 Imports Gravo.Properties
+Imports Microsoft.Data.Sqlite
 Imports Moq
-Imports System.Data.Common
-Imports NUnit.Compatibility
+Imports NUnit.Framework
 
 <TestFixture>
 Public Class ManagementDaoTests

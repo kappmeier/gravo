@@ -1,5 +1,5 @@
 using Avalonia.Headless.NUnit;
-using FluentAssertions;
+using AwesomeAssertions;
 using GravoApp.ViewModels;
 using GravoApp.Views;
 using NUnit.Framework;

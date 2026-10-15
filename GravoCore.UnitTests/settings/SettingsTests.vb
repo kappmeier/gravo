@@ -1,7 +1,7 @@
-﻿Imports Gravo
+﻿Imports AwesomeAssertions
+Imports Gravo
 Imports Moq
 Imports NUnit.Framework
-Imports FluentAssertions
 
 ''' <summary>
 ''' Tests the <see cref="Settings"/> behavior against mocked data.
