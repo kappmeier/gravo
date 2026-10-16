@@ -20,8 +20,10 @@ Public Interface IGroupsDao
     ''' <summary>
     ''' Returns all groups belonging to a major group entry as full entities.
     ''' 
-    ''' TODO: Define the order the strings have to be.
     ''' </summary>
+    ''' <remarks>
+    ''' The subgroups are ordered by the group index.
+    ''' </remarks>
     ''' <returns></returns>
     Function GetSubGroups(ByVal groupName As String) As ICollection(Of GroupEntry)
 

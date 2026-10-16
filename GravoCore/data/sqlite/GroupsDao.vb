@@ -44,7 +44,11 @@ Public Class GroupsDao
 
     Public Function GetSubGroups(groupName As String) As ICollection(Of GroupEntry) Implements IGroupsDao.GetSubGroups
         Dim SubGroups As New Collection(Of GroupEntry)
-        Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
+        Dim Command As String = $"
+            SELECT [Index], [GroupName], [GroupSubName], [GroupTable]
+              FROM Groups
+             WHERE GroupName={GetDBEntry(groupName)}
+             ORDER BY [Index];"
         DBConnection.ExecuteReader(Command)
         Do While DBConnection.DBCursor.Read
             SubGroups.Add(ExtractGroupEntry())

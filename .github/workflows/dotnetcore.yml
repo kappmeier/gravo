@@ -13,7 +13,7 @@ jobs:
       # Run tests, and ensure that the tests are actually executed. Enforce a passed-count floor.
       # `dotnet test` exits 0 when no tests are discovered, this check avoids it.
       # Bump both floors in the same commit that adds or removes tests.
-      TEST_FLOOR: 339
+      TEST_FLOOR: 343
       UI_TEST_FLOOR: 248
     steps:
     - uses: actions/checkout@v4

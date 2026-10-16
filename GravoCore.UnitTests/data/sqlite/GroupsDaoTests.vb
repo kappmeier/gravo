@@ -1,5 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.IO
+Imports AwesomeAssertions
 Imports Gravo
 Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
@@ -291,6 +292,15 @@ Public Class GroupsDaoTests
 
         ClassicAssert.False(TableHasRows("GroupLanguageBook01"), "table 01 should hold the former (empty) contents of table 02")
         ClassicAssert.True(TableHasRows("GroupLanguageBook02"), "the marker row should move to table 02 with the physical table")
+    End Sub
+
+    <Test>
+    Public Sub GetSubGroups_AfterSwap_ReturnsIndexOrder()
+        _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2")
+
+        Dim result = _groupsDao.GetSubGroups("Language Book").Select(Function(g) g.SubGroup)
+
+        result.Should.Equal("Unit 2", "Unit 1")
     End Sub
 
     Private Function TableHasRows(tableName As String) As Boolean

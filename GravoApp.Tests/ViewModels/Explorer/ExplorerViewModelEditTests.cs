@@ -237,8 +237,9 @@ public class ExplorerViewModelEditTests
 
         fixture.Editor.MainEntry.Should().Be("house");
         _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        // Words equal to the main entry come in meaning order, which is the order of the unique word index.
-        fixture.Rows.Select(r => r.Meaning).Should().Equal("Gebäude", "Haus", "Häuser");
+        // Words equal to the main entry come in index order, then the other sub words.
+        // "Haus" and "Gebäude" (added second) are meanings for "house" coming before "Häuser", a meaning for "houses"
+        fixture.Rows.Select(r => r.Meaning).Should().Equal("Haus", "Gebäude", "Häuser");
         fixture.SelectedRow!.Meaning.Should().Be("Gebäude");
     }
 
