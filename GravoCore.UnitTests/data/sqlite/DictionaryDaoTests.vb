@@ -85,6 +85,39 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub GetWords_SameMainEntry_ReturnsIndexOrder()
+        Dim firstAdded As New WordEntry("word1", "", "", WordType.Verb, "zzz meaning", "", False)
+        Dim secondButAlphabeticallyFirst As New WordEntry("word1", "", "", WordType.Verb, "aaa meaning", "", False)
+        _dictionaryDao.AddSubEntry(firstAdded, "word1", language, targetLanguage)
+        _dictionaryDao.AddSubEntry(secondButAlphabeticallyFirst, "word1", language, targetLanguage)
+
+        Dim meanings = _dictionaryDao.
+            GetWords("word1", "word1", language, targetLanguage).
+            Select(Function(w) w.Meaning)
+
+        meanings.Should.EndWith({"zzz meaning", "aaa meaning"})
+    End Sub
+
+    <Test>
+    Public Sub GetWords_ByLanguage_ReturnsIndexOrder()
+        Dim indexes = _dictionaryDao.GetWords(language, targetLanguage).Select(Function(w) w.Index)
+
+        indexes.Should.BeInAscendingOrder()
+    End Sub
+
+    <Test>
+    Public Sub GetSubWords_ReturnsIndexOrder()
+        Dim firstAdded As New WordEntry("word1 zzz", "", "", WordType.Verb, "", "", False)
+        Dim secondButAlphabeticallyFirst As New WordEntry("word1 aaa", "", "", WordType.Verb, "", "", False)
+        _dictionaryDao.AddSubEntry(firstAdded, "word1", language, targetLanguage)
+        _dictionaryDao.AddSubEntry(secondButAlphabeticallyFirst, "word1", language, targetLanguage)
+
+        Dim words = _dictionaryDao.GetSubWords("word1", language, targetLanguage).Select(Function(w) w.Word)
+
+        words.Should.EndWith({"word1 zzz", "word1 aaa"})
+    End Sub
+
+    <Test>
     Public Sub GetWords_WordWithoutEntry_NothingReturned()
         Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWords("word1", "noWord", language, targetLanguage)
 

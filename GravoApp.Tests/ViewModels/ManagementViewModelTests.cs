@@ -250,10 +250,11 @@ public class ManagementViewModelTests
         fixture.SelectedUnit = "Unit 2";
         fixture.UnitName = "Lektion 2";
         await fixture.EditUnitCommand.ExecuteAsync(null);
-        // The sub groups of a group come back sorted by name.
-        fixture.Units.Should().Equal("Lektion 2", "Unit 1");
+
+        // The sub groups keep their index order.
+        fixture.Units.Should().Equal("Unit 1", "Lektion 2");
         fixture.SelectedUnit.Should().Be("Lektion 2");
-        _active.Groups.GetSubGroups("Book").Select(g => g.SubGroup).Should().Equal("Lektion 2", "Unit 1");
+        _active.Groups.GetSubGroups("Book").Select(g => g.SubGroup).Should().Equal("Unit 1", "Lektion 2");
     }
 
     [Test]
@@ -271,12 +272,13 @@ public class ManagementViewModelTests
     }
 
     [Test]
-    public void MoveUnitDown_SwapsIndexListStaysSortedByName()
+    public void MoveUnitDown_SwapsIndexAndListOrder()
     {
         var fixture = Create();
         fixture.SelectedUnit = "Unit 1";
         fixture.MoveUnitDownCommand.Execute(null);
-        fixture.Units.Should().Equal("Unit 1", "Unit 2");
+
+        fixture.Units.Should().Equal("Unit 2", "Unit 1");
         fixture.SelectedUnit.Should().Be("Unit 1");
         fixture.UnitInfo.Should().Be("2 Einträge" + NL + "1 benutzte Sprache");
         BookUnitsByIndex().Should().Equal("Unit 2", "Unit 1");
@@ -294,19 +296,24 @@ public class ManagementViewModelTests
     }
 
     [Test]
-    public void MoveUnitUp_SecondUnit_SwapsIndexListStaysSortedByName()
+    public void MoveUnitUp_SecondUnit_SwapsIndexAndListOrder()
     {
         var fixture = Create();
         fixture.SelectedUnit = "Unit 2";
         fixture.MoveUnitUpCommand.Execute(null);
-        fixture.Units.Should().Equal("Unit 1", "Unit 2");
+
+        fixture.Units.Should().Equal("Unit 2", "Unit 1");
         fixture.SelectedUnit.Should().Be("Unit 2");
         BookUnitsByIndex().Should().Equal("Unit 2", "Unit 1");
     }
 
     /// <summary>Returns the units of the group Book in the order of their database index.</summary>
     private IEnumerable<string> BookUnitsByIndex() =>
-        _active.Groups.GetAllGroups().Where(g => g.Name == "Book").Select(g => g.SubGroup);
+        _active.Groups.
+            GetAllGroups().
+            Where(g => g.Name == "Book").
+            OrderBy(g => g.Index).
+            Select(g => g.SubGroup);
 
     [Test]
     public async Task Reorganize_ReportsCountAndMessage()
