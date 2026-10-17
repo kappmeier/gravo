@@ -19,23 +19,6 @@ Public Interface ILocalization
     Function GetText(id As Integer) As String
 
     ''' <summary>
-    ''' Retrieves the localized text specified by the given name.
-    ''' </summary>
-    ''' <remarks>
-    ''' <para>
-    ''' The name corresponds to the constant defined in the code for the localized text. This is a convenience method
-    ''' for retrieving texts without needing to know their integer ids. It is not implemented for all of the localized
-    ''' texts.
-    ''' </para>
-    ''' <para>
-    ''' Only supports legacy localization field names still used by WinForms. To be removed.
-    ''' </para>
-    ''' </remarks>
-    ''' <param name="name">The text name.</param>
-    ''' <returns>The localized text corresponding to the given name.</returns>
-    Function GetText(name As String) As String
-
-    ''' <summary>
     ''' Returns a list of unique names for available language sets.
     ''' </summary>
     ''' <returns>The list of unique names of languages.</returns>

@@ -1,7 +1,6 @@
 Imports System.Collections.ObjectModel
 
 Public Class localization
-    Inherits localizationBase
     Implements ILocalization
 
     Public Const DISCLAIMER_1 = 1
@@ -143,14 +142,11 @@ Public Class localization
             {WordType.Example, 9}
         })
 
+    Private ReadOnly DBConnection As IDataBaseOperation
     Dim m_language As String = "german"
 
-    Sub New()
-        MyBase.New()
-    End Sub
-
-    Sub New(ByVal db as IDataBaseOperation)
-        MyBase.New(db)
+    Sub New(ByVal db As IDataBaseOperation)
+        DBConnection = db
     End Sub
 
     Public Property Language() As String Implements ILocalization.Language
@@ -162,55 +158,19 @@ Public Class localization
         End Set
     End Property
 
-    ''' <summary>
-    ''' Legacy retrieval of localized text for a given field name.
-    ''' </summary>
-    ''' <param name="name">The name of the localization field.</param>
-    ''' <returns>The localized text corresponding to the field name.</returns>
-    ''' <remarks>
-    ''' Only supports legacy localization field names still used by WinForms. To be removed.
-    ''' </remarks>
-    Public Function GetText(ByVal name As String) As String Implements ILocalization.GetText
-        ' existiert, weil es einfacher ist in manchen Fällen
-        Return GetText(NameToCode(name))
-    End Function
-
     Public Function GetText(ByVal value As Integer) As String Implements ILocalization.GetText
-        Dim command As String = "SELECT [Text] FROM [" & Language & "] WHERE [Field] = " & value & ";"
+        Dim command As String = $"
+            SELECT [Text]
+              FROM [{Language}]
+             WHERE [Field] = {value};"
         DBConnection.ExecuteReader(command)
-        DBConnection.DBCursor.Read()
+        If Not DBConnection.DBCursor.Read() Then
+            DBConnection.DBCursor.Close()
+            Throw New KeyNotFoundException($"No text {value} in the language table {Language}.")
+        End If
         Dim ret As String = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()
         Return ret
-    End Function
-
-    ''' <summary>
-    ''' Legacy conversion of a name of a localization field to its corresponding code.
-    ''' </summary>
-    ''' <remarks>
-    ''' Only supports legacy localization field names still used by WinForms. To be removed.
-    ''' </remarks>
-    ''' <param name="name">The name of the localization field.</param>
-    ''' <returns>The integer code corresponding to the field name.</returns>
-    Private Function NameToCode(ByVal name As String) As Integer
-        Select Case name
-            Case "WORD_TYPE_SUBSTANTIVE"
-                Return WordTypeCodes(WordType.Substantive)
-            Case "WORD_TYPE_VERB"
-                Return WordTypeCodes(WordType.Verb)
-            Case "WORD_TYPE_ADJECTIVE"
-                Return WordTypeCodes(WordType.Adjective)
-            Case "WORD_TYPE_SIMPLE"
-                Return WordTypeCodes(WordType.Simple)
-            Case "WORD_TYPE_ADVERB"
-                Return WordTypeCodes(WordType.Adverb)
-            Case "WORD_TYPE_SET_PHRASE"
-                Return WordTypeCodes(WordType.SetPhrase)
-            Case "WORD_TYPE_EXAMPLE"
-                Return WordTypeCodes(WordType.Example)
-            Case Else
-                Throw New ArgumentException("Unsupported name " & name)
-        End Select
     End Function
 
     ''' <summary>
@@ -237,21 +197,6 @@ Public Class localization
     ''' <returns>The version as stored in the language database.</returns>
     Public Function GetVersionFor(LanguageName As String) As String
         Return GetFieldFor(LanguageName, "Version")
-    End Function
-
-    ''' <summary>
-    ''' Retrieves the date of a language set from the database.
-    ''' </summary>
-    ''' <param name="LanguageName">The language identifier</param>
-    ''' <returns>The author as stored in the language database.</returns>
-    Public Function GetDateFor(LanguageName As String) As String
-        Dim command As String = "SELECT [Date] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
-        DBConnection.ExecuteReader(command)
-        If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
-        DBConnection.DBCursor.Read()
-        Dim value = DBConnection.SecureGetDateTime(0)
-        DBConnection.DBCursor.Close()
-        Return value.ToString
     End Function
 
     ''' <summary>
@@ -284,7 +229,10 @@ Public Class localization
     Private Function GetFieldFor(LanguageName As String, Field As String) As String
         Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
         DBConnection.ExecuteReader(command)
-        If Not DBConnection.DBCursor.HasRows Then Throw New Exception("Wrong language")
+        If Not DBConnection.DBCursor.HasRows Then
+            DBConnection.DBCursor.Close()
+            Throw New Exception("Wrong language")
+        End If
         DBConnection.DBCursor.Read()
         Dim value = DBConnection.SecureGetString(0)
         DBConnection.DBCursor.Close()

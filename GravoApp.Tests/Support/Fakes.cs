@@ -10,15 +10,13 @@ namespace GravoApp.Tests.Support;
 public static class Fakes
 {
     /// <summary>
-    /// An ILocalization mock. GetText(n) returns "T{n}", GetText(name) returns "T:{name}", and the languages are
-    /// Deutsch and English.
+    /// An ILocalization mock. GetText(n) returns "T{n}" and the languages are Deutsch and English.
     /// </summary>
     public static Mock<ILocalization> Localization()
     {
         var localizationMock = new Mock<ILocalization>();
         localizationMock.SetupProperty(l => l.Language, "german");
         localizationMock.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "T" + code);
-        localizationMock.Setup(l => l.GetText(It.IsAny<string>())).Returns((string name) => "T:" + name);
         localizationMock.Setup(l => l.GetLanguageNames()).Returns(new Collection<string> { "Deutsch", "English" });
         return localizationMock;
     }

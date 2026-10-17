@@ -66,23 +66,6 @@ Public Class LocalizationTests
     End Sub
 
     <Test>
-    Public Sub GetText_ByName_MatchesCode()
-        _loc.GetText("WORD_TYPE_VERB").Should.Be(_loc.GetText(localization.WordTypeCodes(WordType.Verb)))
-        _loc.GetText("WORD_TYPE_VERB").Should.Be("Verb")
-    End Sub
-
-    ''' <summary>
-    ''' Tests that requesting text for an unknown name throws an exception.
-    ''' </summary>
-    ''' <remarks>
-    ''' The method is legacy and should only be used for specificly defined constants.
-    ''' </remarks>
-    <Test>
-    Public Sub GetText_UnknownName_ThrowsException()
-        Assert.Throws(Of ArgumentException)(Sub() _loc.GetText("NOT_A_FIELD_NAME")).Message.Should.Be("Unsupported name NOT_A_FIELD_NAME")
-    End Sub
-
-    <Test>
     Public Sub GetTableFor_UnknownLanguage_Throws()
         Assert.Throws(Of Exception)(Sub() _loc.GetTableFor("Klingon")).Message.Should.Be("Wrong language")
     End Sub
@@ -101,8 +84,13 @@ Public Class LocalizationTests
         loc.GetLanguageNames.Should.Equal("Deutsch", "English")
         loc.GetText(localization.WordTypeCodes(WordType.Verb)).Should.Be(
             _loc.GetText(localization.WordTypeCodes(WordType.Verb)))
-        loc.GetText("WORD_TYPE_VERB").Should.Be(loc.GetText(localization.WordTypeCodes(WordType.Verb)))
         loc.SwitchToLanguage("English")
         loc.Language.Should.Be("english")
+    End Sub
+
+    <Test>
+    Public Sub GetText_MissingField_ThrowsKeyNotFound()
+        Assert.Throws(Of KeyNotFoundException)(Sub() _loc.GetText(9999)).
+            Message.Should.Be("No text 9999 in the language table german.")
     End Sub
 End Class
