@@ -339,6 +339,20 @@ Public Class GroupsDaoTests
         ClassicAssert.AreEqual(2, _groupsDao.SubGroupCount("Language Book"))
     End Sub
 
+    ''' <summary>
+    ''' Tests that adding a group with brackets in its name creates a usable table.
+    ''' </summary>
+    ''' <remarks>
+    ''' Regression test ensuring CREATE TABLE succeeds even with brackets in the group name.
+    ''' </remarks>
+    <Test>
+    Public Sub AddGroup_WithBrackets_CreatesUsableTable()
+        _groupsDao.AddGroup("Weird]Name", "Unit")
+
+        _groupsDao.GetSubGroups("Weird]Name").Select(Function(g) g.SubGroup).Should.Equal("Unit")
+        ClassicAssert.IsTrue(TableExists("GroupWeirdName01"))
+    End Sub
+
     <Test>
     Public Sub EditGroup_WithDoubleQuote_ThrowsInputException()
         Assert.Throws(Of InputException)(Sub() _groupsDao.EditGroup("Language Book", "Language ""Book"""))
