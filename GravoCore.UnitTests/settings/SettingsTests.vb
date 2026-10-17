@@ -36,15 +36,8 @@ Public Class SettingsTests
         settings.LastGroup.Should().Be("")
         settings.LastSubGroup.Should().Be("")
         settings.MainWindowState.Should().Be(WindowStateSetting.Normal)
-        settings.ChildWindowState.Should().Be(WindowStateSetting.Normal)
         settings.MainWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsMain",
                 .height = 600, .width = 800, .posX = 0, .posY = 0})
-        settings.ExplorerWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsExplorer",
-                .height = 300, .width = 400, .posX = 0, .posY = 0})
-        settings.GroupWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsGroups",
-                .height = 300, .width = 400, .posX = 22, .posY = 29})
-        settings.StatisticWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsStatistic",
-                .height = 300, .width = 400, .posX = 44, .posY = 58})
     End Sub
 
     ''' <summary>
@@ -56,6 +49,7 @@ Public Class SettingsTests
     ''' </remarks>
     <Test>
     Public Sub LoadSettings_FullStore_AppliesAllStoredValues()
+        ' The child window keys of older files are ignored.
         Dim values As New Dictionary(Of String, String) From {
             {"TestSetPhrases", "1"},
             {"TestTargetLanguage", "0"},
@@ -92,16 +86,9 @@ Public Class SettingsTests
         settings.SaveWindowPosition.Should().BeTrue()
         settings.LastGroup.Should().Be("Verbs")
         settings.LastSubGroup.Should().Be("Nouns")
-        settings.ExplorerWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsExplorer",
-                .height = 111, .width = 222, .posX = 333, .posY = 444})
-        settings.GroupWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsGroups",
-                .height = 555, .width = 666, .posX = 777, .posY = 888})
         settings.MainWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsMain",
                 .height = 999, .width = 1010, .posX = 1111, .posY = 1212})
-        settings.StatisticWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsStatistic",
-                .height = 1313, .width = 1414, .posX = 1515, .posY = 1616})
         settings.MainWindowState.Should().Be(WindowStateSetting.Maximized)
-        settings.ChildWindowState.Should().Be(WindowStateSetting.Minimized)
         settings.UseCards.Should().BeFalse()
         settings.CardsInitialInterval.Should().Be(5)
     End Sub
@@ -128,13 +115,6 @@ Public Class SettingsTests
         settings.UseCards.Should().BeTrue()
         settings.CardsInitialInterval.Should().Be(1)
         settings.MainWindowState.Should().Be(WindowStateSetting.Normal)
-        settings.ChildWindowState.Should().Be(WindowStateSetting.Normal)
-        settings.ExplorerWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsExplorer",
-                .height = 300, .width = 400, .posX = 0, .posY = 0})
-        settings.GroupWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsGroups",
-                .height = 300, .width = 400, .posX = 22, .posY = 29})
-        settings.StatisticWindowSettings.Should().Be(New WindowSettings With {.name = "WindowSettingsStatistic",
-                .height = 300, .width = 400, .posX = 44, .posY = 58})
     End Sub
 
     ''' <summary>
@@ -173,24 +153,11 @@ Public Class SettingsTests
             {"SaveWindowPosition", "0"},
             {"LastGroup", ""},
             {"LastSubGroup", ""},
-            {"WindowSettingsExplorerHeight", "300"},
-            {"WindowSettingsExplorerWidth", "400"},
-            {"WindowSettingsExplorerPosX", "0"},
-            {"WindowSettingsExplorerPosY", "0"},
-            {"WindowSettingsGroupsHeight", "300"},
-            {"WindowSettingsGroupsWidth", "400"},
-            {"WindowSettingsGroupsPosX", "22"},
-            {"WindowSettingsGroupsPosY", "29"},
             {"WindowSettingsMainHeight", "600"},
             {"WindowSettingsMainWidth", "800"},
             {"WindowSettingsMainPosX", "0"},
             {"WindowSettingsMainPosY", "0"},
-            {"WindowSettingsStatisticHeight", "300"},
-            {"WindowSettingsStatisticWidth", "400"},
-            {"WindowSettingsStatisticPosX", "44"},
-            {"WindowSettingsStatisticPosY", "58"},
             {"MainWindowState", "0"},
-            {"ChildWindowState", "0"},
             {"UseCards", "1"},
             {"CardsInitialInterval", "1"}
         }
@@ -214,7 +181,6 @@ Public Class SettingsTests
         settings.LastGroup = "x"
         settings.LastSubGroup = "y"
         settings.MainWindowState = WindowStateSetting.Maximized
-        settings.ChildWindowState = WindowStateSetting.Minimized
         settings.MainWindowSettings = New WindowSettings With {.name = "WindowSettingsMain",
                 .height = 111, .width = 222, .posX = 333, .posY = 444}
 
@@ -229,7 +195,6 @@ Public Class SettingsTests
         saved.Should().Contain("LastGroup", "x")
         saved.Should().Contain("LastSubGroup", "y")
         saved.Should().Contain("MainWindowState", "2")
-        saved.Should().Contain("ChildWindowState", "1")
         saved.Should().Contain("WindowSettingsMainHeight", "111")
         saved.Should().Contain("WindowSettingsMainWidth", "222")
         saved.Should().Contain("WindowSettingsMainPosX", "333")
@@ -254,15 +219,13 @@ Public Class SettingsTests
     <Test>
     Public Sub LoadSettings_UnknownWindowStateValue_DefaultsToNormal()
         Dim values As New Dictionary(Of String, String) From {
-            {"MainWindowState", "7"},
-            {"ChildWindowState", "7"}
+            {"MainWindowState", "7"}
         }
         SetUpLoad(values)
 
         settings.LoadSettings()
 
         settings.MainWindowState.Should().Be(WindowStateSetting.Normal)
-        settings.ChildWindowState.Should().Be(WindowStateSetting.Normal)
     End Sub
 
     <Test>

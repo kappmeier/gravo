@@ -29,11 +29,7 @@ Public Class Settings
     ' Fenster-Position
     Dim m_saveWindowPosition As Boolean
     Dim m_mainWindowState As WindowStateSetting
-    Dim m_childWindowState As WindowStateSetting
     Dim m_mainWindow As WindowSettings
-    Dim m_explorerWindow As WindowSettings
-    Dim m_groupWindow As WindowSettings
-    Dim m_statisticWindow As WindowSettings
 
     ' Gruppen
     Dim m_lastGroup As String = ""
@@ -51,12 +47,8 @@ Public Class Settings
         SaveWindowPosition = LoadBool(values, "SaveWindowPosition", False)
         LastGroup = LoadString(values, "LastGroup", "")
         LastSubGroup = LoadString(values, "LastSubGroup", "")
-        ExplorerWindowSettings = LoadWindowSettings(values, "WindowSettingsExplorer", 300, 400, 0, 0)
-        GroupWindowSettings = LoadWindowSettings(values, "WindowSettingsGroups", 300, 400, 22, 29)
         MainWindowSettings = LoadWindowSettings(values, "WindowSettingsMain", 600, 800, 0, 0)
-        StatisticWindowSettings = LoadWindowSettings(values, "WindowSettingsStatistic", 300, 400, 44, 58)
         MainWindowState = LoadWindowState(values, "MainWindowState")
-        ChildWindowState = LoadWindowState(values, "ChildWindowState")
         UseCards = LoadBool(values, "UseCards", True)
         CardsInitialInterval = LoadInt(values, "CardsInitialInterval", 1)
     End Sub
@@ -77,12 +69,8 @@ Public Class Settings
         StoreBool(values, "SaveWindowPosition", SaveWindowPosition)
         StoreString(values, "LastGroup", LastGroup)
         StoreString(values, "LastSubGroup", LastSubGroup)
-        StoreWindowSettings(values, ExplorerWindowSettings)
-        StoreWindowSettings(values, GroupWindowSettings)
         StoreWindowSettings(values, MainWindowSettings)
-        StoreWindowSettings(values, StatisticWindowSettings)
         StoreWindowState(values, "MainWindowState", MainWindowState)
-        StoreWindowState(values, "ChildWindowState", ChildWindowState)
         StoreBool(values, "UseCards", UseCards)
         StoreInt(values, "CardsInitialInterval", CardsInitialInterval)
         store.Save(values)
@@ -192,24 +180,6 @@ Public Class Settings
         End Set
     End Property
 
-    Public Property ExplorerWindowSettings() As WindowSettings
-        Get
-            Return m_explorerWindow
-        End Get
-        Set(ByVal value As WindowSettings)
-            m_explorerWindow = value
-        End Set
-    End Property
-
-    Public Property GroupWindowSettings() As WindowSettings
-        Get
-            Return m_groupWindow
-        End Get
-        Set(ByVal value As WindowSettings)
-            m_groupWindow = value
-        End Set
-    End Property
-
     Public Property MainWindowSettings() As WindowSettings
         Get
             Return m_mainWindow
@@ -219,30 +189,12 @@ Public Class Settings
         End Set
     End Property
 
-    Public Property StatisticWindowSettings() As WindowSettings
-        Get
-            Return m_statisticWindow
-        End Get
-        Set(ByVal value As WindowSettings)
-            m_statisticWindow = value
-        End Set
-    End Property
-
     Public Property MainWindowState() As WindowStateSetting
         Get
             Return m_mainWindowState
         End Get
         Set(ByVal value As WindowStateSetting)
             m_mainWindowState = value
-        End Set
-    End Property
-
-    Public Property ChildWindowState() As WindowStateSetting
-        Get
-            Return m_childWindowState
-        End Get
-        Set(ByVal value As WindowStateSetting)
-            m_childWindowState = value
         End Set
     End Property
 
