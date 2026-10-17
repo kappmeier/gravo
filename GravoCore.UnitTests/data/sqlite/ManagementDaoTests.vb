@@ -326,6 +326,71 @@ Public Class ManagementDaoTests
         Assert.Throws(Of InvalidOperationException)(Sub() fixture.CopyGlobalCardsToGroups())
     End Sub
 
+    ''' <summary>
+    ''' Successful update of a 1.6 database with a populated group table to 1.7. The new NOT NULL columns need defaults
+    ''' and the global card values are copied into the group afterwards.
+    ''' </summary>
+    <Test>
+    Public Sub UpdateTo1_7_AddsTheCardColumnsToExistingGroupTables()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        Dim fixture = New ManagementDao(testDb)
+        fixture.Initialize()
+
+        For updateCount As Integer = 1 To 6
+            fixture.UpdateDatabaseSingle()
+        Next updateCount
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
+
+        testDb.ExecuteNonQuery("
+                INSERT INTO [Groups] ([GroupName], [GroupSubName], [GroupTable])
+                VALUES ('Test', 'Unit', 'GroupTest01')
+            ",
+            Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+                CREATE TABLE [GroupTest01] (
+                    [Index] INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [WordIndex] LONG NOT NULL,
+                    [Marked] BIT
+                )
+            ",
+            Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+                INSERT INTO [GroupTest01] ([WordIndex], [Marked])
+                VALUES (1, 0)
+            ",
+            Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+                INSERT INTO [Cards] ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+                VALUES (1, 4, 2, '2007-01-01', 8, 3)
+            ",
+            Array.Empty(Of Object))
+
+        fixture.UpdateDatabaseSingle()
+
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+
+        Dim command As String = "
+            SELECT [Example], [TestInterval], [Counter], [TestIntervalMain], [CounterMain]
+              FROM [GroupTest01]
+             WHERE [WordIndex] = ?
+        "
+
+        testDb.ExecuteReader(command, "1")
+        testDb.DBCursor.Read()
+        Dim example As String = testDb.SecureGetString(0)
+        Dim testInterval As Integer = testDb.SecureGetInt32(1)
+        Dim counter As Integer = testDb.SecureGetInt32(2)
+        Dim testIntervalMain As Integer = testDb.SecureGetInt32(3)
+        Dim counterMain As Integer = testDb.SecureGetInt32(4)
+        testDb.DBCursor.Close()
+
+        example.Should.Be("")
+        testInterval.Should.Be(4)
+        counter.Should.Be(2)
+        testIntervalMain.Should.Be(8)
+        counterMain.Should.Be(3)
+    End Sub
+
     Private Sub AssertGroupCardColumns(wordIndex As Integer, expectedTestInterval As Integer, expectedCounter As Integer, expectedLastDate As String, expectedTestIntervalMain As Integer, expectedCounterMain As Integer)
         _realDb.ExecuteReader("SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
         _realDb.DBCursor.Read()
