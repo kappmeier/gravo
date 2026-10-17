@@ -50,7 +50,7 @@ Public Class Settings
         MainWindowSettings = LoadWindowSettings(values, "WindowSettingsMain", 600, 800, 0, 0)
         MainWindowState = LoadWindowState(values, "MainWindowState")
         UseCards = LoadBool(values, "UseCards", True)
-        CardsInitialInterval = LoadInt(values, "CardsInitialInterval", 1)
+        CardsInitialInterval = Math.Max(1, LoadInt(values, "CardsInitialInterval", 1))
     End Sub
 
     Public Sub SaveSettings()
