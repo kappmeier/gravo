@@ -74,8 +74,7 @@ Public Module DaoTools
     End Function
 
     ''' <summary>
-    ''' Strips forbidden characters from a string that are not valid as SQL table names.
-    ''' Removes space and question mark (" ", !).
+    ''' Strips characters from a group name that cannot appear in a bracketed SQL table name: space, "!", "[" and "]".
     ''' </summary>
     ''' <param name="input">The input string.</param>
     ''' <returns>The original string without the special characters.</returns>
@@ -83,6 +82,8 @@ Public Module DaoTools
         Dim withoutSpecialCharacters As String = input
         withoutSpecialCharacters = withoutSpecialCharacters.Replace(" ", "")
         withoutSpecialCharacters = withoutSpecialCharacters.Replace("!", "")
+        withoutSpecialCharacters = withoutSpecialCharacters.Replace("[", "")
+        withoutSpecialCharacters = withoutSpecialCharacters.Replace("]", "")
         Return withoutSpecialCharacters
     End Function
 

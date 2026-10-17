@@ -83,6 +83,11 @@ Public Class DaoToolsTests
     End Sub
 
     <Test>
+    Public Sub StripSpecialCharacters_Brackets_AreRemoved()
+        ClassicAssert.AreEqual("AB01", DaoTools.StripSpecialCharacters("A]B[01"))
+    End Sub
+
+    <Test>
     Public Sub StripSpecialCharacters_MultipleCharacters_AreRemoved()
         ClassicAssert.AreEqual("Thisiscrazy1", DaoTools.StripSpecialCharacters("This is crazy!!!1!"))
     End Sub
