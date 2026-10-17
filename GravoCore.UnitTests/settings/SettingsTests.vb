@@ -267,4 +267,14 @@ Public Class SettingsTests
         settings.TestSetPhrases.Should().BeTrue()
         settings.UseCards.Should().BeTrue()
     End Sub
+
+    <TestCase("0")>
+    <TestCase("-3")>
+    Public Sub LoadSettings_CardsInitialIntervalBelowOne_ClampsToOne(stored As String)
+        SetUpLoad(New Dictionary(Of String, String) From {{"CardsInitialInterval", stored}})
+
+        settings.LoadSettings()
+
+        settings.CardsInitialInterval.Should().Be(1)
+    End Sub
 End Class
