@@ -227,8 +227,13 @@ Public Class ManagementDao
         Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
         For Each group As GroupEntry In groups
             Dim table As String = StripSpecialCharacters(group.Table)
-            ' neue spalte hinzufügen
-            SimpleUpdateCommand("ALTER TABLE [" & table & "] ADD COLUMN [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL)")
+            ' add new columns
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [Example] TEXT(64)")
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [TestInterval] INT NOT NULL DEFAULT 1")
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [Counter] INT NOT NULL DEFAULT 1")
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [LastDate] DATETIME NOT NULL DEFAULT '1900-01-01'")
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [TestIntervalMain] INT NOT NULL DEFAULT 1")
+            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [CounterMain] INT NOT NULL DEFAULT 1")
         Next group
         CopyGlobalCardsToGroups()
 
