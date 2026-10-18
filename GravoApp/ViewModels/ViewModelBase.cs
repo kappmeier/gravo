@@ -12,4 +12,14 @@ public abstract partial class ViewModelBase : ObservableObject
     public event Action<bool>? CloseRequested;
 
     protected void RequestClose(bool ok) => CloseRequested?.Invoke(ok);
+
+    /// <summary>Called once the window has opened.</summary>
+    /// <remarks>The default does nothing. Called by <c>DialogService</c> for every opened window.</remarks>
+    public virtual Task OnOpenedAsync() => Task.CompletedTask;
+
+    /// <summary>Called once the window has closed. Independent of how the window was closed</summary>
+    /// <remarks>The default does nothing. Called by <c>DialogService</c> for every opened window.</remarks>
+    public virtual void OnClosed()
+    {
+    }
 }

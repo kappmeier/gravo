@@ -29,6 +29,8 @@ public sealed class DialogService : IDialogService
     public async Task<bool> ShowDialogAsync(ViewModelBase viewModel)
     {
         var window = ViewLocator.CreateWindow(viewModel);
+        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
+        window.Closed += (_, _) => viewModel.OnClosed();
         viewModel.CloseRequested += ok => window.Close(ok);
         return await window.ShowDialog<bool?>(_owner()) == true;
     }
@@ -36,6 +38,8 @@ public sealed class DialogService : IDialogService
     public void ShowWindow(ViewModelBase viewModel)
     {
         var window = ViewLocator.CreateWindow(viewModel);
+        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
+        window.Closed += (_, _) => viewModel.OnClosed();
         viewModel.CloseRequested += _ => window.Close();
         window.Show(_owner());
     }
