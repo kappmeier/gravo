@@ -119,4 +119,33 @@ public class DialogServiceHeadlessTests
         Dispatcher.UIThread.RunJobs();
         task.Result.Should().BeTrue();
     }
+
+    [AvaloniaTest]
+    public void ShowDialog_CallsOnOpenedOnce()
+    {
+        var owner = Owner();
+        var probe = new ProbeViewModel();
+
+        _ = new DialogService(() => owner, Fakes.Texts()).ShowDialogAsync(probe);
+        Dispatcher.UIThread.RunJobs();
+
+        probe.OpenedCount.Should().Be(1);
+        probe.Close(true);
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    [AvaloniaTest]
+    public void ShowDialog_CallsOnClosedOnceWhenTheWindowCloses()
+    {
+        var owner = Owner();
+        var probe = new ProbeViewModel();
+        _ = new DialogService(() => owner, Fakes.Texts()).ShowDialogAsync(probe);
+        Dispatcher.UIThread.RunJobs();
+        probe.ClosedCount.Should().Be(0);
+
+        probe.Close(true);
+        Dispatcher.UIThread.RunJobs();
+
+        probe.ClosedCount.Should().Be(1);
+    }
 }

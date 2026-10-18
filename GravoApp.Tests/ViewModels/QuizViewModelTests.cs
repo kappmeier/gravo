@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -35,6 +36,16 @@ public class QuizViewModelTests
         return new QuizViewModel(new TestController(data, direction, _voc.Db), Fakes.Texts(), _dialogs.Object);
     }
 
+    /// <summary>Creates a quiz over <c>_house</c> whose texts come from <paramref name="loc"/>.</summary>
+    private QuizViewModel CreateWithTexts(out Mock<ILocalization> loc, out UiTexts texts)
+    {
+        loc = Fakes.Localization();
+        texts = new UiTexts(loc.Object);
+        var data = new TestData(_voc.Cards, new List<WordEntry> { _house }, QueryLanguage.OriginalLanguage);
+        var controller = new TestController(data, QueryLanguage.OriginalLanguage, _voc.Db);
+        return new QuizViewModel(controller, texts, _dialogs.Object);
+    }
+
     [Test]
     public async Task Start_ShowsQuestionInfoAndCount()
     {
@@ -44,6 +55,30 @@ public class QuizViewModelTests
         fixture.Info.Should().Be("n.");
         fixture.Feedback.Should().BeEmpty();
         fixture.CountText.Should().Be("1");
+        fixture.Title.Should().Be("T105");
+    }
+
+    [Test]
+    public void Title_ChangesFollowingLanguageSwitches()
+    {
+        var fixture = CreateWithTexts(out var loc, out var texts);
+        fixture.Title.Should().Be("T105");
+
+        loc.Setup(l => l.GetText(localization.TEST_TITLE)).Returns("Quiz");
+        texts.Refresh();
+
+        fixture.Title.Should().Be("Quiz");
+    }
+
+    [Test]
+    public void OnClosed_StopsFollowingLanguageSwitches()
+    {
+        var fixture = CreateWithTexts(out var loc, out var texts);
+
+        fixture.OnClosed();
+        loc.Setup(l => l.GetText(localization.TEST_TITLE)).Returns("Quiz");
+        texts.Refresh();
+
         fixture.Title.Should().Be("T105");
     }
 

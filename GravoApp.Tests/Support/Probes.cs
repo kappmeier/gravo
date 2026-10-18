@@ -9,6 +9,18 @@ namespace GravoApp.ViewModels
 {
     public sealed class ProbeViewModel : ViewModelBase
     {
+        public int OpenedCount { get; private set; }
+
+        public int ClosedCount { get; private set; }
+
+        public override Task OnOpenedAsync()
+        {
+            OpenedCount++;
+            return Task.CompletedTask;
+        }
+
+        public override void OnClosed() => ClosedCount++;
+
         public void Close(bool ok) => RequestClose(ok);
     }
 }
