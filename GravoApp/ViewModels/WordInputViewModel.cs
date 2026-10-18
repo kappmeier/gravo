@@ -21,8 +21,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
+    private readonly Queue<string> _messageBoxTexts = new();
     private bool _wordEdited;
     private bool _syncing;
+    private bool _isDialogOpen; // Set to true once the dialog is open.
+    private bool _isShowingMessageBox;
 
     [ObservableProperty] private string? _selectedLanguage;
     [ObservableProperty] private string? _selectedMainLanguage;
@@ -153,10 +156,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Selects the languages of the chosen sub group if the group uses only one of each, target and test langauge.
+    /// Selects the languages of the chosen sub group if the group uses only one of each, target and test language.
     /// </summary>
     /// <remarks>
-    /// The hints are not awaited because a property hook cannot wait for the message window.
+    /// When errors occur during the selection while the dialog is still opening, error messages are queued and
+    /// displayed once the dialog is open.
     /// </remarks>
     partial void OnSelectedSubGroupChanged(string? value)
     {
@@ -177,7 +181,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (LanguageException)
         {
-            _ = _dialogs.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected);
+            QueueMessage(Strings.LanguageNotAutoSelected);
         }
         try
         {
@@ -189,7 +193,44 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (LanguageException)
         {
-            _ = _dialogs.ShowMessageAsync(Strings.HintTitle, Strings.MainLanguageNotAutoSelected);
+            QueueMessage(Strings.MainLanguageNotAutoSelected);
+        }
+    }
+
+    /// <summary>Shows queued error messages that occurred while the dialog was still opening.</summary>
+    public override async Task OnOpenedAsync()
+    {
+        _isDialogOpen = true;
+        await ShowHintsAsync();
+    }
+
+    /// <summary>Queues a message. They are shown sequentially once the dialog is open.</summary>
+    private void QueueMessage(string message)
+    {
+        _messageBoxTexts.Enqueue(message);
+        if (_isDialogOpen)
+        {
+            _ = ShowHintsAsync();
+        }
+    }
+
+    private async Task ShowHintsAsync()
+    {
+        if (_isShowingMessageBox)
+        {
+            return;
+        }
+        _isShowingMessageBox = true;
+        try
+        {
+            while (_messageBoxTexts.Count > 0)
+            {
+                await _dialogs.ShowMessageAsync(Strings.HintTitle, _messageBoxTexts.Dequeue());
+            }
+        }
+        finally
+        {
+            _isShowingMessageBox = false;
         }
     }
 
