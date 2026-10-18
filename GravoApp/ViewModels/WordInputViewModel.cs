@@ -272,10 +272,6 @@ public sealed partial class WordInputViewModel : ViewModelBase
             _dictionary.AddSubEntry(ref entry, MainEntry, Language, MainLanguage);
             await AddToGroupIfDirectAsync();
         }
-        catch (EntryExistsException)
-        {
-            await AddToGroupIfDirectAsync();
-        }
         catch (Exception)
         {
             await _dialogs.ShowMessageAsync(Strings.ErrorTitle, Strings.EntryConflict(notFound.Message));
