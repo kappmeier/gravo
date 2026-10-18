@@ -51,6 +51,21 @@ public sealed partial class MainViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Checks the database version and opens the explorer tab.</summary>
+    /// <remarks>A failure is shown as a message. In this case the window opens without the explorer.</remarks>
+    public async Task InitializeAsync()
+    {
+        try
+        {
+            await CheckDatabaseVersionAsync();
+            await ShowExplorerCommand.ExecuteAsync(null);
+        }
+        catch (Exception ex)
+        {
+            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+        }
+    }
+
     /// <summary>
     /// Returns the stored main window geometry.
     /// </summary>

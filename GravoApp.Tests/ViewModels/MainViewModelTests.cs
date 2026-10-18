@@ -244,6 +244,17 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task Initialize_VersionCheckThrows_ShowsTheErrorAndStaysOpen()
+    {
+        _management.Setup(m => m.IsVersionUpToDate()).Throws(new InvalidOperationException("boom"));
+
+        var fixture = Create();
+        await fixture.InitializeAsync();
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "boom"), Times.Once);
+    }
+
+    [Test]
     public void RestoreGeometry_WithoutSaveWindowPosition_IsNull() => Create().RestoreGeometry().Should().BeNull();
 
     [Test]
