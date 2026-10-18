@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -63,6 +64,14 @@ public class WordInputViewModelTests
         fixture.MainEntry = "Haus";
         fixture.Word = "house";
         fixture.Meaning = "Haus";
+    }
+
+    private void MakeGroupLanguagesAmbiguous()
+    {
+        _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny))
+            .Throws(new LanguageException("two"));
+        _group.Setup(g => g.GetUniqueMainLanguage(ref It.Ref<GroupEntry>.IsAny))
+            .Throws(new LanguageException("two"));
     }
 
     [Test]
@@ -429,25 +438,73 @@ public class WordInputViewModelTests
     }
 
     [Test]
-    public void SelectSubGroup_MultipleLanguages_ShowsHint()
+    public async Task SelectSubGroup_MultipleLanguages_ShowsMessage()
     {
         _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny))
             .Throws(new LanguageException("More than one language."));
 
         var fixture = Create();
+        await fixture.OnOpenedAsync();
+
         _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
             "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
         fixture.SelectedLanguage.Should().Be("english");
     }
 
     [Test]
-    public void SelectSubGroup_MultipleMainLanguages_ShowsHint()
+    public async Task SelectSubGroup_MultipleMainLanguages_ShowsMessage()
     {
         _group.Setup(g => g.GetUniqueMainLanguage(ref It.Ref<GroupEntry>.IsAny))
             .Throws(new LanguageException("More than one language."));
-        Create();
+
+        var fixture = Create();
+        await fixture.OnOpenedAsync();
+
         _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
             "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
+    }
+
+    [Test]
+    public void SelectSubGroup_AmbiguousLanguages_QueuesMessageUntilOpened()
+    {
+        MakeGroupLanguagesAmbiguous();
+
+        var fixture = Create();
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task OnOpened_ShowsTheQueuedMessagesOneAfterAnother()
+    {
+        MakeGroupLanguagesAmbiguous();
+        var first = new TaskCompletionSource();
+        _dialogs.Setup(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected))
+            .Returns(first.Task);
+        var fixture = Create();
+
+        var opened = fixture.OnOpenedAsync();
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.MainLanguageNotAutoSelected), Times.Never);
+
+        first.SetResult();
+        await opened;
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.MainLanguageNotAutoSelected), Times.Once);
+    }
+
+    [Test]
+    public async Task SelectSubGroup_AfterOpened_ShowsTheMessageAtOnce()
+    {
+        var fixture = Create();
+        await fixture.OnOpenedAsync();
+        MakeGroupLanguagesAmbiguous();
+
+        fixture.SelectedSubGroup = null;
+        fixture.SelectedSubGroup = "Unit 1";
+
+        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected), Times.Once);
     }
 
     [Test]
