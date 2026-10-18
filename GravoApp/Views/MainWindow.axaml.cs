@@ -6,9 +6,12 @@ using GravoApp.ViewModels;
 namespace GravoApp.Views;
 
 /// <summary>
-/// The main window, which restores and stores its geometry through the <see cref="MainViewModel"/>.
+/// The main window, which restores and stores its geometry through the <see cref="MainViewModel"/>. Initializes the
+/// explorer tab.
+/// <para>
+/// The window calls <see cref="MainViewModel.InitializeAsync"/> to checks the database version after startup.
+/// </para>
 /// </summary>
-/// <remarks>When opened the window checks the database version and shows the explorer tab.</remarks>
 public partial class MainWindow : Window
 {
     public MainWindow()
@@ -34,8 +37,7 @@ public partial class MainWindow : Window
             Height = g.Height;
             WindowState = (WindowState)g.State;
         }
-        await vm.CheckDatabaseVersionAsync();
-        await vm.ShowExplorerCommand.ExecuteAsync(null);
+        await vm.InitializeAsync();
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
