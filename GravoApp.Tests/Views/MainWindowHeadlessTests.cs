@@ -43,4 +43,22 @@ public class MainWindowHeadlessTests
         fixture.GetVisualDescendants().OfType<ExplorerView>().Should().ContainSingle();
         fixture.Close();
     }
+
+    [AvaloniaTest]
+    public void LanguageMenu_ListsTheLanguagesAndChecksTheCurrentOne()
+    {
+        var fixture = new MainWindow { DataContext = MainViewModelTests.CreateFor(Fakes.Localization()) };
+        fixture.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        ((MenuItem)fixture.LanguageMenu.Parent!).Open();
+        Dispatcher.UIThread.RunJobs();
+        fixture.LanguageMenu.Open();
+        Dispatcher.UIThread.RunJobs();
+
+        var items = fixture.LanguageMenu.GetRealizedContainers().OfType<MenuItem>().ToList();
+        items.Select(i => i.Header).Should().Equal("Deutsch", "English");
+        items.Select(i => i.IsChecked).Should().Equal(true, false);
+        fixture.Close();
+    }
 }
