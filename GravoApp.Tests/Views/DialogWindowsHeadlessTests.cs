@@ -135,7 +135,7 @@ public class DialogWindowsHeadlessTests
         live.SeedStandard();
         var viewModel = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties,
             Fakes.Dialogs().Object, Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage,
-            _ => new Mock<IDataBaseOperation>().Object, CoreFactory.Management);
+            _ => new Mock<IDataBaseOperation>().Object, DaoFactory.Management);
 
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<ManagementWindow>().Which;
         fixture.Show();
@@ -185,7 +185,7 @@ public class DialogWindowsHeadlessTests
         live.SeedStandard();
         var viewModel = new ManagementViewModel(live.Vocabulary, live.Management, live.Properties, Fakes.Dialogs().Object,
             Fakes.Texts(), live.FilePath, TempVocabulary.MainLanguage, _ => new Mock<IDataBaseOperation>().Object,
-            CoreFactory.Management);
+            DaoFactory.Management);
 
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<ManagementWindow>().Which;
         fixture.Show();

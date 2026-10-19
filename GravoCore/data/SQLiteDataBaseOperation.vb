@@ -187,4 +187,13 @@ Public Class SQLiteDataBaseOperation
         Return ToDbDate(DateTime.Now)
     End Function
 
+    ''' <summary>
+    ''' Opens a database connection for a given database.
+    ''' </summary>
+    Public Shared Function OpenDatabase(ByVal path As String) As IDataBaseOperation
+        Dim db As IDataBaseOperation = New SQLiteDataBaseOperation()
+        db.Open(path)
+        Return db
+    End Function
+
 End Class

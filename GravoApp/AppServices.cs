@@ -24,14 +24,13 @@ public sealed record AppServices(
     /// </remarks>
     public static AppServices Create(string dbPath, string languagesPath, Func<UiTexts, IDialogService> dialogs)
     {
-        IDataBaseOperation db = new SQLiteDataBaseOperation();
-        db.Open(dbPath);
+        var db = SQLiteDataBaseOperation.OpenDatabase(dbPath);
         var loc = OpenLocalization(languagesPath);
         var texts = new UiTexts(loc);
         var settings = new Settings(new JsonFileSettingsStore(JsonFileSettingsStore.DefaultPath()));
         settings.LoadSettings();
-        return new AppServices(db, dbPath, new VocabularyDatabase(db), CoreFactory.Cards(db),
-            CoreFactory.Management(db), CoreFactory.Properties(db), settings, loc, texts, dialogs(texts));
+        return new AppServices(db, dbPath, new VocabularyDatabase(db), DaoFactory.Cards(db),
+            DaoFactory.Management(db), DaoFactory.Properties(db), settings, loc, texts, dialogs(texts));
     }
 
     /// <summary>
@@ -39,8 +38,7 @@ public sealed record AppServices(
     /// </summary>
     public static ILocalization OpenLocalization(string languagesPath)
     {
-        IDataBaseOperation db = new SQLiteDataBaseOperation();
-        db.Open(languagesPath);
+        var db = SQLiteDataBaseOperation.OpenDatabase(languagesPath);
         return new localization(db);
     }
 }

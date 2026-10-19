@@ -71,8 +71,7 @@ public class UiTextsTests
     {
         var temp = Path.GetTempFileName();
         File.Copy(Path.Combine(AppContext.BaseDirectory, "languages.s3db"), temp, true);
-        IDataBaseOperation db = new SQLiteDataBaseOperation();
-        db.Open(temp);
+        var db = SQLiteDataBaseOperation.OpenDatabase(temp);
         try
         {
             var texts = new UiTexts(new localization(db));

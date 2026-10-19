@@ -246,15 +246,8 @@ public sealed partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task ShowManagementAsync() =>
         await _s.Dialogs.ShowDialogAsync(new ManagementViewModel(_s.Vocabulary, _s.Management, _s.Properties,
-            _s.Dialogs, _s.Texts, _s.DbPath, AppServices.MainLanguage, OpenDatabase, CoreFactory.Management));
-
-    /// <summary>Opens a new database connection for data management operations.</summary>
-    private static IDataBaseOperation OpenDatabase(string path)
-    {
-        IDataBaseOperation db = new SQLiteDataBaseOperation();
-        db.Open(path);
-        return db;
-    }
+            _s.Dialogs, _s.Texts, _s.DbPath, AppServices.MainLanguage, SQLiteDataBaseOperation.OpenDatabase,
+            DaoFactory.Management));
 
     [RelayCommand]
     private async Task ShowOptionsAsync() =>
