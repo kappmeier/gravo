@@ -58,7 +58,7 @@ public class DialogWindowsHeadlessTests
     }
 
     [AvaloniaTest]
-    public void Quiz_CreatesQuizWindowWithLocalizedTextsAndTheQuestion()
+    public async Task Quiz_CreatesQuizWindowWithLocalizedTextsAndTheQuestion()
     {
         var cards = new Mock<ICardsDao>();
         var words = new List<WordEntry> { new("house", "", "", WordType.Substantive, "Haus", "n.", false) };
@@ -70,7 +70,7 @@ public class DialogWindowsHeadlessTests
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
         fixture.Show();
 
-        viewModel.StartAsync().Wait();
+        await viewModel.StartAsync();
         Dispatcher.UIThread.RunJobs();
         fixture.Title.Should().Be("T105");
         fixture.InfoLabel.Content.Should().Be("T95");
