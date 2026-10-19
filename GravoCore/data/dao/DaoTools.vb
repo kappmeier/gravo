@@ -3,7 +3,7 @@
 Public Module DaoTools
 
     ''' <summary>
-    ''' Double quotes are not  allowed in any text stored by the DAOs. A single apostrophe is an
+    ''' Double quotes are not allowed in any text stored by the DAOs. A single apostrophe is an
     ''' accepted letter.
     ''' </summary>
     Public Const ForbiddenCharacters As String = """"
