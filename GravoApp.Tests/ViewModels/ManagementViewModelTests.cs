@@ -42,14 +42,8 @@ public class ManagementViewModelTests
     private ManagementViewModel Create(
         IManagementDao? management = null, Func<IDataBaseOperation, IManagementDao>? managementFor = null) => new(
         _active.Vocabulary, management ?? _active.Management, _active.Properties, _dialogs.Object, Fakes.Texts(),
-        _active.FilePath, TempVocabulary.MainLanguage, OpenDatabase, managementFor ?? CoreFactory.Management);
-
-    private static IDataBaseOperation OpenDatabase(string path)
-    {
-        IDataBaseOperation db = new SQLiteDataBaseOperation();
-        db.Open(path);
-        return db;
-    }
+        _active.FilePath, TempVocabulary.MainLanguage, SQLiteDataBaseOperation.OpenDatabase,
+        managementFor ?? DaoFactory.Management);
 
     /// <summary>Returns a path in the temp directory that does not exist yet and is deleted after the test.</summary>
     private string TempPath()
@@ -450,11 +444,11 @@ public class ManagementViewModelTests
         fixture.ExportGroups.Single(g => g.Name == "Book").IsChecked = true;
         await fixture.ExportCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("Gravo", Strings.ExportDone), Times.Once);
-        var db = OpenDatabase(target);
+        var db = SQLiteDataBaseOperation.OpenDatabase(target);
         try
         {
-            CoreFactory.Dictionary(db).DictionaryLanguages("german").Should().Equal("english");
-            CoreFactory.Groups(db).GetGroups().Should().Equal("Book");
+            DaoFactory.Dictionary(db).DictionaryLanguages("german").Should().Equal("english");
+            DaoFactory.Groups(db).GetGroups().Should().Equal("Book");
         }
         finally
         {
