@@ -4,6 +4,7 @@ using GravoApp.Services;
 
 namespace GravoApp;
 
+/// <summary>Position, size and state of the main window as stored in the settings.</summary>
 public readonly record struct WindowGeometry(int X, int Y, int Width, int Height, WindowStateSetting State);
 
 /// <summary>

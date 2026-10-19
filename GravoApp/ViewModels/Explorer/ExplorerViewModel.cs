@@ -492,8 +492,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <remarks>
     /// <para>
     /// Main entries, groups, sub groups and group words can be renamed. Together with a main entry also equal words
-    /// receive the new name. Letters keep their name without a message, the roots, main languages and languages
-    /// show a warning.
+    /// receive the new name. Letters keep their name without a message. The roots, main languages and languages show
+    /// a warning.
     /// </para>
     /// <para>
     /// An empty or unchanged name does nothing. A failed rename shows the error and leaves the tree unchanged. After

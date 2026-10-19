@@ -2,7 +2,11 @@ using GravoApp.ViewModels;
 
 namespace GravoApp.Services;
 
-/// <summary>Windows, message boxes, and file pickers, etc. opened by view models.</summary>
+/// <summary>
+/// Defines methods to open dialogs and windows. This covers general methods as well as specific dialogs such as
+/// message boxes and file pickers. Custom dialogs are opened by view models, standard dialogs only require defining
+/// parameters.
+/// </summary>
 /// <remarks>This is the central definition for all dialog interactions in the application.</remarks>
 public interface IDialogService
 {
