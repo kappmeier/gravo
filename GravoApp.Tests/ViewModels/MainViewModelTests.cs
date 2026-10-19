@@ -334,6 +334,41 @@ public class MainViewModelTests
     }
 
     [Test]
+    public async Task SaveDatabaseAs_Cancelled_CopiesNothingAndShowsNothing()
+    {
+        File.WriteAllText(_dbPath, "db");
+        try
+        {
+            await Create().SaveDatabaseAsCommand.ExecuteAsync(null);
+
+            _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+        finally
+        {
+            File.Delete(_dbPath);
+        }
+    }
+
+    [Test]
+    public async Task SaveDatabaseAs_CopyFails_ShowsAnErrorMessage()
+    {
+        File.WriteAllText(_dbPath, "db");
+        var target = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "missing-dir", "copy.s3db");
+        _dialogs.Setup(d => d.PickSaveFileAsync(It.IsAny<string>(), "s3db", It.IsAny<string?>()))
+            .ReturnsAsync(target);
+        try
+        {
+            await Create().SaveDatabaseAsCommand.ExecuteAsync(null);
+
+            _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, It.IsAny<string>()), Times.Once);
+        }
+        finally
+        {
+            File.Delete(_dbPath);
+        }
+    }
+
+    [Test]
     public void Exit_RequestsClose()
     {
         var viewModel = Create();

@@ -30,5 +30,17 @@ public class ViewLocatorTests
     }
 
     [Test]
+    public void CreateWindow_WithoutAWindowClass_Throws()
+    {
+        var act = () => ViewLocator.CreateWindow(new OrphanViewModel());
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*OrphanWindow*");
+    }
+
+    [Test]
     public void Match_NonViewModel_IsFalse() => new ViewLocator().Match("text").Should().BeFalse();
+
+    private sealed class OrphanViewModel : ViewModelBase
+    {
+    }
 }

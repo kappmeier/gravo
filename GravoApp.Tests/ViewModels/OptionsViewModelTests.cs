@@ -60,6 +60,26 @@ public class OptionsViewModelTests
     }
 
     [Test]
+    public void Ok_LeavesTheOtherSettingsUntouched()
+    {
+        var settings = Fakes.DefaultSettings(out _, new Dictionary<string, string>
+        {
+            ["LastGroup"] = "Verbs",
+            ["WindowSettingsMainHeight"] = "900",
+            ["MainWindowState"] = "2",
+        });
+
+        var fixture = Create(settings);
+        fixture.TestSetPhrases = true;
+
+        fixture.OkCommand.Execute(null);
+
+        settings.LastGroup.Should().Be("Verbs");
+        settings.MainWindowSettings.height.Should().Be(900);
+        settings.MainWindowState.Should().Be(WindowStateSetting.Maximized);
+    }
+
+    [Test]
     public void Cancel_LeavesSettingsAndDoesNotSave()
     {
         var settings = Fakes.DefaultSettings(out var store);

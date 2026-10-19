@@ -148,4 +148,20 @@ public class DialogServiceHeadlessTests
 
         probe.ClosedCount.Should().Be(1);
     }
+
+    [AvaloniaTest]
+    public void ShowWindow_OpensANonModalWindowThatClosesWithTheViewModel()
+    {
+        var owner = Owner();
+        var probeViewModel = new ProbeViewModel();
+
+        new DialogService(() => owner, Fakes.Texts()).ShowWindow(probeViewModel);
+        Dispatcher.UIThread.RunJobs();
+
+        var window = owner.OwnedWindows.OfType<ProbeWindow>().Should().ContainSingle().Which;
+        window.IsVisible.Should().BeTrue();
+        probeViewModel.Close(true);
+        Dispatcher.UIThread.RunJobs();
+        owner.OwnedWindows.OfType<ProbeWindow>().Should().BeEmpty();
+    }
 }
