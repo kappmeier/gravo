@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AwesomeAssertions;
 using Gravo;
 using GravoApp.Tests.Support;
@@ -19,13 +20,8 @@ public class TabViewsHeadlessTests
     {
         using var voc = new TempVocabulary();
         voc.SeedStandard();
-        var viewModel = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
-            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+        var (viewModel, window, fixture) = CreateWordEditorTestInstance(voc);
 
-        var fixture = new ViewLocator().Build(viewModel).Should().BeOfType<ExplorerView>().Which;
-        var window = new Window { Content = fixture };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
         fixture.FindControl<TreeView>("Tree")!.ItemCount.Should().Be(2);
 
         var grid = fixture.FindControl<DataGrid>("RowsGrid")!;
@@ -43,13 +39,8 @@ public class TabViewsHeadlessTests
     {
         using var voc = new TempVocabulary();
         voc.SeedStandard();
-        var viewModel = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
-            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+        var (viewModel, window, fixture) = CreateWordEditorTestInstance(voc);
 
-        var fixture = new ViewLocator().Build(viewModel).Should().BeOfType<ExplorerView>().Which;
-        var window = new Window { Content = fixture };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
         var editor = fixture.FindControl<WordEditorView>("WordEditor")!;
         editor.IsVisible.Should().BeFalse();
         fixture.FindControl<MenuItem>("PanelsMenu")!.Header.Should().Be("T" + localization.EXPLORER_MENU_PANELS);
@@ -68,16 +59,51 @@ public class TabViewsHeadlessTests
     }
 
     [AvaloniaTest]
+    public void WordEditor_LabelsGetLocalized()
+    {
+        using var voc = new TempVocabulary();
+        voc.SeedStandard();
+        var (viewModel, window, explorerView) = CreateWordEditorTestInstance(voc);
+
+        var editor = explorerView.FindControl<WordEditorView>("WordEditor")!;
+        var english = viewModel.Roots[0].Children[0].Children[0];
+        english.IsExpanded = true;
+        viewModel.SelectedNode = english.Children.Single(n => n.Title == "H");
+        Dispatcher.UIThread.RunJobs();
+
+        var labels = editor.GetVisualDescendants().OfType<Label>().Select(l => l.Content?.ToString()).ToList();
+        Console.WriteLine($"Labels: {string.Join(", ", labels)}");
+        labels.Should().Contain("T" + localization.WORDS_MAIN_ENTRY + ":")
+            .And.Contain("T" + localization.WORDS_WORD_TYPE + ":")
+            .And.Contain("T" + localization.WORDS_MAIN_LANGUAGE + ":");
+
+        window.Close();
+    }
+
+    private static (ExplorerViewModel viewModel, Window window, Control explorerView)
+    CreateWordEditorTestInstance(TempVocabulary voc)
+    {
+        var viewModel = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
+            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+
+        var built = new ViewLocator().Build(viewModel);
+        var explorerView = built.Should().BeOfType<ExplorerView>().Which;
+
+        var window = new Window { Content = explorerView };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+
+        return (viewModel, window, explorerView);
+    }
+
+    [AvaloniaTest]
     public void Explorer_ShowsMultiEditorForSeveralRowsAndKeepsThemSelected()
     {
         using var voc = new TempVocabulary();
         voc.SeedStandard();
-        var viewModel = new ExplorerViewModel(voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
-            Fakes.Dialogs().Object, TempVocabulary.MainLanguage);
+        var (viewModel, window, fixture) = CreateWordEditorTestInstance(voc);
 
-        var fixture = new ViewLocator().Build(viewModel).Should().BeOfType<ExplorerView>().Which;
-        var window = new Window { Content = fixture };
-        window.Show();
         var english = viewModel.Roots[0].Children[0].Children[0];
         english.IsExpanded = true;
         viewModel.SelectedNode = english.Children.Single(n => n.Title == "H");
