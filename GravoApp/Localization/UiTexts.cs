@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -39,6 +40,21 @@ public sealed class UiTexts : ObservableObject
     /// WinForms mnemonics are removed, so "&amp;x" becomes "x" and "&amp;&amp;" becomes "&amp;". A "_" stays as it is.
     /// </remarks>
     public string Get(int code) => Regex.Replace(_loc.GetText(code), "&(&?)", "$1");
+
+    /// <summary>
+    /// Formats a text specified by it's name with localized texts and filled placeholders.
+    /// <remarks>
+    /// Takes the plain text for <paramref name="constantName"/> and fills the <c>{0}</c>, <c>{1}</c> placeholders
+    /// with the values from <paramref name="args"/>.
+    /// </remarks>
+    /// <param name="constantName">The name of the constant whose localized text is to be formatted.</param>
+    /// <param name="args">The objects to format into the localized text's placeholders.</param>
+    /// </summary>
+    public string Format(string constantName, params object?[] args)
+    {
+        var code = Codes[constantName];
+        return string.Format(CultureInfo.CurrentCulture, Get(code), args);
+    }
 
     private static string ToAccessKeys(string text) =>
         Regex.Replace(text, "&&|&|_", m => m.Value switch { "&&" => "&", "&" => "_", _ => "__" });

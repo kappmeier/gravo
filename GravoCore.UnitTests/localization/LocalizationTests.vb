@@ -1,4 +1,6 @@
 ﻿Imports System.IO
+Imports System.Reflection
+Imports System.Text.RegularExpressions
 Imports AwesomeAssertions
 Imports Gravo
 Imports Microsoft.Data.Sqlite
@@ -92,5 +94,43 @@ Public Class LocalizationTests
     Public Sub GetText_MissingField_ThrowsKeyNotFound()
         Assert.Throws(Of KeyNotFoundException)(Sub() _loc.GetText(9999)).
             Message.Should.Be("No text 9999 in the language table german.")
+    End Sub
+
+    Private Shared Function ConstantCodes() As IEnumerable(Of Integer)
+        Return GetType(localization).GetFields(BindingFlags.Public Or BindingFlags.Static).
+            Where(Function(f) f.IsLiteral AndAlso f.FieldType Is GetType(Integer)).
+            Select(Function(f) CInt(f.GetRawConstantValue())).Distinct().ToList()
+    End Function
+
+    <Test>
+    Public Sub EveryConstant_HasATextInEnglishAndGerman()
+        For Each table In {"german", "english"}
+            _loc.Language = table
+            For Each code In ConstantCodes()
+                _loc.GetText(code).
+                    Should.NotBeNullOrEmpty("field {0} must have a row in {1}", code, table)
+            Next
+        Next
+    End Sub
+
+    <Test>
+    Public Sub EveryConstant_HasTheSamePlaceholdersInEveryLanguage()
+        Dim placeholder As New Regex("\{\d\}")
+        For Each code In ConstantCodes()
+            _loc.Language = "german"
+            Dim german = placeholder.Matches(_loc.GetText(code)).
+                Cast(Of Match).
+                Select(Function(m) m.Value).
+                OrderBy(Function(v) v).
+                ToList()
+            _loc.Language = "english"
+            Dim english = placeholder.Matches(_loc.GetText(code)).
+                Cast(Of Match).
+                Select(Function(m) m.Value).
+                OrderBy(Function(v) v).
+                ToList()
+            english.Should.Equal(
+                german, "field {0} must take the same arguments in both languages", code)
+        Next
     End Sub
 End Class
