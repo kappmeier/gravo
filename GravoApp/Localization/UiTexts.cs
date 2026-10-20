@@ -43,13 +43,13 @@ public sealed class UiTexts : ObservableObject
 
     /// <summary>
     /// Formats a text specified by it's name with localized texts and filled placeholders.
+    /// </summary>
     /// <remarks>
     /// Takes the plain text for <paramref name="constantName"/> and fills the <c>{0}</c>, <c>{1}</c> placeholders
     /// with the values from <paramref name="args"/>.
     /// </remarks>
     /// <param name="constantName">The name of the constant whose localized text is to be formatted.</param>
     /// <param name="args">The objects to format into the localized text's placeholders.</param>
-    /// </summary>
     public string Format(string constantName, params object?[] args)
     {
         var code = Codes[constantName];
