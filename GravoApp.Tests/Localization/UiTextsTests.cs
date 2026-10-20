@@ -57,6 +57,18 @@ public class UiTextsTests
     }
 
     [Test]
+    public void Format_InsertsTheArguments()
+    {
+        var loc = Fakes.Localization();
+        loc.Setup(l => l.GetText(localization.MAIN_COPY_FAILED)).Returns("Kopieren: {0}");
+
+        var fixture = new UiTexts(loc.Object);
+
+        var text = fixture.Format("MAIN_COPY_FAILED", "x");
+        text.Should().Be("Kopieren: x");
+    }
+
+    [Test]
     public void Refresh_RaisesIndexerChanged()
     {
         var texts = Fakes.Texts();
@@ -76,6 +88,29 @@ public class UiTextsTests
         {
             var texts = new UiTexts(new localization(db));
             texts["MAIN_MENU_FILE"].Should().Be("_Datei");
+        }
+        finally
+        {
+            db.Close();
+            SqliteConnection.ClearAllPools();
+            File.Delete(temp);
+        }
+    }
+
+    [Test]
+    public void Format_RealDatabase_FormatsTheGermanText()
+    {
+        var temp = Path.GetTempFileName();
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "languages.s3db"), temp, true);
+        var db = SQLiteDataBaseOperation.OpenDatabase(temp);
+        try
+        {
+            var fixture = new UiTexts(new localization(db));
+
+            var text = fixture.Format("MAIN_CHECK_DATABASE_FIXED", 3);
+
+            text.Should()
+                .Be("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden 3 Fehler behoben.");
         }
         finally
         {
