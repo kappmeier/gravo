@@ -24,7 +24,7 @@ public sealed partial class MainViewModel : ViewModelBase
     public MainViewModel(AppServices services)
     {
         _s = services;
-        Title = "Gravo";
+        Title = AppServices.ProductName;
         Languages = new ObservableCollection<LanguageMenuItem>(
             _s.Localization.GetLanguageNames().Select(n => new LanguageMenuItem(n, SwitchLanguage)));
         if (Languages.Any(l => l.Name == DefaultLanguage))
@@ -62,7 +62,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            await _s.Dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
         }
     }
 
@@ -129,7 +129,7 @@ public sealed partial class MainViewModel : ViewModelBase
             }
             catch (DataInvalidException ex)
             {
-                await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+                await _s.Dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
                 return;
             }
         }
@@ -149,7 +149,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
         catch (DataInvalidException ex)
         {
-            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            await _s.Dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
             return;
         }
         await _s.Dialogs.ShowDialogAsync(input);
@@ -225,20 +225,25 @@ public sealed partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            await _s.Dialogs.ShowMessageAsync(Strings.ErrorTitle, Strings.CopyFailed(ex.Message));
+            await _s.Dialogs.ShowMessageAsync(
+                Texts.Get(localization.ERROR_TITLE), Texts.Format("MAIN_COPY_FAILED", ex.Message));
         }
     }
 
     [RelayCommand]
     private async Task CheckDatabaseAsync()
     {
-        if (!await _s.Dialogs.ConfirmAsync(Strings.HintTitle, Strings.CheckDatabaseQuestion))
+        if (!await _s.Dialogs.ConfirmAsync(
+                Texts.Get(localization.HINT_TITLE), Texts.Get(localization.MAIN_CHECK_DATABASE_QUESTION)))
         {
             return;
         }
         var errors = _s.Management.Reorganize();
         await _s.Dialogs.ShowMessageAsync(
-            Strings.HintTitle, errors > 0 ? Strings.CheckDatabaseFixed(errors) : Strings.CheckDatabaseClean);
+            Texts.Get(localization.HINT_TITLE),
+            errors > 0
+                ? Texts.Format("MAIN_CHECK_DATABASE_FIXED", errors)
+                : Texts.Get(localization.MAIN_CHECK_DATABASE_CLEAN));
     }
 
     /// <summary>Opens the data management dialog.</summary>

@@ -27,7 +27,7 @@ public sealed partial class OptionsViewModel : ViewModelBase
         _management = management;
         _dialogs = dialogs;
         Texts = texts;
-        Title = Strings.OptionsTitle;
+        Title = texts.Get(localization.OPTIONS_TITLE);
         TestTargetLanguage = settings.QueryLanguage == QueryLanguage.TargetLanguage;
         TestSetPhrases = settings.TestSetPhrases;
         SaveWindowPosition = settings.SaveWindowPosition;
@@ -70,7 +70,7 @@ public sealed partial class OptionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialogs.ShowMessageAsync(Strings.ErrorTitle, ex.Message);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
         }
     }
 }

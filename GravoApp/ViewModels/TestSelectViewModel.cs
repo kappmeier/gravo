@@ -94,7 +94,10 @@ public sealed partial class TestSelectViewModel : ViewModelBase
 
         var entry = _groups.GetGroup(SelectedGroup, value);
         SelectedGroupEntry = entry;
-        WordCountText = Strings.WordsToTest(_group.Load(ref entry).WordCount);
+        var count = _group.Load(ref entry).WordCount;
+        WordCountText = count == 1
+            ? Texts.Format("TEST_SELECT_WORDS_TO_TEST_ONE", count)
+            : Texts.Format("TEST_SELECT_WORDS_TO_TEST_MANY", count);
     }
 
     [RelayCommand]

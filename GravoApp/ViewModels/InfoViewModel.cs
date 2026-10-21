@@ -1,24 +1,26 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gravo;
 using GravoApp.Localization;
 
 namespace GravoApp.ViewModels;
 
-/// <summary>Behavior and model for the info dialog showing the product name, version, and copyright information, etc.</summary>
+/// <summary>
+/// Behavior and model for the info dialog showing the product name, version and copyright. The disclaimer and the old
+/// copyright line are <see cref="UiTexts">localized</see>.
+/// </summary>
 public sealed partial class InfoViewModel : ViewModelBase
 {
-    [ObservableProperty] private bool _german;
+    public const string CopyrightName = "Jan-Philipp Kappmeier";
+    public const string Copyright = "© 1995-2026";
+    public const string Link = "http://www.kappmeier.de";
 
     public InfoViewModel(IManagementDao management, UiTexts texts)
     {
         Texts = texts;
-        Title = Strings.InfoTitle;
-        VersionText = Strings.InfoVersion(FormatVersion(typeof(App).Assembly.GetName().Version));
+        Title = texts.Get(localization.INFO_TITLE);
+        VersionText = texts.Format("INFO_VERSION", FormatVersion(typeof(App).Assembly.GetName().Version));
         var latest = management.LatestVersion;
-        DbVersionText = Strings.InfoDbVersion(latest.Major + "." + latest.Minor);
-        Disclaimer = Strings.InfoDisclaimerEnglish;
-        CopyrightOld = Strings.InfoCopyrightOldEnglish;
+        DbVersionText = texts.Format("INFO_DB_VERSION", latest.Major + "." + latest.Minor);
     }
 
     public UiTexts Texts { get; }
@@ -26,23 +28,6 @@ public sealed partial class InfoViewModel : ViewModelBase
     public string VersionText { get; }
 
     public string DbVersionText { get; }
-
-    /// <summary>
-    /// The disclaimer text. Starts as the WinForms load-time English text; once <see cref="German"/> is set,
-    /// in either direction, it switches to the German text or the toggled-back English text.
-    /// </summary>
-    public string Disclaimer { get; private set; }
-
-    /// <summary>The old copyright line, switched together with <see cref="Disclaimer"/>.</summary>
-    public string CopyrightOld { get; private set; }
-
-    partial void OnGermanChanged(bool value)
-    {
-        Disclaimer = value ? Strings.InfoDisclaimerGerman : Strings.InfoDisclaimerEnglish;
-        CopyrightOld = value ? Strings.InfoCopyrightOldGerman : Strings.InfoCopyrightOldEnglish;
-        OnPropertyChanged(nameof(Disclaimer));
-        OnPropertyChanged(nameof(CopyrightOld));
-    }
 
     private static string FormatVersion(Version? version)
     {
