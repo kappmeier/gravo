@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
 using Moq;
@@ -21,38 +20,13 @@ public class InfoViewModelTests
     }
 
     [Test]
-    public void Constructor_FormatsDbVersionFromLatestVersion()
-    {
-        var management = new Mock<IManagementDao>();
-        management.Setup(m => m.LatestVersion)
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
-        var fixture = new InfoViewModel(management.Object, Fakes.Texts());
-        fixture.DbVersionText.Should().Be("DB-Version: 1.7");
-    }
-
-    [Test]
-    public void German_Toggle_SwapsDisclaimerAndCopyrightOld()
+    public void Constructor_ReadsLocalizedTexts()
     {
         var fixture = Create();
-        fixture.Disclaimer.Should().Be(Strings.InfoDisclaimerEnglish);
-        fixture.CopyrightOld.Should().Be(Strings.InfoCopyrightOldEnglish);
 
-        fixture.German = true;
-
-        fixture.Disclaimer.Should().Be(Strings.InfoDisclaimerGerman);
-        fixture.CopyrightOld.Should().Be(Strings.InfoCopyrightOldGerman);
-
-        fixture.German = false;
-
-        fixture.Disclaimer.Should().Be(Strings.InfoDisclaimerEnglish);
-        fixture.CopyrightOld.Should().Be(Strings.InfoCopyrightOldEnglish);
-    }
-
-    [Test]
-    public void Title_IsProductTitle()
-    {
-        var fixture = Create();
-        fixture.Title.Should().Be("Gravo 7 Sprachtrainer info");
+        fixture.Title.Should().Be("T219");
+        fixture.VersionText.Should().Be("T220");
+        fixture.DbVersionText.Should().Be("T221");
     }
 
     [Test]

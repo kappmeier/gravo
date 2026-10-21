@@ -117,7 +117,7 @@ public class MainViewModelTests
         var fixture = Create();
         await fixture.ShowExplorerCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "Word type invalid."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "Word type invalid."), Times.Once);
         fixture.Tabs.Should().BeEmpty();
     }
 
@@ -139,7 +139,7 @@ public class MainViewModelTests
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
         _properties.Setup(p => p.LoadWordTypes()).Throws(new DataInvalidException("Word type invalid."));
         await Create().AddWordsCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync("Fehler", "Word type invalid."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "Word type invalid."), Times.Once);
         _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<ViewModelBase>()), Times.Never);
     }
 
@@ -251,7 +251,7 @@ public class MainViewModelTests
         var fixture = Create();
         await fixture.InitializeAsync();
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "boom"), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "boom"), Times.Once);
     }
 
     [Test]
@@ -303,7 +303,7 @@ public class MainViewModelTests
     {
         _management.Setup(m => m.Reorganize()).Returns(3);
         await Create().CheckDatabaseCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.CheckDatabaseFixed(3)), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T124"), Times.Once);
     }
 
     [Test]
@@ -360,7 +360,7 @@ public class MainViewModelTests
         {
             await Create().SaveDatabaseAsCommand.ExecuteAsync(null);
 
-            _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, It.IsAny<string>()), Times.Once);
+            _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
         }
         finally
         {

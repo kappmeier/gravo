@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -34,7 +33,7 @@ public class OptionsViewModelTests
         fixture.SaveWindowPosition.Should().BeTrue();
         fixture.UseCards.Should().BeFalse();
         fixture.CardsInitialInterval.Should().Be(8);
-        fixture.Title.Should().Be("Optionen");
+        fixture.Title.Should().Be("T208");
     }
 
     [Test]
@@ -130,6 +129,6 @@ public class OptionsViewModelTests
         management.Setup(m => m.CopyGlobalCardsToGroups()).Throws(new InvalidOperationException("boom"));
         var dialogs = Fakes.Dialogs();
         await Create(Fakes.DefaultSettings(out _), management, dialogs).CopyCardsCommand.ExecuteAsync(null);
-        dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "boom"), Times.Once);
+        dialogs.Verify(d => d.ShowMessageAsync("T104", "boom"), Times.Once);
     }
 }

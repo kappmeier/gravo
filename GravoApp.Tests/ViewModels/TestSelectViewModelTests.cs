@@ -54,7 +54,7 @@ public class TestSelectViewModelTests
         fixture.SelectedGroup.Should().Be("Language Book");
         fixture.SelectedSubGroup.Should().Be("Unit 1");
         fixture.SelectedGroupEntry.Should().BeSameAs(_unit1);
-        fixture.WordCountText.Should().Be("2 Vokabeln abzufragen.");
+        fixture.WordCountText.Should().Be("T171");
     }
 
     [Test]
@@ -71,7 +71,7 @@ public class TestSelectViewModelTests
         fixture.SelectedGroup.Should().Be("Other Group");
         fixture.SelectedSubGroup.Should().Be("Some Words");
         fixture.SelectedGroupEntry.Should().BeSameAs(_words);
-        fixture.WordCountText.Should().Be("0 Vokabeln abzufragen.");
+        fixture.WordCountText.Should().Be("T171");
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class TestSelectViewModelTests
 
         fixture.SelectedGroup.Should().Be("Language Book");
         fixture.SelectedSubGroup.Should().Be("Unit 2");
-        fixture.WordCountText.Should().Be("1 Vokabel abzufragen.");
+        fixture.WordCountText.Should().Be("T170");
     }
 
     [Test]
@@ -108,7 +108,7 @@ public class TestSelectViewModelTests
         fixture.SelectedGroup = "Other Group";
         fixture.SubGroups.Should().Equal("Some Words");
         fixture.SelectedSubGroup.Should().Be("Some Words");
-        fixture.WordCountText.Should().Be("0 Vokabeln abzufragen.");
+        fixture.WordCountText.Should().Be("T171");
     }
 
     [Test]
@@ -118,7 +118,7 @@ public class TestSelectViewModelTests
 
         fixture.SelectedSubGroup = "Unit 2";
         fixture.SelectedGroupEntry.Should().BeSameAs(_unit2);
-        fixture.WordCountText.Should().Be("1 Vokabel abzufragen.");
+        fixture.WordCountText.Should().Be("T170");
     }
 
 

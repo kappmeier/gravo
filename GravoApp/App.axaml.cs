@@ -2,6 +2,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Gravo;
 using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.ViewModels;
@@ -27,7 +28,8 @@ public partial class App : Application
             {
                 var texts = new UiTexts(AppServices.OpenLocalization(languagesPath));
                 desktop.MainWindow = new MessageWindow(
-                    Strings.ErrorTitle, Strings.DatabaseNotFound(dbPath), confirm: false, texts);
+                    texts.Get(localization.ERROR_TITLE), texts.Format("STARTUP_DATABASE_NOT_FOUND", dbPath),
+                    confirm: false, texts);
             }
             else
             {

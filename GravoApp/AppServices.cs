@@ -16,6 +16,9 @@ public sealed record AppServices(
 {
     public const string MainLanguage = "german";
 
+    /// <summary>The product name in the main window title and the about dialog.</summary>
+    public const string ProductName = "Gravo";
+
     /// <summary>
     /// Initializes the application services: Opens the databases for vocabulary and languages and loads the settings.
     /// </summary>

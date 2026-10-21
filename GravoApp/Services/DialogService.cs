@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Gravo;
 using GravoApp.Localization;
 using GravoApp.ViewModels;
 using GravoApp.Views;
@@ -67,6 +68,9 @@ public sealed class DialogService : IDialogService
         return file?.TryGetLocalPath();
     }
 
-    private static FilePickerFileType Filter(string extension) =>
-        new(Strings.DatabaseFilter + " (*." + extension + ")") { Patterns = new[] { "*." + extension } };
+    private FilePickerFileType Filter(string extension) =>
+        new(_texts.Get(localization.FILE_FILTER_DATABASES) + " (*." + extension + ")")
+        {
+            Patterns = new[] { "*." + extension },
+        };
 }

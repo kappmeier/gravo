@@ -1,37 +1,36 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:GravoApp.ViewModels"
-        xmlns:loc="using:GravoApp.Localization"
         x:Class="GravoApp.Views.OptionsWindow"
         x:DataType="vm:OptionsViewModel"
         Title="{Binding Title}"
         SizeToContent="WidthAndHeight" CanResize="False"
         WindowStartupLocation="CenterOwner">
     <StackPanel Margin="16" Spacing="12" MinWidth="360">
-        <TextBlock Text="{x:Static loc:Strings.OptionsTestSection}" FontWeight="Bold" />
-        <CheckBox Content="{x:Static loc:Strings.OptionsTestTargetLanguage}"
+        <TextBlock Text="{Binding Texts[OPTIONS_TEST_SECTION]}" FontWeight="Bold" />
+        <CheckBox Content="{Binding Texts[OPTIONS_TEST_TARGET_LANGUAGE]}"
                   IsChecked="{Binding TestTargetLanguage, Mode=TwoWay}" />
-        <CheckBox Content="{x:Static loc:Strings.OptionsTestSetPhrases}"
+        <CheckBox Content="{Binding Texts[OPTIONS_TEST_SET_PHRASES]}"
                   IsChecked="{Binding TestSetPhrases, Mode=TwoWay}" />
 
-        <TextBlock Text="{x:Static loc:Strings.OptionsDisplaySection}" FontWeight="Bold" />
-        <CheckBox Content="{x:Static loc:Strings.OptionsSaveWindowPosition}"
+        <TextBlock Text="{Binding Texts[OPTIONS_DISPLAY_SECTION]}" FontWeight="Bold" />
+        <CheckBox Content="{Binding Texts[OPTIONS_SAVE_WINDOW_POSITION]}"
                   IsChecked="{Binding SaveWindowPosition, Mode=TwoWay}" />
 
-        <TextBlock Text="{x:Static loc:Strings.OptionsStrategies}" FontWeight="Bold" />
-        <CheckBox Content="{x:Static loc:Strings.OptionsUseCards}" IsChecked="{Binding UseCards, Mode=TwoWay}" />
+        <TextBlock Text="{Binding Texts[OPTIONS_STRATEGIES]}" FontWeight="Bold" />
+        <CheckBox Content="{Binding Texts[OPTIONS_USE_CARDS]}" IsChecked="{Binding UseCards, Mode=TwoWay}" />
 
         <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="{x:Static loc:Strings.OptionsInitialValue}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Texts[OPTIONS_INITIAL_VALUE]}" VerticalAlignment="Center" />
             <Button Content="−" Command="{Binding DecreaseIntervalCommand}" />
             <TextBlock Text="{Binding CardsInitialInterval}" MinWidth="40" TextAlignment="Center"
                        VerticalAlignment="Center" />
             <Button Content="+" Command="{Binding IncreaseIntervalCommand}" />
         </StackPanel>
 
-        <TextBlock Text="{x:Static loc:Strings.OptionsCardsHint}" TextWrapping="Wrap" MaxWidth="360" />
+        <TextBlock Text="{Binding Texts[OPTIONS_CARDS_HINT]}" TextWrapping="Wrap" MaxWidth="360" />
 
-        <Button Content="{x:Static loc:Strings.OptionsCopyCards}" Command="{Binding CopyCardsCommand}"
+        <Button Content="{Binding Texts[OPTIONS_COPY_CARDS]}" Command="{Binding CopyCardsCommand}"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
