@@ -408,7 +408,7 @@ public class MainViewModelTests
             .ReturnsAsync(false);
         await Create().ShowManagementCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<ManagementViewModel>()), Times.Once);
-        management!.VersionButtonText.Should().Be("Auf aktueller Version 1.7");
+        management!.VersionButtonText.Should().Be("T206");
     }
 
     [Test]
