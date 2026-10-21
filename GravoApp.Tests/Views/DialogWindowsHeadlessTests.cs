@@ -142,13 +142,13 @@ public class DialogWindowsHeadlessTests
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<ManagementWindow>().Which;
         fixture.Show();
 
-        fixture.Title.Should().Be("Daten-Management");
+        fixture.Title.Should().Be("T172");
         fixture.GroupAddButton.Content.Should().Be("T82");
         fixture.GroupEditButton.Content.Should().Be("T83");
         fixture.CloseButton.Content.Should().Be("T84");
         fixture.GroupList.SelectedItem.Should().Be("Book");
         fixture.GroupNameBox.Text.Should().Be("Book");
-        fixture.GroupInfoText.Text.Should().Be("2 Einträge");
+        fixture.GroupInfoText.Text.Should().Be("2 T109");
     }
 
     [AvaloniaTest]

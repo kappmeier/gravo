@@ -1,7 +1,6 @@
 using System.IO;
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -54,7 +53,7 @@ public class ManagementViewModelTests
     }
 
     private void PickForImport(string path) =>
-        _dialogs.Setup(d => d.PickOpenFileAsync(Strings.SelectFile, "s3db")).ReturnsAsync(path);
+        _dialogs.Setup(d => d.PickOpenFileAsync("T180", "s3db")).ReturnsAsync(path);
 
     private static Mock<IManagementDao> Outdated()
     {
@@ -71,29 +70,28 @@ public class ManagementViewModelTests
     public void Constructor_ListsGroupsUnitsLanguagesAndVersion()
     {
         var fixture = Create();
-        fixture.Title.Should().Be("Daten-Management");
+        fixture.Title.Should().Be("T172");
         fixture.GroupNames.Should().Equal("Book", "Other");
         fixture.HasGroups.Should().BeTrue();
         fixture.SelectedGroup.Should().Be("Book");
         fixture.GroupName.Should().Be("Book");
-        fixture.GroupInfo.Should().Be("2 Einträge");
+        fixture.GroupInfo.Should().Be("2 T109");
         fixture.SelectedUnitGroup.Should().Be("Book");
         fixture.Units.Should().Equal("Unit 1", "Unit 2");
         fixture.SelectedUnit.Should().Be("Unit 1");
         fixture.UnitName.Should().Be("Unit 1");
-        fixture.UnitInfo.Should().Be("2 Einträge" + NL + "1 benutzte Sprache");
+        fixture.UnitInfo.Should().Be("2 T109" + NL + "T186");
         fixture.ExportLanguages.Select(l => l.Name).Should().Equal("english", "french");
         fixture.ExportGroups.Select(g => g.Name).Should().Equal("Book", "Other");
         fixture.ExportLanguages.Concat(fixture.ExportGroups).Should().OnlyContain(i => !i.IsChecked);
         fixture.ExportSkipEmptyMains.Should().BeFalse();
-        fixture.VersionButtonText.Should().StartWith("Auf aktueller Version 1.");
+        fixture.VersionButtonText.Should().Be("T206");
         fixture.CanUpdateVersion.Should().BeFalse();
-        fixture.ErrorCountText.Should().Be("Gefundene und behobene Fehler: keine Überprüfung durchgeführt");
-        fixture.ImportDatabaseText.Should().Be("Datenbank: noch keine gewählt");
+        fixture.ErrorCountText.Should().Be("T192");
+        fixture.ImportDatabaseText.Should().Be("T195");
         fixture.CanImport.Should().BeFalse();
-        fixture.ImportDictCountText.Should().Be("Importierte Haupteinträge: " + NL + "Importierte Untereinträge: ");
-        fixture.ImportGroupCountText.Should().Be(
-            "Importierte Gruppen: " + NL + "Importierte Untergruppen: " + NL + "Importierte Gruppeneinträge: ");
+        fixture.ImportDictCountText.Should().Be("T201");
+        fixture.ImportGroupCountText.Should().Be("T202");
     }
 
     [Test]
@@ -102,7 +100,7 @@ public class ManagementViewModelTests
         var fixture = Create();
         fixture.SelectedGroup = "Other";
         fixture.GroupName.Should().Be("Other");
-        fixture.GroupInfo.Should().Be("1 Eintrag");
+        fixture.GroupInfo.Should().Be("1 T110");
     }
 
     [Test]
@@ -112,7 +110,7 @@ public class ManagementViewModelTests
         fixture.SelectedUnitGroup = "Other";
         fixture.Units.Should().Equal("Words");
         fixture.SelectedUnit.Should().Be("Words");
-        fixture.UnitInfo.Should().Be("1 Eintrag" + NL + "1 benutzte Sprache");
+        fixture.UnitInfo.Should().Be("1 T110" + NL + "T186");
     }
 
     [Test]
@@ -121,7 +119,7 @@ public class ManagementViewModelTests
         var fixture = Create();
         fixture.GroupName = "New";
         await fixture.AddGroupCommand.ExecuteAsync(null);
-        _active.Groups.GetSubGroups("New").Single().SubGroup.Should().Be("Untereintrag 1");
+        _active.Groups.GetSubGroups("New").Single().SubGroup.Should().Be("T188");
         fixture.GroupNames.Should().Contain("New");
         fixture.ExportGroups.Select(g => g.Name).Should().Contain("New");
     }
@@ -133,7 +131,7 @@ public class ManagementViewModelTests
         fixture.GroupName = "Book";
         await fixture.AddGroupCommand.ExecuteAsync(null);
         _active.Groups.GetSubGroups("Book").Select(g => g.SubGroup)
-            .Should().Equal("Unit 1", "Unit 2", "Untereintrag 1");
+            .Should().Equal("Unit 1", "Unit 2", "T188");
         _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -145,7 +143,7 @@ public class ManagementViewModelTests
         await fixture.AddGroupCommand.ExecuteAsync(null);
         fixture.GroupName = "New";
         await fixture.AddGroupCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync("Warning", Strings.GroupNameTaken), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T118", "T189"), Times.Once);
         _active.Groups.GetSubGroups("New").Should().ContainSingle();
     }
 
@@ -178,7 +176,7 @@ public class ManagementViewModelTests
         fixture.SelectedGroup = "Book";
         fixture.GroupName = "Other";
         await fixture.EditGroupCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, "A group with name Other already exists."),
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "A group with name Other already exists."),
             Times.Once);
         fixture.GroupNames.Should().Equal("Book", "Other");
         _active.Groups.GetSubGroups("Book").Should().HaveCount(2);
@@ -190,7 +188,7 @@ public class ManagementViewModelTests
         var fixture = Create();
         fixture.SelectedGroup = "Other";
         await fixture.DeleteGroupCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ConfirmAsync("Warning", Strings.ConfirmDeleteGroup), Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T118", "T191"), Times.Once);
         _active.Groups.GetGroups().Should().Equal("Book");
         fixture.GroupNames.Should().Equal("Book");
         fixture.SelectedGroup.Should().Be("Book");
@@ -219,11 +217,11 @@ public class ManagementViewModelTests
         fixture.HasGroups.Should().BeFalse();
         fixture.SelectedGroup.Should().BeNull();
         fixture.GroupName.Should().BeEmpty();
-        fixture.GroupInfo.Should().Be("Keine Gruppe vorhanden");
+        fixture.GroupInfo.Should().Be("T185");
         fixture.SelectedUnitGroup.Should().BeNull();
         fixture.Units.Should().BeEmpty();
         fixture.UnitName.Should().BeEmpty();
-        fixture.UnitInfo.Should().Be("Keine Gruppe vorhanden");
+        fixture.UnitInfo.Should().Be("T185");
     }
 
     [Test]
@@ -259,7 +257,7 @@ public class ManagementViewModelTests
         fixture.UnitName = "Unit 1";
         await fixture.EditUnitCommand.ExecuteAsync(null);
         _dialogs.Verify(
-            d => d.ShowMessageAsync(Strings.ErrorTitle, "Sub group Unit 1 for group Book exists."), Times.Once);
+            d => d.ShowMessageAsync("T104", "Sub group Unit 1 for group Book exists."), Times.Once);
         fixture.Units.Should().Equal("Unit 1", "Unit 2");
         fixture.SelectedUnit.Should().Be("Unit 2");
         _active.Groups.GetSubGroups("Book").Select(g => g.SubGroup).Should().Equal("Unit 1", "Unit 2");
@@ -274,7 +272,7 @@ public class ManagementViewModelTests
 
         fixture.Units.Should().Equal("Unit 2", "Unit 1");
         fixture.SelectedUnit.Should().Be("Unit 1");
-        fixture.UnitInfo.Should().Be("2 Einträge" + NL + "1 benutzte Sprache");
+        fixture.UnitInfo.Should().Be("2 T109" + NL + "T186");
         BookUnitsByIndex().Should().Equal("Unit 2", "Unit 1");
     }
 
@@ -314,15 +312,15 @@ public class ManagementViewModelTests
     {
         var fixture = Create();
         await fixture.ReorganizeCommand.ExecuteAsync(null);
-        fixture.ErrorCountText.Should().Be("Gefundene und behobene Fehler: 0");
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.ConsistencyCheckDone), Times.Once);
+        fixture.ErrorCountText.Should().Be("T193");
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T194"), Times.Once);
     }
 
     [Test]
     public void Constructor_OutdatedDatabase_OffersUpdateToNextVersion()
     {
         var fixture = Create(management: Outdated().Object);
-        fixture.VersionButtonText.Should().Be("Update auf Version 1.7");
+        fixture.VersionButtonText.Should().Be("T207");
         fixture.CanUpdateVersion.Should().BeTrue();
     }
 
@@ -333,7 +331,7 @@ public class ManagementViewModelTests
         management.Setup(m => m.IsUpdateComplex(It.IsAny<Properties.DBVersion>())).Returns(true);
         var fixture = Create(management: management.Object);
         await fixture.UpdateVersionCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.UpdateMayTakeTime), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T205"), Times.Once);
         management.Verify(m => m.UpdateDatabaseVersion(), Times.Once);
     }
 
@@ -341,7 +339,7 @@ public class ManagementViewModelTests
     public async Task SaveDatabaseCopy_CopiesActiveFile()
     {
         var target = TempPath();
-        _dialogs.Setup(d => d.PickSaveFileAsync(Strings.SaveDatabase, "s3db", Path.GetFileName(_active.FilePath)))
+        _dialogs.Setup(d => d.PickSaveFileAsync("T178", "s3db", Path.GetFileName(_active.FilePath)))
             .ReturnsAsync(target);
         await Create().SaveDatabaseCopyCommand.ExecuteAsync(null);
         File.Exists(target).Should().BeTrue();
@@ -356,7 +354,7 @@ public class ManagementViewModelTests
         var fixture = Create();
         await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
         fixture.CanImport.Should().BeTrue();
-        fixture.ImportDatabaseText.Should().Be("Datenbank: " + source.FilePath);
+        fixture.ImportDatabaseText.Should().Be("T196");
     }
 
     [Test]
@@ -365,9 +363,9 @@ public class ManagementViewModelTests
         PickForImport(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), "missing", "x.s3db"));
         var fixture = Create();
         await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, Strings.PickExistingFile), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "T197"), Times.Once);
         fixture.CanImport.Should().BeFalse();
-        fixture.ImportDatabaseText.Should().Be("Datenbank: noch keine gewählt");
+        fixture.ImportDatabaseText.Should().Be("T195");
     }
 
     [Test]
@@ -382,10 +380,9 @@ public class ManagementViewModelTests
         await fixture.ImportGroupsCommand.ExecuteAsync(null);
         _active.Groups.GetGroups().Should().Contain("Lat");
         fixture.GroupNames.Should().Contain("Lat");
-        fixture.ImportGroupCountText.Should().Be(
-            "Importierte Gruppen: 1" + NL + "Importierte Untergruppen: 1" + NL + "Importierte Gruppeneinträge: 1");
-        fixture.ImportDictCountText.Should().Be("Importierte Haupteinträge: 1" + NL + "Importierte Untereinträge: 1");
-        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", Strings.ImportDone), Times.Once);
+        fixture.ImportGroupCountText.Should().Be("T202");
+        fixture.ImportDictCountText.Should().Be("T201");
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T203"), Times.Once);
     }
 
     [Test]
@@ -397,7 +394,7 @@ public class ManagementViewModelTests
         var fixture = Create(management: Outdated().Object);
         await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
         await fixture.ImportGroupsCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, Strings.DatabaseOutdated), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "T198"), Times.Once);
         _active.Groups.GetGroups().Should().Equal("Book", "Other");
     }
 
@@ -412,7 +409,7 @@ public class ManagementViewModelTests
         var fixture = Create(managementFor: _ => outdated.Object);
         await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
         await fixture.ImportGroupsCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ConfirmAsync(Strings.WarningTitle, Strings.ImportSourceOutdated), Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T118", "T200"), Times.Once);
         outdated.Verify(m => m.UpdateDatabaseVersion(), Times.Never);
         _active.Groups.GetGroups().Should().Equal("Book", "Other");
     }
@@ -429,8 +426,8 @@ public class ManagementViewModelTests
         await fixture.ImportDictionaryCommand.ExecuteAsync(null);
         _active.Dictionary.GetWords("latin", "german").Should().HaveCount(2);
         fixture.ExportLanguages.Select(l => l.Name).Should().Equal("english", "french", "latin");
-        fixture.ImportDictCountText.Should().Be("Importierte Haupteinträge: 2" + NL + "Importierte Untereinträge: 2");
-        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", Strings.ImportDone), Times.Once);
+        fixture.ImportDictCountText.Should().Be("T201");
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T203"), Times.Once);
     }
 
     [Test]
@@ -438,12 +435,12 @@ public class ManagementViewModelTests
     {
         var target = TempPath();
         File.WriteAllText(target, "an old file in the way");
-        _dialogs.Setup(d => d.PickSaveFileAsync(Strings.Export, "s3db", null)).ReturnsAsync(target);
+        _dialogs.Setup(d => d.PickSaveFileAsync("T176", "s3db", null)).ReturnsAsync(target);
         var fixture = Create();
         fixture.ExportLanguages.Single(l => l.Name == "english").IsChecked = true;
         fixture.ExportGroups.Single(g => g.Name == "Book").IsChecked = true;
         await fixture.ExportCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", Strings.ExportDone), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Once);
         var db = SQLiteDataBaseOperation.OpenDatabase(target);
         try
         {
@@ -461,7 +458,7 @@ public class ManagementViewModelTests
     {
         var fixture = Create(management: Outdated().Object);
         await fixture.ExportCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, Strings.DatabaseOutdated), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "T198"), Times.Once);
         _dialogs.Verify(
             d => d.PickSaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
     }

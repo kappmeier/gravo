@@ -14,9 +14,6 @@ public static class Strings
     public const string WarningTitle = "Warnung";
     public const string InvalidInputTitle = "Fehlerhafte Eingabe";
 
-    // Main
-    public static string CopyFailed(string message) => "Beim Kopieren ist ein Fehler aufgetreten: " + message;
-
     // Explorer
     public const string SelectOnlyOne = "Bitte nur einen Eintrag markieren!";
     public const string SelectOne = "Sie müssen einen Eintrag markieren";
@@ -118,66 +115,7 @@ public static class Strings
     public const string EntryMeaning = "Bedeutung";
 
     // Management
-    public const string ManagementTitle = "Daten-Management";
     public const string ProductName = "Gravo";
     public const string EnglishWarningTitle = "Warning";
     public const string EnglishErrorTitle = "Error";
-    public const string GroupsTab = "Gruppen";
-    public const string UnitsTab = "Lektionen";
-    public const string DatabaseTab = "Datenbank";
-    public const string ImportTab = "Importieren";
-    public const string Export = "Exportieren";
-    public const string Delete = "Löschen";
-    public const string MoveUp = "Nach oben";
-    public const string MoveDown = "Nach unten";
-    public const string SaveDatabase = "Datenbank sichern";
-    public const string CheckConsistency = "Konsistenz prüfen";
-    public const string SelectFile = "Datei auswählen";
-    public const string ImportGroupsButton = "Importiere Gruppe";
-    public const string ImportDictionaryButton = "Imporiere Wörterbuch";
-    public const string SkipEmptyMains = "leere Haupteinträge auslassen";
-
-    public const string ImportMayTakeTime =
-        "Das Importieren kann einige Zeit dauern, da jeder Datensatz einzeln eingelesen und dabei auf Kohärenz "
-        + "geprüft wird.";
-
-    public const string NoGroup = "Keine Gruppe vorhanden";
-    public static string Entries(int count) => count == 1 ? count + " Eintrag" : count + " Einträge";
-
-    public static string UsedLanguages(int count) =>
-        count == 1 ? count + " benutzte Sprache" : count + " benutzte Sprachen";
-
-    public const string DefaultUnit = "Untereintrag 1";
-    public const string GroupNameTaken = "Gruppen können nur einmal unter einem Namen existieren.";
-    public static string ErrorOccurred(string message) => "Ein Fehler ist aufgetreten: " + message;
-    public const string ConfirmDeleteGroup = "Wollen Sie wirklich die komplette Gruppe löschen?";
-    public const string NoCheckYet = "Gefundene und behobene Fehler: keine Überprüfung durchgeführt";
-    public static string ErrorsFixed(int count) => "Gefundene und behobene Fehler: " + count;
-    public const string ConsistencyCheckDone = "Testen der Datenbank auf Konsistenz abgeschlossen.";
-    public const string NoImportDatabase = "Datenbank: noch keine gewählt";
-    public static string ImportDatabase(string path) => "Datenbank: " + path;
-    public const string PickExistingFile = "Bitte geben Sie eine existierende Datei an";
-
-    public const string DatabaseOutdated =
-        "Ihre Datenbank ist nicht aktuell. Bitte aktualisieren Sie sie bevor Sie Daten exportieren.";
-
-    public static string DatabaseAccessFailed(string message) => "Fehler beim Datenbankzugriff: " + message;
-
-    public const string ImportSourceOutdated =
-        "Die Version der zu importierenden Datenbank ist nicht aktuell. Soll sie aktualisiert werden?";
-
-    /// <summary>Returns the dictionary counters of an import, empty counts before the first import.</summary>
-    public static string ImportedDictionary(int? mainEntries, int? subEntries) =>
-        "Importierte Haupteinträge: " + mainEntries + Environment.NewLine + "Importierte Untereinträge: " + subEntries;
-
-    /// <summary>Returns the group counters of an import, empty counts before the first import.</summary>
-    public static string ImportedGroups(int? groups, int? subGroups, int? groupEntries) =>
-        "Importierte Gruppen: " + groups + Environment.NewLine + "Importierte Untergruppen: " + subGroups
-        + Environment.NewLine + "Importierte Gruppeneinträge: " + groupEntries;
-
-    public const string ImportDone = "Importieren erfolgreich!";
-    public const string ExportDone = "Exportieren erfolgreich!";
-    public const string UpdateMayTakeTime = "Der Updatevorgang kann einige Zeit dauern!";
-    public static string OnCurrentVersion(string version) => "Auf aktueller Version " + version;
-    public static string UpdateToVersion(string version) => "Update auf Version " + version;
 }
