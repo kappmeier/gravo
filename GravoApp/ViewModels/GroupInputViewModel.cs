@@ -223,13 +223,21 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         {
             return;
         }
-        WordsInLanguageText = Strings.EntriesInLanguage(_dictionary.WordCount(SelectedLanguage, _mainLanguage));
-        WordsInSubGroupText = Strings.DistinctEntriesInGroup(WordsInGroup.Count) + Strings.InTheGroupSeparator
-            + Strings.EntriesTotal(_groupData?.WordCount ?? 0);
+        WordsInLanguageText = Plural(_dictionary.WordCount(SelectedLanguage, _mainLanguage),
+            "GROUP_INPUT_ENTRIES_IN_LANGUAGE_ONE", "GROUP_INPUT_ENTRIES_IN_LANGUAGE_MANY");
+        WordsInSubGroupText =
+            Plural(WordsInGroup.Count, "GROUP_INPUT_DISTINCT_ENTRIES_ONE", "GROUP_INPUT_DISTINCT_ENTRIES_MANY")
+            + Texts.Get(localization.GROUP_INPUT_IN_THE_GROUP)
+            + Environment.NewLine
+            + Plural(_groupData?.WordCount ?? 0, "GROUP_INPUT_ENTRIES_TOTAL_ONE", "GROUP_INPUT_ENTRIES_TOTAL_MANY");
         WordsInGroupText = SelectedGroup is null
             ? ""
-            : Strings.EntriesInWholeGroup(DataTools.WordCount(_groups, _group, SelectedGroup));
+            : Plural(DataTools.WordCount(_groups, _group, SelectedGroup),
+                "GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_ONE", "GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_MANY");
     }
+
+    /// <summary>Formats <paramref name="count"/> into the singular or the plural text.</summary>
+    private string Plural(int count, string one, string many) => Texts.Format(count == 1 ? one : many, count);
 
     /// <summary>Adds the selected dictionary word to the sub group with the marked flag and an empty example.</summary>
     /// <remarks>A word that is in the sub group already is not added again. Instead, a message is shown.</remarks>
@@ -242,7 +250,8 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         }
         if (SelectedWord?.Payload is not WordEntry word)
         {
-            await _dialogs.ShowMessageAsync(Strings.ErrorOccurredTitle, Strings.ReselectWord);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_OCCURRED_TITLE),
+                Texts.Get(localization.GROUP_INPUT_RESELECT_WORD));
             return;
         }
         var group = _groupEntry;
@@ -254,7 +263,8 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         }
         catch (EntryExistsException)
         {
-            await _dialogs.ShowMessageAsync(Strings.AddNotPossibleTitle, Strings.WordAlreadyInGroup);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ADD_NOT_POSSIBLE_TITLE),
+                Texts.Get(localization.WORD_ALREADY_IN_GROUP));
             return;
         }
         UpdateWordsInGroup();
