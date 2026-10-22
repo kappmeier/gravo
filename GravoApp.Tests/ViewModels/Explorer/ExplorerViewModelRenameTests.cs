@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels.Explorer;
@@ -72,7 +71,7 @@ public class ExplorerViewModelRenameTests
 
         await fixture.RenameNodeCommand.ExecuteAsync(node);
 
-        _dialogs.Verify(d => d.PromptAsync(Strings.RenameTitle, Strings.NewName, "house"), Times.Once);
+        _dialogs.Verify(d => d.PromptAsync("T134", "T135", "house"), Times.Once);
         var home = "home";
         _voc.Dictionary.GetMainEntry(ref home, "english", "german").Word.Should().Be("home");
         _voc.Dictionary.GetWordsAndSubWords("home", "english", "german").Select(w => w.Word).Should()
@@ -91,8 +90,7 @@ public class ExplorerViewModelRenameTests
 
         await fixture.RenameNodeCommand.ExecuteAsync(node);
 
-        _dialogs.Verify(d => d.ShowMessageAsync("\"house\" konnte nicht umbenannt werden.", It.IsAny<string>()),
-            Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T136", It.IsAny<string>()), Times.Once);
         node.Title.Should().Be("house");
         _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").Select(w => w.Word).Should()
             .BeEquivalentTo("house", "houses");
@@ -125,7 +123,7 @@ public class ExplorerViewModelRenameTests
 
         await fixture.RenameNodeCommand.ExecuteAsync(node);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ErrorTitle, It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
         _voc.Groups.GetGroups().Should().BeEquivalentTo("Book", "Other");
         node.Title.Should().Be("Book");
     }
@@ -190,7 +188,7 @@ public class ExplorerViewModelRenameTests
 
         await fixture.RenameNodeCommand.ExecuteAsync(node);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ProductName, "Eintrag existiert bereits."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T138"), Times.Once);
         _voc.Dictionary.GetWordsAndSubWords("go", "english", "german").Select(w => w.Word).Should()
             .BeEquivalentTo("go", "goes");
         Node(fixture, Unit1).Children.Should().Contain(node);
@@ -206,7 +204,7 @@ public class ExplorerViewModelRenameTests
 
         await fixture.RenameNodeCommand.ExecuteAsync(node);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.InvalidInputTitle, It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
         _voc.Groups.GetGroups().Should().BeEquivalentTo("Book", "Other");
         node.Title.Should().Be("Book");
     }
@@ -270,7 +268,7 @@ public class ExplorerViewModelRenameTests
             await fixture.RenameNodeCommand.ExecuteAsync(node);
         }
 
-        _dialogs.Verify(d => d.ShowMessageAsync("Warnung", "Änderungen werden nicht übernommen"), Times.Exactly(4));
+        _dialogs.Verify(d => d.ShowMessageAsync("T118", "T137"), Times.Exactly(4));
         nodes.Select(n => n.Title).Should().Equal(titles);
         _voc.Dictionary.DictionaryLanguages("german").Should().BeEquivalentTo("english", "french");
     }

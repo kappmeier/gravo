@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels.Explorer;
@@ -198,8 +197,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "Hut";
         await fixture.AddWordCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ConfirmAsync(Strings.MainEntryMissingTitle,
-            Strings.MainEntryMissingForLanguages("hat", "german", "english")), Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T143", "T132"), Times.Once);
         _voc.Dictionary.GetWords("english", "german").Select(w => w.Word).Should().Contain("hat");
         var row = fixture.Rows.Should().ContainSingle(r => r.Word == "hat").Which;
         fixture.SelectedRow.Should().BeSameAs(row);
@@ -315,7 +313,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.AddToGroup = true;
         await fixture.AddWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.AddNotPossibleTitle, Strings.WordAlreadyInGroup);
+        VerifyMessage("T148", "T149");
         Load(_seed.Unit1).Entries.Should().HaveCount(2);
     }
 
@@ -331,7 +329,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "Katze";
         await fixture.AddWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.EnglishWarningTitle, Strings.TooManyLanguagesInGroup);
+        VerifyMessage("T118", "T128");
         Load(_seed.Words).Entries.Should().HaveCount(2);
         _voc.Dictionary.GetWords("english", "german").Select(w => w.Word).Should().NotContain("cat");
     }
@@ -350,7 +348,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "Katze";
         await fixture.AddWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.EnglishWarningTitle, Strings.TooManyMainLanguagesInGroup);
+        VerifyMessage("T118", "T129");
         _voc.Dictionary.GetWords("english", "german").Select(w => w.Word).Should().NotContain("cat");
     }
 
@@ -365,7 +363,7 @@ public class ExplorerViewModelEditTests
         await fixture.AddWordCommand.ExecuteAsync(null);
 
         fixture.Editor.MainEntry.Should().Be("cat");
-        VerifyMessage(Strings.EnglishErrorTitle, Strings.LanguageRequired);
+        VerifyMessage("T104", "T131");
     }
 
     [Test]
@@ -382,7 +380,7 @@ public class ExplorerViewModelEditTests
             await fixture.AddWordCommand.ExecuteAsync(null);
         }
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.EnglishErrorTitle, Strings.CannotAddHere), Times.Exactly(3));
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "T130"), Times.Exactly(3));
         _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -397,7 +395,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "Hut";
         await fixture.AddWordCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.InvalidInputTitle, It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
         _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").Should().HaveCount(2);
     }
 
@@ -494,7 +492,7 @@ public class ExplorerViewModelEditTests
         fixture.SelectedRow = null;
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.ProductName, Strings.SelectOne);
+        VerifyMessage("Gravo", "T127");
     }
 
     [Test]
@@ -508,7 +506,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "anders";
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.ProductName, Strings.SelectOnlyOne);
+        VerifyMessage("Gravo", "T126");
         _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").Select(w => w.Meaning).Should()
             .Equal("Haus", "Häuser");
     }
@@ -523,7 +521,7 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "Haus";
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
-        VerifyMessage(Strings.ProductName, Strings.EntryExists("house"));
+        VerifyMessage("Gravo", "T133");
         fixture.Rows.Select(r => r.Word).Should().Equal("house", "houses");
     }
 
@@ -536,6 +534,6 @@ public class ExplorerViewModelEditTests
         fixture.Editor.Meaning = "a\"b";
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.InvalidInputTitle, It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
     }
 }
