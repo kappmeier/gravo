@@ -181,7 +181,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (LanguageException)
         {
-            QueueMessage(Strings.LanguageNotAutoSelected);
+            QueueMessage(Texts.Get(localization.WORD_INPUT_LANGUAGE_NOT_AUTO));
         }
         try
         {
@@ -193,7 +193,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (LanguageException)
         {
-            QueueMessage(Strings.MainLanguageNotAutoSelected);
+            QueueMessage(Texts.Get(localization.WORD_INPUT_MAIN_LANGUAGE_NOT_AUTO));
         }
     }
 
@@ -225,7 +225,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         {
             while (_messageBoxTexts.Count > 0)
             {
-                await _dialogs.ShowMessageAsync(Strings.HintTitle, _messageBoxTexts.Dequeue());
+                await _dialogs.ShowMessageAsync(Texts.Get(localization.HINT_TITLE), _messageBoxTexts.Dequeue());
             }
         }
         finally
@@ -243,7 +243,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
     {
         if (DirectAdd && SelectedGroupEntry is null)
         {
-            await _dialogs.ShowMessageAsync(Strings.WarningTitle, Strings.SelectExistingGroup);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
+                Texts.Get(localization.WORD_INPUT_SELECT_EXISTING_GROUP));
             return;
         }
         if (DirectAdd && !await ConfirmGroupLanguagesAsync(SelectedGroupEntry!))
@@ -259,7 +260,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (InputException ex)
         {
-            await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
         }
         catch (EntryExistsException)
         {
@@ -267,7 +268,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (EntryNotFoundException notFound)
         {
-            if (await _dialogs.ConfirmAsync(Strings.MainEntryMissingTitle, Strings.MainEntryMissing(MainEntry)))
+            if (await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
+                    Texts.Format("WORD_INPUT_MAIN_ENTRY_MISSING", MainEntry)))
             {
                 await AddMainEntryAndRetryAsync(entry, notFound);
             }
@@ -284,14 +286,16 @@ public sealed partial class WordInputViewModel : ViewModelBase
         if (languageCount == 0 || mainLanguageCount == 0)
         {
             return await _dialogs.ConfirmAsync(
-                Strings.NewLanguageTitle, Strings.NoEntryInGroupYet(Language, MainLanguage));
+                Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
+                Texts.Format("WORD_INPUT_NO_ENTRY_IN_GROUP_YET", Language, MainLanguage));
         }
         if (languageCount == 1 && mainLanguageCount == 1
             && (_group.GetUniqueLanguage(ref group) != Language
                 || _group.GetUniqueMainLanguage(ref group) != MainLanguage))
         {
             return await _dialogs.ConfirmAsync(
-                Strings.NewLanguageTitle, Strings.SecondLanguageInGroup(Language, MainLanguage));
+                Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
+                Texts.Format("WORD_INPUT_SECOND_LANGUAGE", Language, MainLanguage));
         }
         return true;
     }
@@ -306,7 +310,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is LanguageNotFoundException or EntryNotFoundException or InputException)
         {
-            await _dialogs.ShowMessageAsync(Strings.InvalidInputTitle, ex.Message);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
         }
         try
         {
@@ -315,7 +319,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (Exception)
         {
-            await _dialogs.ShowMessageAsync(Strings.ErrorTitle, Strings.EntryConflict(notFound.Message));
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
+                Texts.Format("ENTRY_CONFLICT", notFound.Message));
         }
     }
 
@@ -337,7 +342,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (EntryExistsException)
         {
-            await _dialogs.ShowMessageAsync(Strings.AddNotPossibleTitle, Strings.WordAlreadyInGroup);
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ADD_NOT_POSSIBLE_TITLE),
+                Texts.Get(localization.WORD_ALREADY_IN_GROUP));
         }
     }
 
