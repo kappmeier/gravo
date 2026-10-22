@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels.Explorer;
@@ -182,7 +181,7 @@ public class ExplorerViewModelMultiEditTests
         fixture.Multi.MainEntry = "a\"b";
         await fixture.ChangeSelectedCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.InvalidInputTitle, It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
         var words = HouseWords();
         words.Should().HaveCount(2);
         words.Select(w => w.Post).Should().Equal("", "");
@@ -200,7 +199,7 @@ public class ExplorerViewModelMultiEditTests
         fixture.Multi.Meaning = "Haus";
         await fixture.ChangeSelectedCommand.ExecuteAsync(null);
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.ProductName, Strings.EntryExists("house")), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T133"), Times.Once);
         HouseWords().Select(w => w.Word).Should().BeEquivalentTo("house", "houses");
         fixture.SelectedRows.Should().HaveCount(2);
     }
