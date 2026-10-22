@@ -72,7 +72,6 @@ public class TabViewsHeadlessTests
         Dispatcher.UIThread.RunJobs();
 
         var labels = editor.GetVisualDescendants().OfType<Label>().Select(l => l.Content?.ToString()).ToList();
-        Console.WriteLine($"Labels: {string.Join(", ", labels)}");
         labels.Should().Contain("T" + localization.WORDS_MAIN_ENTRY + ":")
             .And.Contain("T" + localization.WORDS_WORD_TYPE + ":")
             .And.Contain("T" + localization.WORDS_MAIN_LANGUAGE + ":");
@@ -92,7 +91,6 @@ public class TabViewsHeadlessTests
         var window = new Window { Content = explorerView };
         window.Show();
         Dispatcher.UIThread.RunJobs();
-
 
         return (viewModel, window, explorerView);
     }
