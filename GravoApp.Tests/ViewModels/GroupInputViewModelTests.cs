@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -43,10 +42,9 @@ public class GroupInputViewModelTests
         fixture.SelectedWordInGroup.Should().BeNull();
         fixture.Languages.Should().Equal("english", "french");
         fixture.SelectedLanguage.Should().Be("english");
-        fixture.WordsInGroupText.Should().Be("2 Einträge in der Gruppe insgesamt.");
-        fixture.WordsInSubGroupText.Should()
-            .Be("2 verschiedene Einträge in der Gruppe," + NL + "2 Einträge insgesamt.");
-        fixture.WordsInLanguageText.Should().Be("2 Einträge in der Sprache.");
+        fixture.WordsInGroupText.Should().Be("T161");
+        fixture.WordsInSubGroupText.Should().Be("T156" + "T157" + NL + "T159");
+        fixture.WordsInLanguageText.Should().Be("T154");
     }
 
     [Test]
@@ -111,7 +109,7 @@ public class GroupInputViewModelTests
         var fixture = Create();
         fixture.SearchText = "go";
         await fixture.SelectCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.AddNotPossibleTitle, Strings.WordAlreadyInGroup), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T148", "T149"), Times.Once);
         var unit1 = _seed.Unit1;
         _voc.Group.Load(ref unit1).Entries.Select(e => e.Word).Should().Equal("house", "go");
     }
@@ -163,7 +161,7 @@ public class GroupInputViewModelTests
         fixture.SelectedSubGroup.Should().Be("Words");
         fixture.WordsInGroup.Should().Equal("maison");
         fixture.SelectedLanguage.Should().Be("french");
-        fixture.WordsInLanguageText.Should().Be("1 Eintrag in der Sprache.");
+        fixture.WordsInLanguageText.Should().Be("T153");
     }
 
     [Test]
