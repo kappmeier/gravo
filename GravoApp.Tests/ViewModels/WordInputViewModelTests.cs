@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
-using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -209,8 +208,7 @@ public class WordInputViewModelTests
         FillHouse(fixture);
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(
-            d => d.ShowMessageAsync("Fehlerhafte Eingabe", "Input must not contain a double quote (\")."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", "Input must not contain a double quote (\")."), Times.Once);
     }
 
     [Test]
@@ -233,9 +231,7 @@ public class WordInputViewModelTests
         FillHouse(fixture);
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ConfirmAsync("Haupteintrag nicht vorhanden",
-            "Der Haupteintrag Haus ist für die gewählten Sprachen nicht vorhanden. Soll er erstellt werden?"),
-            Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T143", "T144"), Times.Once);
         _dictionary.Verify(d => d.AddEntry("Haus", "english", "german"), Times.Once);
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"), Times.Exactly(2));
@@ -277,10 +273,8 @@ public class WordInputViewModelTests
         FillHouse(fixture);
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync("Fehlerhafte Eingabe", "Language missing."), Times.Once);
-        _dialogs.Verify(d => d.ShowMessageAsync("Fehler",
-            "Eintrag nicht möglich, konflikt mit Index wahrscheinlich. Überprüfen Sie Ihre Datenbankversion."
-            + Environment.NewLine + "Fehler: Main entry missing."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", "Language missing."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", "T145"), Times.Once);
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"), Times.Exactly(2));
     }
@@ -299,8 +293,7 @@ public class WordInputViewModelTests
         fixture.DirectAdd = true;
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ShowMessageAsync("Warnung",
-            "Bitte wählen sie eine existierende Gruppe aus. Eintrag wird nicht erstellt!"), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T118", "T139"), Times.Once);
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
@@ -332,9 +325,7 @@ public class WordInputViewModelTests
         fixture.DirectAdd = true;
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
-            "Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den "
-            + "Sprachen 'english' und 'german' erstellt werden?"), Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T140", "T141"), Times.Once);
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
@@ -351,9 +342,7 @@ public class WordInputViewModelTests
         fixture.DirectAdd = true;
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
-            "Sie beabsichtigen einen eintrag mit den zweiten Sprachen 'italian' und 'german' zu erstellen. Soll "
-            + "damit fortgefahren werden?"), Times.Once);
+        _dialogs.Verify(d => d.ConfirmAsync("T140", "T142"), Times.Once);
         _dictionary.Verify(
             d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
@@ -426,8 +415,7 @@ public class WordInputViewModelTests
         fixture.DirectAdd = true;
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _dialogs.Verify(
-            d => d.ShowMessageAsync("Hinzufügen nicht möglich", "Wort bereits in der Gruppe enthalten"), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T148", "T149"), Times.Once);
     }
 
     [Test]
@@ -446,8 +434,7 @@ public class WordInputViewModelTests
         var fixture = Create();
         await fixture.OnOpenedAsync();
 
-        _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
-            "Sprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T146"), Times.Once);
         fixture.SelectedLanguage.Should().Be("english");
     }
 
@@ -460,8 +447,7 @@ public class WordInputViewModelTests
         var fixture = Create();
         await fixture.OnOpenedAsync();
 
-        _dialogs.Verify(d => d.ShowMessageAsync("Hinweis",
-            "Hauptsprache konnte nicht automatisch festgelegt werden. Bitte setzen Sie manuell."), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T147"), Times.Once);
     }
 
     [Test]
@@ -471,7 +457,7 @@ public class WordInputViewModelTests
 
         var fixture = Create();
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, It.IsAny<string>()), Times.Never);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", It.IsAny<string>()), Times.Never);
     }
 
     [Test]
@@ -479,19 +465,19 @@ public class WordInputViewModelTests
     {
         MakeGroupLanguagesAmbiguous();
         var first = new TaskCompletionSource();
-        _dialogs.Setup(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected))
+        _dialogs.Setup(d => d.ShowMessageAsync("T11", "T146"))
             .Returns(first.Task);
         var fixture = Create();
 
         var opened = fixture.OnOpenedAsync();
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected), Times.Once);
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.MainLanguageNotAutoSelected), Times.Never);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T146"), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T147"), Times.Never);
 
         first.SetResult();
         await opened;
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.MainLanguageNotAutoSelected), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T147"), Times.Once);
     }
 
     [Test]
@@ -504,7 +490,7 @@ public class WordInputViewModelTests
         fixture.SelectedSubGroup = null;
         fixture.SelectedSubGroup = "Unit 1";
 
-        _dialogs.Verify(d => d.ShowMessageAsync(Strings.HintTitle, Strings.LanguageNotAutoSelected), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("T11", "T146"), Times.Once);
     }
 
     [Test]
