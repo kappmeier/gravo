@@ -1,4 +1,4 @@
-''' <summary>
+﻿''' <summary>
 ''' Single factory to generate DAO objects from passed database connections.
 ''' </summary>
 Public Module DaoFactory
