@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -32,8 +31,6 @@ public sealed partial class QuizViewModel : ViewModelBase
         _controller = controller;
         _dialogs = dialogs;
         Texts = texts;
-        Title = texts.Get(localization.TEST_TITLE);
-        Texts.PropertyChanged += OnTextsChanged;
         _checker = controller.GetTestChecker();
     }
 
@@ -102,12 +99,6 @@ public sealed partial class QuizViewModel : ViewModelBase
 
     [RelayCommand]
     private void Close() => RequestClose(false);
-
-    private void OnTextsChanged(object? sender, PropertyChangedEventArgs e) =>
-        Title = Texts.Get(localization.TEST_TITLE);
-
-    /// <summary>Called when the window is closed. Unhooks event handler for UI language changes.</summary>
-    public override void OnClosed() => Texts.PropertyChanged -= OnTextsChanged;
 
     /// <summary>Finishes the quiz with the "well done" message when no word is left.</summary>
     /// <returns><c>true</c> when the quiz is finished and the window closes.</returns>

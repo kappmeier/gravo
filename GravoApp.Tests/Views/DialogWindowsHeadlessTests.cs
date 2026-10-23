@@ -86,6 +86,29 @@ public class DialogWindowsHeadlessTests
     }
 
     [AvaloniaTest]
+    public void Quiz_TitleFollowsLanguageSwitches()
+    {
+        var cards = new Mock<ICardsDao>();
+        var words = new List<WordEntry> { new("house", "", "", WordType.Substantive, "Haus", "n.", false) };
+        var data = new TestData(cards.Object, words, QueryLanguage.OriginalLanguage);
+        var controller = new TestController(
+            data, QueryLanguage.OriginalLanguage, new Mock<IDataBaseOperation>().Object);
+        var loc = Fakes.Localization();
+        var texts = Fakes.Texts(loc);
+        var viewModel = new QuizViewModel(controller, texts, Fakes.Dialogs().Object);
+
+        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
+        fixture.Show();
+        fixture.Title.Should().Be("T105");
+
+        loc.Setup(l => l.GetText(localization.TEST_TITLE)).Returns("Quiz");
+        texts.Refresh();
+        Dispatcher.UIThread.RunJobs();
+
+        fixture.Title.Should().Be("Quiz");
+    }
+
+    [AvaloniaTest]
     public void LanguageSelect_CreatesLanguageSelectWindowWithLocalizedTexts()
     {
         var dictionary = new Mock<IDictionaryDao>();
