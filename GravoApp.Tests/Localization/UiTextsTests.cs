@@ -64,7 +64,7 @@ public class UiTextsTests
 
         var fixture = new UiTexts(loc.Object);
 
-        var text = fixture.Format("MAIN_COPY_FAILED", "x");
+        var text = fixture.Format(localization.MAIN_COPY_FAILED, "x");
         text.Should().Be("Kopieren: x");
     }
 
@@ -107,7 +107,7 @@ public class UiTextsTests
         {
             var fixture = new UiTexts(new localization(db));
 
-            var text = fixture.Format("MAIN_CHECK_DATABASE_FIXED", 3);
+            var text = fixture.Format(localization.MAIN_CHECK_DATABASE_FIXED, 3);
 
             text.Should()
                 .Be("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden 3 Fehler behoben.");

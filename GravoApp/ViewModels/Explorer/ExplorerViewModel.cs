@@ -320,7 +320,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         catch (EntryNotFoundException notFound)
         {
             if (!await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format("EXPLORER_MAIN_ENTRY_MISSING", Editor.MainEntry, mainLanguage, language)))
+                    Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, Editor.MainEntry, mainLanguage, language)))
             {
                 return;
             }
@@ -339,14 +339,14 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             catch (Exception)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                    Texts.Format("ENTRY_CONFLICT", notFound.Message));
+                    Texts.Format(localization.ENTRY_CONFLICT, notFound.Message));
                 return;
             }
         }
         catch (Exception ex)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                Texts.Format("ENTRY_CONFLICT", ex.Message));
+                Texts.Format(localization.ENTRY_CONFLICT, ex.Message));
             return;
         }
 
@@ -411,7 +411,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
         catch (EntryExistsException)
         {
-            await _dialogs.ShowMessageAsync(AppServices.ProductName, Texts.Format("ENTRY_EXISTS", Editor.Word));
+            await _dialogs.ShowMessageAsync(AppServices.ProductName,
+                Texts.Format(localization.ENTRY_EXISTS, Editor.Word));
         }
     }
 
@@ -483,7 +484,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             }
             catch (EntryExistsException)
             {
-                await _dialogs.ShowMessageAsync(AppServices.ProductName, Texts.Format("ENTRY_EXISTS", Multi.Word));
+                await _dialogs.ShowMessageAsync(AppServices.ProductName,
+                    Texts.Format(localization.ENTRY_EXISTS, Multi.Word));
             }
         }
 
@@ -551,7 +553,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialogs.ShowMessageAsync(Texts.Format("EXPLORER_COULD_NOT_RENAME", oldName), ex.Message);
+            await _dialogs.ShowMessageAsync(Texts.Format(localization.EXPLORER_COULD_NOT_RENAME, oldName), ex.Message);
             return;
         }
         node.Title = newName;
