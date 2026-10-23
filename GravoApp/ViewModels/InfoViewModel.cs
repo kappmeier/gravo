@@ -10,10 +10,6 @@ namespace GravoApp.ViewModels;
 /// </summary>
 public sealed partial class InfoViewModel : ViewModelBase
 {
-    public const string CopyrightName = "Jan-Philipp Kappmeier";
-    public const string Copyright = "© 1995-2026";
-    public const string Link = "http://www.kappmeier.de";
-
     public InfoViewModel(IManagementDao management, UiTexts texts)
     {
         Texts = texts;
