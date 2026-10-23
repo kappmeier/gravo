@@ -113,24 +113,27 @@ Public Class LocalizationTests
         Next
     End Sub
 
+    ''' <summary>
+    ''' Ensures that every constant has the same placeholders in both English and German.
+    ''' </summary>
+    ''' <remarks>
+    ''' Placeholders are of the form {0}, {1}, etc. They must be identical for the localization to be filled with their
+    ''' correct values. Once additional localizations are added this test must be extended.
+    ''' </remarks>
     <Test>
-    Public Sub EveryConstant_HasTheSamePlaceholdersInEveryLanguage()
+    Public Sub EveryConstant_HasTheSamePlaceholdersInEnglishAndGerman()
         Dim placeholder As New Regex("\{\d\}")
+        Dim placeholdersIn = Function(languageTable As String, code As Integer) As List(Of String)
+                                 _loc.Language = languageTable
+                                 Return placeholder.Matches(_loc.GetText(code)).
+                                     Cast(Of Match).
+                                     Select(Function(m) m.Value).
+                                     OrderBy(Function(v) v).
+                                     ToList()
+                             End Function
         For Each code In ConstantCodes()
-            _loc.Language = "german"
-            Dim german = placeholder.Matches(_loc.GetText(code)).
-                Cast(Of Match).
-                Select(Function(m) m.Value).
-                OrderBy(Function(v) v).
-                ToList()
-            _loc.Language = "english"
-            Dim english = placeholder.Matches(_loc.GetText(code)).
-                Cast(Of Match).
-                Select(Function(m) m.Value).
-                OrderBy(Function(v) v).
-                ToList()
-            english.Should.Equal(
-                german, "field {0} must take the same arguments in both languages", code)
+            placeholdersIn("english", code).Should.Equal(
+                placeholdersIn("german", code), "field {0} must take the same arguments in both languages", code)
         Next
     End Sub
 End Class
