@@ -21,11 +21,10 @@ public sealed partial class WordInputViewModel : ViewModelBase
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
-    private readonly Queue<string> _messageBoxTexts = new();
+    private readonly TaskCompletionSource _opened = new(); // Potentially open dialog task to be waited upon
     private bool _wordEdited;
     private bool _syncing;
-    private bool _isDialogOpen; // Set to true once the dialog is open.
-    private bool _isShowingMessageBox;
+    private Task _messages = Task.CompletedTask;
 
     [ObservableProperty] private string? _selectedLanguage;
     [ObservableProperty] private string? _selectedMainLanguage;
@@ -197,41 +196,21 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Shows queued error messages that occurred while the dialog was still opening.</summary>
-    public override async Task OnOpenedAsync()
+    /// <summary>Releases the messages queued while the dialog was opening.</summary>
+    public override Task OnOpenedAsync()
     {
-        _isDialogOpen = true;
-        await ShowHintsAsync();
+        _opened.TrySetResult();
+        return _messages;
     }
 
-    /// <summary>Queues a message. They are shown sequentially once the dialog is open.</summary>
-    private void QueueMessage(string message)
-    {
-        _messageBoxTexts.Enqueue(message);
-        if (_isDialogOpen)
-        {
-            _ = ShowHintsAsync();
-        }
-    }
+    /// <summary>Shows <paramref name="message"/> once the dialog is open and the earlier messages are closed.</summary>
+    private void QueueMessage(string message) => _messages = ShowAfterAsync(_messages, message);
 
-    private async Task ShowHintsAsync()
+    private async Task ShowAfterAsync(Task previous, string message)
     {
-        if (_isShowingMessageBox)
-        {
-            return;
-        }
-        _isShowingMessageBox = true;
-        try
-        {
-            while (_messageBoxTexts.Count > 0)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.HINT_TITLE), _messageBoxTexts.Dequeue());
-            }
-        }
-        finally
-        {
-            _isShowingMessageBox = false;
-        }
+        await _opened.Task;
+        await previous;
+        await _dialogs.ShowMessageAsync(Texts.Get(localization.HINT_TITLE), message);
     }
 
     /// <summary>Adds the word as a sub entry and, if direct add is enabled, also to the selected group.</summary>
