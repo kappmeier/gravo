@@ -57,7 +57,12 @@ Public Class ManagementDao
     ''' Creates DBVersion table and insert start version information.
     ''' </summary>
     Private Sub InitializeVersionTable()
-        SimpleUpdateCommand("CREATE TABLE [DBVersion] ([Version] TEXT(5) Not NULL, [Date] DATETIME Not NULL, [Description] TEXT(80) Not NULL)")
+        SimpleUpdateCommand("
+            CREATE TABLE [DBVersion] (
+                [Version]     TEXT(5)  Not NULL,
+                [Date]        DATETIME Not NULL,
+                [Description] TEXT(80) Not NULL)
+        ")
 
         UpdateToVersion(DB_VERSION_1_0)
     End Sub
@@ -66,53 +71,100 @@ Public Class ManagementDao
     ''' Initializes the cards table.
     ''' </summary>
     Private Sub InitializeCardsTable()
-        SimpleUpdateCommand("CREATE TABLE [Cards] ([Index] INT NOT NULL, [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL)")
+        SimpleUpdateCommand("
+            CREATE TABLE [Cards] (
+                [Index]        INT      NOT NULL,
+                [TestInterval] INT      NOT NULL,
+                [Counter]      INT      NOT NULL,
+                [LastDate]     DATETIME NOT NULL)
+        ")
     End Sub
 
     ''' <summary>
     ''' Creates (indexed) table for main entries.
     ''' </summary>
     Private Sub InitializeMainEntryTable()
-        SimpleUpdateCommand("CREATE TABLE [DictionaryMain] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [WordEntry] TEXT(50) NOT NULL, [LanguageName] TEXT(50) NOT NULL)")
+        SimpleUpdateCommand("
+            CREATE TABLE [DictionaryMain] (
+                [Index]        INTEGER  PRIMARY KEY AUTOINCREMENT,
+                [WordEntry]    TEXT(50) NOT NULL,
+                [LanguageName] TEXT(50) NOT NULL)
+        ")
 
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [DictionaryWord] ON DictionaryMain ([WordEntry], [LanguageName])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [DictionaryWord]
+                ON DictionaryMain ([WordEntry], [LanguageName])
+        ")
     End Sub
 
     ''' <summary>
     ''' Creates the (indexed) table for word entries.
     ''' </summary>
     Private Sub InitializeWordTable()
-        SimpleUpdateCommand("CREATE TABLE [DictionaryWords] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [MainIndex] INT NOT NULL, [Word] TEXT(80) NOT NULL, [Pre] TEXT(16), [Post] TEXT(16), [WordType] INT, [Meaning] TEXT(80) NOT NULL, TargetLanguageInfo TEXT(50))")
+        SimpleUpdateCommand("
+            CREATE TABLE [DictionaryWords] (
+                [Index]            INTEGER  PRIMARY KEY AUTOINCREMENT,
+                [MainIndex]        INT      NOT NULL,
+                [Word]             TEXT(80) NOT NULL,
+                [Pre]              TEXT(16),
+                [Post]             TEXT(16),
+                [WordType]         INT,
+                [Meaning]          TEXT(80) NOT NULL,
+                TargetLanguageInfo TEXT(50))
+        ")
 
         ' Create Primary Key, not possible in sqlite
         'command = "CREATE INDEX [PrimaryKey] ON DictionaryWords ([Index])"
 
         ' Add a unique key on dictionary words
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [Word] ON DictionaryWords ([Word], [Meaning], [MainIndex])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [Word]
+                ON DictionaryWords ([Word], [Meaning], [MainIndex])
+            ")
     End Sub
 
     ''' <summary>
     ''' Creates (indexed) groups table.
     ''' </summary>
     Private Sub InitializeGroupsTable()
-        SimpleUpdateCommand("CREATE TABLE Groups ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [GroupName] TEXT(50) NOT NULL, [GroupSubName] TEXT(50) NOT NULL, [GroupTable] TEXT(50) NOT NULL)")
+        SimpleUpdateCommand("
+            CREATE TABLE Groups (
+                [Index] INTEGER PRIMARY KEY AUTOINCREMENT,
+                [GroupName] TEXT(50) NOT NULL,
+                [GroupSubName] TEXT(50) NOT NULL,
+                [GroupTable] TEXT(50) NOT NULL)
+        ")
 
         ' Create Primary Key, not possible in sqlite
         'command = "CREATE INDEX [PrimaryKey] ON Groups ([Index]);"
         'db.ExecuteNonQuery(command)
 
         ' Add index
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [Group] ON Groups ([GroupName], [GroupSubName])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [Group]
+                ON Groups ([GroupName], [GroupSubName])
+        ")
     End Sub
 
     ''' <summary>
     ''' Adds main language column to dictionary and initializes it with the value 'german'. The column is added to the unique index.
     ''' </summary>
     Private Sub UpdateTo1_1()
-        SimpleUpdateCommand("ALTER TABLE [DictionaryMain] ADD COLUMN [MainLanguage] TEXT(50)")
-        SimpleUpdateCommand("UPDATE [DictionaryMain] SET [MainLanguage]='german'")
-        SimpleUpdateCommand("DROP INDEX [DictionaryWord]")
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [DictionaryWord] ON [DictionaryMain] ([WordEntry], [LanguageName], [MainLanguage])")
+        SimpleUpdateCommand("
+            ALTER TABLE [DictionaryMain]
+              ADD COLUMN [MainLanguage] TEXT(50)
+        ")
+        SimpleUpdateCommand("
+            UPDATE [DictionaryMain]
+               SET [MainLanguage]='german'
+        ")
+        SimpleUpdateCommand("
+            DROP INDEX [DictionaryWord]
+        ")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [DictionaryWord]
+                ON [DictionaryMain] ([WordEntry], [LanguageName], [MainLanguage])
+        ")
         UpdateToVersion(DB_VERSION_1_1)
     End Sub
 
@@ -120,7 +172,10 @@ Public Class ManagementDao
     ''' Extends the dictionary with a column to store whether a word is irregular.
     ''' </summary>
     Private Sub UpdateTo1_2()
-        SimpleUpdateCommand("ALTER TABLE [DictionaryWords] ADD COLUMN [Irregular] BIT;")
+        SimpleUpdateCommand("
+            ALTER TABLE [DictionaryWords]
+              ADD COLUMN [Irregular] BIT;
+        ")
         UpdateToVersion(DB_VERSION_1_2)
     End Sub
 
@@ -129,9 +184,19 @@ Public Class ManagementDao
     ''' </summary>
     Private Sub UpdateTo1_3()
         ' Cards-Modus für abfrage Abfrage der Hauptsprache hinzugefügt
-        SimpleUpdateCommand("ALTER TABLE [Cards] ADD COLUMN [TestIntervalMain] INT")
-        SimpleUpdateCommand("ALTER TABLE [Cards] ADD COLUMN [CounterMain] INT")
-        SimpleUpdateCommand("UPDATE [Cards] SET [TestIntervalMain] = 1, [CounterMain] = 1;")
+        SimpleUpdateCommand("
+            ALTER TABLE [Cards]
+              ADD COLUMN [TestIntervalMain] INT
+        ")
+        SimpleUpdateCommand("
+            ALTER TABLE [Cards]
+              ADD COLUMN [CounterMain] INT
+        ")
+        SimpleUpdateCommand("
+            UPDATE [Cards]
+               SET [TestIntervalMain] = 1,
+                   [CounterMain] = 1;
+        ")
         UpdateToVersion(DB_VERSION_1_3)
     End Sub
 
@@ -139,8 +204,14 @@ Public Class ManagementDao
     ''' Add column 'Marked' to the dictionary.
     ''' </summary>
     Private Sub UpdateTo1_4()
-        SimpleUpdateCommand("ALTER TABLE [DictionaryWords] ADD COLUMN [Marked] BIT;")
-        SimpleUpdateCommand("UPDATE DictionaryWords SET Marked='-1'")
+        SimpleUpdateCommand("
+            ALTER TABLE [DictionaryWords]
+              ADD COLUMN [Marked] BIT;
+        ")
+        SimpleUpdateCommand("
+            UPDATE DictionaryWords
+               SET Marked='-1'
+        ")
         UpdateToVersion(DB_VERSION_1_4)
     End Sub
 
@@ -155,9 +226,15 @@ Public Class ManagementDao
         Dim command As String
         For Each group As GroupEntry In Groups
             Dim table As String = StripSpecialCharacters(group.Table)
-            SimpleUpdateCommand("ALTER TABLE [" & table & "] ADD COLUMN [Marked] BIT")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [Marked] BIT
+            ")
 
-            command = "SELECT [WordIndex] FROM [" & table & "]"
+            command = $"
+                SELECT [WordIndex]
+                  FROM [{table}]
+            "
             DBConnection.ExecuteReader(command, Array.Empty(Of Object))
             Dim indices As New List(Of Integer)
             While DBConnection.DBCursor.Read()
@@ -167,25 +244,56 @@ Public Class ManagementDao
 
             Dim dict As New CardsDao(Me.DBConnection)
             For Each index As Integer In indices
-                command = "SELECT Marked FROM [DictionaryWords] WHERE [Index] = ?"
+                command = $"
+                    SELECT Marked
+                      FROM [DictionaryWords]
+                     WHERE [Index] = ?
+                "
                 DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
                 DBConnection.DBCursor.Read()
                 Dim marked As Boolean = DBConnection.SecureGetBool(0)
                 DBConnection.DBCursor.Close()
 
-                command = "UPDATE [" & table & "] SET [Marked] = ? WHERE [WordIndex] = ?"
+                command = $"
+                    UPDATE [{table}]
+                       SET [Marked] = ?
+                     WHERE [WordIndex] = ?
+                "
                 DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {marked, index}))
             Next
         Next group
 
         'drop 'Marked' column, need to copy everything in MySQL
-        SimpleUpdateCommand("CREATE TABLE [DictionaryWordsCopy] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [MainIndex] INT NOT NULL, [Word] TEXT(80) NOT NULL, [Pre] TEXT(16), [Post] TEXT(16), [WordType] INT, [Meaning] TEXT(80) NOT NULL, TargetLanguageInfo TEXT(50), [Irregular] BIT)")
-        SimpleUpdateCommand("INSERT INTO [DictionaryWordsCopy] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular]) SELECT [MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], '' FROM [DictionaryWords]")
-        SimpleUpdateCommand("DROP TABLE [DictionaryWords]")
-        SimpleUpdateCommand("ALTER TABLE [DictionaryWordsCopy] RENAME TO [DictionaryWords]")
+        SimpleUpdateCommand($"
+            CREATE TABLE [DictionaryWordsCopy] (
+                   [Index]            INTEGER  PRIMARY KEY AUTOINCREMENT,
+                   [MainIndex]        INT      NOT NULL,
+                   [Word]             TEXT(80) NOT NULL,
+                   [Pre]              TEXT(16),
+                   [Post]             TEXT(16),
+                   [WordType]         INT,
+                   [Meaning]          TEXT(80) NOT NULL,
+                   TargetLanguageInfo TEXT(50),
+                   [Irregular]        BIT)
+        ")
+        SimpleUpdateCommand($"
+            INSERT INTO [DictionaryWordsCopy] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular])
+                   SELECT [MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular]
+                     FROM [DictionaryWords]
+        ")
+        SimpleUpdateCommand("
+            DROP TABLE [DictionaryWords]
+        ")
+        SimpleUpdateCommand("
+             ALTER TABLE [DictionaryWordsCopy]
+            RENAME TO [DictionaryWords]
+        ")
 
         ' Recreate the index
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [Word] ON DictionaryWords ([Word], [Meaning], [MainIndex])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [Word]
+                ON DictionaryWords ([Word], [Meaning], [MainIndex])
+        ")
 
         UpdateToVersion(DB_VERSION_1_5)
     End Sub
@@ -195,13 +303,31 @@ Public Class ManagementDao
     ''' </summary>
     Private Sub UpdateTo1_6()
         ' Update field length by copying as alter table is not supported by sqlite
-        SimpleUpdateCommand("CREATE TABLE [DictionaryMainCopy] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [WordEntry] TEXT(50) NOT NULL, [LanguageName] TEXT(16) NOT NULL, [MainLanguage] TEXT(16))")
-        SimpleUpdateCommand("INSERT INTO [DictionaryMainCopy] ([WordEntry], [LanguageName], [MainLanguage]) SELECT [WordEntry], [LanguageName], [MainLanguage] FROM [DictionaryMain]")
-        SimpleUpdateCommand("DROP TABLE [DictionaryMain]")
-        SimpleUpdateCommand("ALTER TABLE [DictionaryMainCopy] RENAME TO [DictionaryMain]")
+        SimpleUpdateCommand("
+            CREATE TABLE [DictionaryMainCopy] (
+                [Index]        INTEGER  PRIMARY KEY AUTOINCREMENT,
+                [WordEntry]    TEXT(50) NOT NULL,
+                [LanguageName] TEXT(16) NOT NULL,
+                [MainLanguage] TEXT(16))
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [DictionaryMainCopy] ([WordEntry], [LanguageName], [MainLanguage])
+                   SELECT [WordEntry], [LanguageName], [MainLanguage]
+                     FROM [DictionaryMain]
+        ")
+        SimpleUpdateCommand("
+            DROP TABLE [DictionaryMain]
+        ")
+        SimpleUpdateCommand("
+             ALTER TABLE [DictionaryMainCopy]
+            RENAME TO [DictionaryMain]
+        ")
 
         ' Recreate the index
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [DictionaryWord] ON [DictionaryMain] ([WordEntry], [LanguageName], [MainLanguage])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [DictionaryWord]
+                ON [DictionaryMain] ([WordEntry], [LanguageName], [MainLanguage])
+        ")
 
         UpdateToVersion(DB_VERSION_1_6)
     End Sub
@@ -218,50 +344,140 @@ Public Class ManagementDao
         'command = "ALTER TABLE [Cards] ALTER COLUMN [CounterMain] INT NOT NULL;"
         'DBConnection.ExecuteNonQuery(command)
 
-        SimpleUpdateCommand("CREATE TABLE [CardsCopy] ([Index] INT NOT NULL, [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL)")
-        SimpleUpdateCommand("INSERT INTO [CardsCopy] ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) SELECT [Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards]")
-        SimpleUpdateCommand("DROP TABLE [Cards]")
-        SimpleUpdateCommand("ALTER TABLE [CardsCopy] RENAME TO [Cards]")
+        SimpleUpdateCommand("
+            CREATE TABLE [CardsCopy] (
+                [Index]            INT      NOT NULL,
+                [TestInterval]     INT      NOT NULL,
+                [Counter]          INT      NOT NULL,
+                [LastDate]         DATETIME NOT NULL,
+                [TestIntervalMain] INT      NOT NULL,
+                [CounterMain]      INT      NOT NULL
+            )
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [CardsCopy] ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+                   SELECT [Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
+                     FROM [Cards]
+        ")
+        SimpleUpdateCommand("
+            DROP TABLE [Cards]
+        ")
+        SimpleUpdateCommand("
+             ALTER TABLE [CardsCopy]
+            RENAME TO [Cards]
+        ")
 
         Dim groupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
         Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
         For Each group As GroupEntry In groups
             Dim table As String = StripSpecialCharacters(group.Table)
             ' add new columns
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [Example] TEXT(64)")
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [TestInterval] INT NOT NULL DEFAULT 1")
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [Counter] INT NOT NULL DEFAULT 1")
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [LastDate] DATETIME NOT NULL DEFAULT '1900-01-01'")
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [TestIntervalMain] INT NOT NULL DEFAULT 1")
-            SimpleUpdateCommand($"ALTER TABLE [{table}] ADD COLUMN [CounterMain] INT NOT NULL DEFAULT 1")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [Example] TEXT(64)
+            ")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [TestInterval] INT NOT NULL DEFAULT 1
+            ")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [Counter] INT NOT NULL DEFAULT 1
+            ")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [LastDate] DATETIME NOT NULL DEFAULT '1900-01-01'
+            ")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [TestIntervalMain] INT NOT NULL DEFAULT 1
+            ")
+            SimpleUpdateCommand($"
+                ALTER TABLE [{table}]
+                  ADD COLUMN [CounterMain] INT NOT NULL DEFAULT 1
+            ")
         Next group
         CopyGlobalCardsToGroups()
 
         ' Create supported word types
-        SimpleUpdateCommand("CREATE TABLE [SupportedWordTypes] ([Type] TEXT(32) NOT NULL, [Index] INT PRIMARY KEY)")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_SUBSTANTIVE', '0')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_VERB', '1')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_ADJECTIVE', '2')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_SIMPLE', '3')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_ADVERB', '4')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_SET_PHRASE', '5')")
-        SimpleUpdateCommand("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES('WORD_TYPE_EXAMPLE', '6')")
+        SimpleUpdateCommand("
+            CREATE TABLE [SupportedWordTypes] (
+                [Type]  TEXT(32) NOT NULL,
+                [Index] INT      PRIMARY KEY)
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_SUBSTANTIVE', '0')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_VERB', '1')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_ADJECTIVE', '2')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_SIMPLE', '3')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_ADVERB', '4')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_SET_PHRASE', '5')
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [SupportedWordTypes] ([Type], [Index])
+            VALUES ('WORD_TYPE_EXAMPLE', '6')
+        ")
 
         ' Set unsupported values to 3 (simple)
-        SimpleUpdateCommand("UPDATE [DictionaryWords] SET [WordType] = '3' WHERE [WordType] Not In (0,1,2,3,4,5,6)")
+        SimpleUpdateCommand("
+            UPDATE [DictionaryWords]
+               SET [WordType] = '3'
+             WHERE [WordType] NOT IN (0,1,2,3,4,5,6)
+        ")
 
         ' instead of ON UPDATE CASCADE we need ON DELETE REJECT
-        SimpleUpdateCommand("PRAGMA foreign_keys = ON")
+        SimpleUpdateCommand("
+            PRAGMA foreign_keys = ON
+        ")
         '"ALTER TABLE  ADD CONSTRAINT TestConstraint FOREIGN KEY ([WordType]) REFERENCES SupportedWordTypes ON UPDATE CASCADE"
 
         ' Update DictionaryWords table
-        SimpleUpdateCommand("CREATE TABLE [DictionaryWordsCopy] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [MainIndex] INT NOT NULL, [Word] TEXT(80) NOT NULL, [Pre] TEXT(16), [Post] TEXT(16), [WordType] INT, [Meaning] TEXT(80) NOT NULL, TargetLanguageInfo TEXT(50), [Irregular] BIT, FOREIGN KEY ([WordType]) REFERENCES SupportedWordTypes ON DELETE RESTRICT)")
-        SimpleUpdateCommand("INSERT INTO [DictionaryWordsCopy] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular]) SELECT [MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], 'False' FROM [DictionaryWords]")
-        SimpleUpdateCommand("DROP TABLE [DictionaryWords]")
-        SimpleUpdateCommand("ALTER TABLE [DictionaryWordsCopy] RENAME TO [DictionaryWords]")
+        SimpleUpdateCommand("
+            CREATE TABLE [DictionaryWordsCopy] (
+                [Index]             INTEGER  PRIMARY KEY AUTOINCREMENT,
+                [MainIndex]         INT      NOT NULL,
+                [Word]              TEXT(80) NOT NULL,
+                [Pre]               TEXT(16),
+                [Post]              TEXT(16),
+                [WordType]          INT      REFERENCES SupportedWordTypes ON DELETE RESTRICT,
+                [Meaning]           TEXT(80) NOT NULL,
+                TargetLanguageInfo  TEXT(50),
+                [Irregular]         BIT)
+        ")
+        SimpleUpdateCommand("
+            INSERT INTO [DictionaryWordsCopy] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular])
+                   SELECT [MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], 'False'
+                     FROM [DictionaryWords]
+        ")
+        SimpleUpdateCommand("
+            DROP TABLE [DictionaryWords]
+        ")
+        SimpleUpdateCommand("
+             ALTER TABLE [DictionaryWordsCopy]
+            RENAME TO [DictionaryWords]
+        ")
 
         ' Recreate the Index
-        SimpleUpdateCommand("CREATE UNIQUE INDEX [Word] ON DictionaryWords ([Word], [Meaning], [MainIndex])")
+        SimpleUpdateCommand("
+            CREATE UNIQUE INDEX [Word]
+                ON DictionaryWords ([Word], [Meaning], [MainIndex])
+        ")
 
         UpdateToVersion(DB_VERSION_1_7)
     End Sub
@@ -299,7 +515,11 @@ Public Class ManagementDao
                 DBConnection.DBCursor.Close()
 
                 ' save
-                command = "UPDATE [" & table & "] SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ? WHERE [WordIndex] = ?"
+                command = $"
+                    UPDATE [{table}]
+                       SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ?
+                     WHERE [WordIndex] = ?
+                "
                 DBConnection.ExecuteNonQuery(command, New List(Of Object) From {testInterval, counter, lastDate, testIntervalMain, counterMain, index})
             Next index
         Next group
@@ -310,7 +530,10 @@ Public Class ManagementDao
     ''' </summary>
     ''' <param name="version">The DBVersion for the new version</param>
     Private Sub UpdateToVersion(version As DBVersion)
-        Dim command As String = "INSERT INTO [DBVersion] ([Version], [Date], [Description]) VALUES(?, ?, ?)"
+        Dim command As String = "
+            INSERT INTO [DBVersion] ([Version], [Date], [Description])
+            VALUES (?, ?, ?)
+        "
         Dim versionString As String = version.Major & "." & version.Minor.ToString("00", CultureInfo.InvariantCulture)
         Dim versionParameters = New List(Of Object) From {versionString, version.Introduction.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), version.Description}
         DBConnection.ExecuteNonQuery(command, ToDbParameters(versionParameters))
@@ -389,10 +612,18 @@ Public Class ManagementDao
         Loop
         DBConnection.DBCursor.Close()
         For Each index As Integer In indices
-            command = "SELECT Word FROM DictionaryWords WHERE [Index] = ?"
+            command = "
+                SELECT Word
+                  FROM DictionaryWords
+                 WHERE [Index] = ?
+            "
             DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
             If Not DBConnection.DBCursor.HasRows Then
-                command = "DELETE FROM Cards WHERE [Index] = ?"
+                command = "
+                    DELETE
+                      FROM Cards
+                     WHERE [Index] = ?
+                "
                 DBConnection.DBCursor.Close()
                 DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {index}))
                 ErrorCount += 1
@@ -402,7 +633,10 @@ Public Class ManagementDao
         Next index
 
         ' fixes missing card entries
-        command = "SELECT [Index] FROM DictionaryWords ORDER BY [Index]"
+        command = "
+            SELECT [Index]
+              FROM DictionaryWords
+             ORDER BY [Index]"
         DBConnection.ExecuteReader(command, Enumerable.Empty(Of Object))
         indices = New List(Of Integer)
         Do While DBConnection.DBCursor.Read
@@ -411,7 +645,11 @@ Public Class ManagementDao
         DBConnection.DBCursor.Close()
         Dim cards As New CardsDao(DBConnection)
         For Each index As Integer In indices
-            command = "SELECT TestInterval FROM Cards WHERE [Index] = ?"
+            command = "
+                SELECT TestInterval
+                  FROM Cards
+                 WHERE [Index] = ?
+            "
             DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {index}))
             If Not DBConnection.DBCursor.HasRows Then
                 DBConnection.DBCursor.Close()
@@ -429,7 +667,11 @@ Public Class ManagementDao
         For Each Group As GroupEntry In GroupsDao.GetAllGroups()
             Dim groupDto As GroupDto = GroupDao.Load(Group)
             For Each entry As TestWord In groupDto.Entries
-                command = "SELECT MainIndex FROM DictionaryWords WHERE [Index] = ?"
+                command = "
+                    SELECT MainIndex
+                      FROM DictionaryWords
+                     WHERE [Index] = ?
+                "
                 DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {entry.Index}))
                 If DBConnection.DBCursor.HasRows = False Then
                     ' delete because entry does not exist
