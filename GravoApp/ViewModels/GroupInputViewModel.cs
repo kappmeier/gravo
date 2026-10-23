@@ -223,26 +223,23 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         {
             return;
         }
-        WordsInLanguageText = Plural(_dictionary.WordCount(SelectedLanguage, _mainLanguage),
+        WordsInLanguageText = Texts.Plural(_dictionary.WordCount(SelectedLanguage, _mainLanguage),
             localization.GROUP_INPUT_ENTRIES_IN_LANGUAGE_ONE,
             localization.GROUP_INPUT_ENTRIES_IN_LANGUAGE_MANY);
-        WordsInSubGroupText = Plural(WordsInGroup.Count,
+        WordsInSubGroupText = Texts.Plural(WordsInGroup.Count,
                 localization.GROUP_INPUT_DISTINCT_ENTRIES_ONE,
                 localization.GROUP_INPUT_DISTINCT_ENTRIES_MANY)
             + Texts.Get(localization.GROUP_INPUT_IN_THE_GROUP)
             + Environment.NewLine
-            + Plural(_groupData?.WordCount ?? 0,
+            + Texts.Plural(_groupData?.WordCount ?? 0,
                 localization.GROUP_INPUT_ENTRIES_TOTAL_ONE,
                 localization.GROUP_INPUT_ENTRIES_TOTAL_MANY);
         WordsInGroupText = SelectedGroup is null
             ? ""
-            : Plural(DataTools.WordCount(_groups, _group, SelectedGroup),
+            : Texts.Plural(DataTools.WordCount(_groups, _group, SelectedGroup),
                 localization.GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_ONE,
                 localization.GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_MANY);
     }
-
-    /// <summary>Formats <paramref name="count"/> into the singular or the plural text.</summary>
-    private string Plural(int count, int one, int many) => Texts.Format(count == 1 ? one : many, count);
 
     /// <summary>Adds the selected dictionary word to the sub group with the marked flag and an empty example.</summary>
     /// <remarks>A word that is in the sub group already is not added again. Instead, a message is shown.</remarks>

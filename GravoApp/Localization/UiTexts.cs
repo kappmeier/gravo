@@ -53,6 +53,14 @@ public sealed class UiTexts : ObservableObject
     public string Format(int code, params object?[] args) =>
         string.Format(CultureInfo.CurrentCulture, Get(code), args);
 
+    /// <summary>
+    /// Formats localized texts depending on the <paramref name="count"/> into the singular or the plural text.
+    /// </summary>
+    /// <param name="count">The count to determine singular or plural form.</param>
+    /// <param name="oneCode">The localization code for the singular form.</param>
+    /// <param name="manyCode">The localization code for the plural form, or zero.</param>
+    public string Plural(int count, int oneCode, int manyCode) => Format(count == 1 ? oneCode : manyCode, count);
+
     private static string ToAccessKeys(string text) =>
         Regex.Replace(text, "&&|&|_", m => m.Value switch { "&&" => "&", "&" => "_", _ => "__" });
 
