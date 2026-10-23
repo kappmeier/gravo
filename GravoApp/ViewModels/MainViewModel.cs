@@ -226,7 +226,9 @@ public sealed partial class MainViewModel : ViewModelBase
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             await _s.Dialogs.ShowMessageAsync(
-                Texts.Get(localization.ERROR_TITLE), Texts.Format("MAIN_COPY_FAILED", ex.Message));
+                Texts.Get(localization.ERROR_TITLE),
+                Texts.Format(localization.MAIN_COPY_FAILED,
+                ex.Message));
         }
     }
 
@@ -242,7 +244,7 @@ public sealed partial class MainViewModel : ViewModelBase
         await _s.Dialogs.ShowMessageAsync(
             Texts.Get(localization.HINT_TITLE),
             errors > 0
-                ? Texts.Format("MAIN_CHECK_DATABASE_FIXED", errors)
+                ? Texts.Format(localization.MAIN_CHECK_DATABASE_FIXED, errors)
                 : Texts.Get(localization.MAIN_CHECK_DATABASE_CLEAN));
     }
 

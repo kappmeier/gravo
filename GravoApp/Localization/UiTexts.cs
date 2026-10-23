@@ -42,19 +42,16 @@ public sealed class UiTexts : ObservableObject
     public string Get(int code) => Regex.Replace(_loc.GetText(code), "&(&?)", "$1");
 
     /// <summary>
-    /// Formats a text specified by it's name with localized texts and filled placeholders.
+    /// Formats the localized text for <paramref name="code"/> with the given values filled in placeholders.
     /// </summary>
     /// <remarks>
-    /// Takes the plain text for <paramref name="constantName"/> and fills the <c>{0}</c>, <c>{1}</c> placeholders
-    /// with the values from <paramref name="args"/>.
+    /// Takes the plain text for <paramref name="code"/> and fills the <c>{0}</c>, <c>{1}</c> placeholders with the
+    /// values from <paramref name="args"/>.
     /// </remarks>
-    /// <param name="constantName">The name of the constant whose localized text is to be formatted.</param>
-    /// <param name="args">The objects to format into the localized text's placeholders.</param>
-    public string Format(string constantName, params object?[] args)
-    {
-        var code = Codes[constantName];
-        return string.Format(CultureInfo.CurrentCulture, Get(code), args);
-    }
+    /// <param name="code">The <c>localization</c> constant of the text to format.</param>
+    /// <param name="args">The values for the placeholders of the text.</param>
+    public string Format(int code, params object?[] args) =>
+        string.Format(CultureInfo.CurrentCulture, Get(code), args);
 
     private static string ToAccessKeys(string text) =>
         Regex.Replace(text, "&&|&|_", m => m.Value switch { "&&" => "&", "&" => "_", _ => "__" });

@@ -28,7 +28,8 @@ public partial class App : Application
             {
                 var texts = new UiTexts(AppServices.OpenLocalization(languagesPath));
                 desktop.MainWindow = new MessageWindow(
-                    texts.Get(localization.ERROR_TITLE), texts.Format("STARTUP_DATABASE_NOT_FOUND", dbPath),
+                    texts.Get(localization.ERROR_TITLE),
+                    texts.Format(localization.STARTUP_DATABASE_NOT_FOUND, dbPath),
                     confirm: false, texts);
             }
             else

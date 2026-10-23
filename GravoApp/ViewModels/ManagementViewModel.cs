@@ -64,8 +64,8 @@ public sealed partial class ManagementViewModel : ViewModelBase
         Texts = texts;
         ErrorCountText = Texts.Get(localization.MANAGEMENT_NO_CHECK_YET);
         ImportDatabaseText = Texts.Get(localization.MANAGEMENT_NO_IMPORT_DATABASE);
-        ImportDictCountText = Texts.Format("MANAGEMENT_IMPORTED_DICTIONARY", null, null);
-        ImportGroupCountText = Texts.Format("MANAGEMENT_IMPORTED_GROUPS", null, null, null);
+        ImportDictCountText = Texts.Format(localization.MANAGEMENT_IMPORTED_DICTIONARY, null, null);
+        ImportGroupCountText = Texts.Format(localization.MANAGEMENT_IMPORTED_GROUPS, null, null, null);
         Title = Texts.Get(localization.MANAGEMENT_TITLE);
         Limits = properties.LoadProperties();
         UpdateForm();
@@ -159,8 +159,10 @@ public sealed partial class ManagementViewModel : ViewModelBase
         var entry = _active.Groups.GetGroup(SelectedUnitGroup, value);
         var words = _active.Group.Load(ref entry).WordCount;
         var languages = _active.Group.GetLanguages(ref entry).Count;
-        UnitInfo = Entries(words) + Environment.NewLine + Texts.Format(
-            languages == 1 ? "MANAGEMENT_USED_LANGUAGES_ONE" : "MANAGEMENT_USED_LANGUAGES_MANY", languages);
+        UnitInfo = Entries(words) + Environment.NewLine + Texts.Format(languages == 1
+                ? localization.MANAGEMENT_USED_LANGUAGES_ONE
+                : localization.MANAGEMENT_USED_LANGUAGES_MANY,
+            languages);
     }
 
     /// <summary>Returns <paramref name="count"/> followed by the singular or plural of "entry".</summary>
@@ -200,7 +202,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
         catch (Exception ex)
         {
             await _dialogs.ShowMessageAsync(
-                Texts.Get(localization.ERROR_TITLE), Texts.Format("ERROR_OCCURRED", ex.Message));
+                Texts.Get(localization.ERROR_TITLE), Texts.Format(localization.ERROR_OCCURRED, ex.Message));
             UpdateForm();
         }
         return false;
@@ -330,8 +332,8 @@ public sealed partial class ManagementViewModel : ViewModelBase
         var next = _management.GetNextVersion();
         CanUpdateVersion = next is not null;
         VersionButtonText = next is null
-            ? Texts.Format("MANAGEMENT_ON_CURRENT_VERSION", Format(_management.GetCurrentVersion()))
-            : Texts.Format("MANAGEMENT_UPDATE_TO_VERSION", Format(next));
+            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, Format(_management.GetCurrentVersion()))
+            : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, Format(next));
     }
 
     private static string Format(Properties.DBVersion version) => version.Major + "." + version.Minor;
@@ -356,7 +358,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ReorganizeAsync()
     {
-        ErrorCountText = Texts.Format("MANAGEMENT_ERRORS_FIXED", _management.Reorganize());
+        ErrorCountText = Texts.Format(localization.MANAGEMENT_ERRORS_FIXED, _management.Reorganize());
         await _dialogs.ShowMessageAsync(
             Texts.Get(localization.HINT_TITLE), Texts.Get(localization.MANAGEMENT_CONSISTENCY_CHECK_DONE));
     }
@@ -378,7 +380,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             await _dialogs.ShowMessageAsync(
-                Texts.Get(localization.ERROR_TITLE), Texts.Format("MAIN_COPY_FAILED", ex.Message));
+                Texts.Get(localization.ERROR_TITLE), Texts.Format(localization.MAIN_COPY_FAILED, ex.Message));
         }
     }
 
@@ -404,7 +406,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
                 Texts.Get(localization.ERROR_TITLE), Texts.Get(localization.MANAGEMENT_PICK_EXISTING_FILE));
             return;
         }
-        ImportDatabaseText = Texts.Format("MANAGEMENT_IMPORT_DATABASE", path);
+        ImportDatabaseText = Texts.Format(localization.MANAGEMENT_IMPORT_DATABASE, path);
         CanImport = true;
         _importFile = path;
     }
@@ -457,8 +459,8 @@ public sealed partial class ManagementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialogs.ShowMessageAsync(
-                Texts.Get(localization.ERROR_TITLE), Texts.Format("MANAGEMENT_DATABASE_ACCESS_FAILED", ex.Message));
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
+                Texts.Format(localization.MANAGEMENT_DATABASE_ACCESS_FAILED, ex.Message));
             return;
         }
         TransferResult? result;
@@ -479,9 +481,10 @@ public sealed partial class ManagementViewModel : ViewModelBase
         {
             return;
         }
-        ImportDictCountText = Texts.Format("MANAGEMENT_IMPORTED_DICTIONARY", result.MainEntries, result.SubEntries);
+        ImportDictCountText = Texts.Format(
+            localization.MANAGEMENT_IMPORTED_DICTIONARY, result.MainEntries, result.SubEntries);
         ImportGroupCountText = Texts.Format(
-            "MANAGEMENT_IMPORTED_GROUPS", result.Groups, result.SubGroups, result.GroupEntries);
+            localization.MANAGEMENT_IMPORTED_GROUPS, result.Groups, result.SubGroups, result.GroupEntries);
         UpdateForm();
         await _dialogs.ShowMessageAsync(AppServices.ProductName, Texts.Get(localization.MANAGEMENT_IMPORT_DONE));
     }

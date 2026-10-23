@@ -269,7 +269,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         catch (EntryNotFoundException notFound)
         {
             if (await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format("WORD_INPUT_MAIN_ENTRY_MISSING", MainEntry)))
+                    Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, MainEntry)))
             {
                 await AddMainEntryAndRetryAsync(entry, notFound);
             }
@@ -287,7 +287,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         {
             return await _dialogs.ConfirmAsync(
                 Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
-                Texts.Format("WORD_INPUT_NO_ENTRY_IN_GROUP_YET", Language, MainLanguage));
+                Texts.Format(localization.WORD_INPUT_NO_ENTRY_IN_GROUP_YET, Language, MainLanguage));
         }
         if (languageCount == 1 && mainLanguageCount == 1
             && (_group.GetUniqueLanguage(ref group) != Language
@@ -295,7 +295,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         {
             return await _dialogs.ConfirmAsync(
                 Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
-                Texts.Format("WORD_INPUT_SECOND_LANGUAGE", Language, MainLanguage));
+                Texts.Format(localization.WORD_INPUT_SECOND_LANGUAGE, Language, MainLanguage));
         }
         return true;
     }
@@ -320,7 +320,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         catch (Exception)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                Texts.Format("ENTRY_CONFLICT", notFound.Message));
+                Texts.Format(localization.ENTRY_CONFLICT, notFound.Message));
         }
     }
 
