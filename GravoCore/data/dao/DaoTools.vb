@@ -1,4 +1,5 @@
 ﻿Imports System.Globalization
+Imports System.Text.RegularExpressions
 
 Public Module DaoTools
 
@@ -79,12 +80,8 @@ Public Module DaoTools
     ''' <param name="input">The input string.</param>
     ''' <returns>The original string without the special characters.</returns>
     Public Function StripSpecialCharacters(ByVal input As String) As String
-        Dim withoutSpecialCharacters As String = input
-        withoutSpecialCharacters = withoutSpecialCharacters.Replace(" ", "")
-        withoutSpecialCharacters = withoutSpecialCharacters.Replace("!", "")
-        withoutSpecialCharacters = withoutSpecialCharacters.Replace("[", "")
-        withoutSpecialCharacters = withoutSpecialCharacters.Replace("]", "")
-        Return withoutSpecialCharacters
+        Dim specialCharacters As String = " !\[\]"
+        Return Regex.Replace(input, "["  & specialCharacters  & "]", "")
     End Function
 
 End Module
