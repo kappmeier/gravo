@@ -3,7 +3,7 @@
         xmlns:vm="using:GravoApp.ViewModels"
         x:Class="GravoApp.Views.QuizWindow"
         x:DataType="vm:QuizViewModel"
-        Title="{Binding Title}"
+        Title="{Binding Texts[TEST_TITLE]}"
         SizeToContent="Height" Width="460" CanResize="False"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="16" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
