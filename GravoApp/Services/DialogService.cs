@@ -30,8 +30,7 @@ public sealed class DialogService : IDialogService
     public async Task<bool> ShowDialogAsync(ViewModelBase viewModel)
     {
         var window = ViewLocator.CreateWindow(viewModel);
-        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
-        window.Closed += (_, _) => viewModel.OnClosed();
+        Attach(window, viewModel);
         viewModel.CloseRequested += ok => window.Close(ok);
         return await window.ShowDialog<bool?>(_owner()) == true;
     }
@@ -39,10 +38,16 @@ public sealed class DialogService : IDialogService
     public void ShowWindow(ViewModelBase viewModel)
     {
         var window = ViewLocator.CreateWindow(viewModel);
-        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
-        window.Closed += (_, _) => viewModel.OnClosed();
+        Attach(window, viewModel);
         viewModel.CloseRequested += _ => window.Close();
         window.Show(_owner());
+    }
+
+    /// <summary>Forwards the window's opened and closed events to the view model.</summary>
+    private static void Attach(Window window, ViewModelBase viewModel)
+    {
+        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
+        window.Closed += (_, _) => viewModel.OnClosed();
     }
 
     public async Task<string?> PickOpenFileAsync(string title, string extension)
