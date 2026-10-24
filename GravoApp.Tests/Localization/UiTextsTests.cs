@@ -22,7 +22,7 @@ public class UiTextsTests
         }
         finally
         {
-            db.Close();
+            db.Dispose();
             SqliteConnection.ClearAllPools();
             File.Delete(temp);
         }

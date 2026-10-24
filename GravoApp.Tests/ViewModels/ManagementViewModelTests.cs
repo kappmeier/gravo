@@ -441,16 +441,9 @@ public class ManagementViewModelTests
         fixture.ExportGroups.Single(g => g.Name == "Book").IsChecked = true;
         await fixture.ExportCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Once);
-        var db = SQLiteDataBaseOperation.OpenDatabase(target);
-        try
-        {
-            DaoFactory.Dictionary(db).DictionaryLanguages("german").Should().Equal("english");
-            DaoFactory.Groups(db).GetGroups().Should().Equal("Book");
-        }
-        finally
-        {
-            db.Close();
-        }
+        using var db = SQLiteDataBaseOperation.OpenDatabase(target);
+        DaoFactory.Dictionary(db).DictionaryLanguages("german").Should().Equal("english");
+        DaoFactory.Groups(db).GetGroups().Should().Equal("Book");
     }
 
     [Test]

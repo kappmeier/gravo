@@ -29,11 +29,21 @@ Public Class SQLiteDataBaseOperation
     End Function
 
     Public Function Close() As Boolean Implements IDataBaseOperation.Close
+        CloseReader()
         connection.Close()
         connection.Dispose()
         connected = False
         Return True
     End Function
+
+    ''' <summary>
+    ''' Closes the open reader and disposes the current command and the connection. Calling it again, or calling
+    ''' <c>Close</c> afterwards, does nothing.
+    ''' </summary>
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Close()
+        GC.SuppressFinalize(Me)
+    End Sub
 
     Public Function ExecuteNonQuery(CommandText As String) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         If Not connected Then Return False

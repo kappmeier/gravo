@@ -6,6 +6,7 @@
 ''' Implementations hide the connection details, such as connection string.
 ''' </summary>
 Public Interface IDataBaseOperation
+    Inherits IDisposable
     ''' <summary>
     ''' Conects to a database at a given location.
     ''' 
