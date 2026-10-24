@@ -89,7 +89,7 @@ public class MainViewModelTests
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string> { "G" });
         _groups.Setup(g => g.GetSubGroups("G")).Returns(new List<GroupEntry> { entry });
         _groups.Setup(g => g.GetGroup("G", "U")).Returns(entry);
-        _group.Setup(g => g.Load(ref It.Ref<GroupEntry>.IsAny)).Returns(new GroupDto(entry, words.ToList()));
+        _group.Setup(g => g.Load(It.IsAny<GroupEntry>())).Returns(new GroupDto(entry, words.ToList()));
     }
 
     [Test]

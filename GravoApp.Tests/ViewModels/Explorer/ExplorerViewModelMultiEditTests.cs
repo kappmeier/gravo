@@ -65,7 +65,7 @@ public class ExplorerViewModelMultiEditTests
     private List<WordEntry> HouseWords() =>
         _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").ToList();
 
-    private GroupDto Load(GroupEntry group) => _voc.Group.Load(ref group);
+    private GroupDto Load(GroupEntry group) => _voc.Group.Load(group);
 
     [Test]
     public async Task ChangeSelected_OnlyEnabledFieldsChange()
@@ -146,8 +146,8 @@ public class ExplorerViewModelMultiEditTests
 
         var house = _seed.House;
         var houses = _seed.Houses;
-        _voc.Dictionary.GetMainEntry(ref house).Word.Should().Be("home");
-        var main = _voc.Dictionary.GetMainEntry(ref houses);
+        _voc.Dictionary.GetMainEntry(house).Word.Should().Be("home");
+        var main = _voc.Dictionary.GetMainEntry(houses);
         main.Word.Should().Be("home");
         main.Language.Should().Be("english");
         main.MainLanguage.Should().Be("german");
@@ -164,7 +164,7 @@ public class ExplorerViewModelMultiEditTests
         await fixture.ChangeSelectedCommand.ExecuteAsync(null);
 
         var go = _seed.Go;
-        var main = _voc.Dictionary.GetMainEntry(ref go);
+        var main = _voc.Dictionary.GetMainEntry(go);
         main.Word.Should().Be("misc");
         main.Language.Should().Be("english");
     }

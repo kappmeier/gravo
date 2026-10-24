@@ -58,7 +58,7 @@ public sealed class TempVocabulary : IDisposable
             // The main entry is shared by several words.
         }
         var entry = new WordEntry(word, pre, post, type, meaning, info, irregular);
-        Dictionary.AddSubEntry(ref entry, mainEntry, language, MainLanguage);
+        Dictionary.AddSubEntry(entry, mainEntry, language, MainLanguage);
         return entry;
     }
 
@@ -72,7 +72,7 @@ public sealed class TempVocabulary : IDisposable
 
     /// <summary>Adds a <paramref name="word"/> to a <paramref name="group"/>.</summary>
     public void AddToGroup(GroupEntry group, WordEntry word, bool marked = false, string example = "") =>
-        Group.Add(ref group, ref word, ref marked, ref example);
+        Group.Add(group, word, marked, example);
 
     /// <summary>Fills the database with a small standard data set.</summary>
     /// <remarks>

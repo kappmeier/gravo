@@ -180,7 +180,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         string language;
         try
         {
-            language = _group.GetUniqueLanguage(ref entry);
+            language = _group.GetUniqueLanguage(entry);
         }
         catch (Exception ex) when (ex is LanguageException or LanguageNotFoundException)
         {
@@ -204,7 +204,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         {
             var entry = _groups.GetGroup(SelectedGroup, SelectedSubGroup);
             _groupEntry = entry;
-            _groupData = _group.Load(ref entry);
+            _groupData = _group.Load(entry);
             foreach (var word in _groupData.GetWords())
             {
                 WordsInGroup.Add(word);
@@ -257,11 +257,9 @@ public sealed partial class GroupInputViewModel : ViewModelBase
             return;
         }
         var group = _groupEntry;
-        var marked = Marked;
-        var example = "";
         try
         {
-            _group.Add(ref group, ref word, ref marked, ref example);
+            _group.Add(group, word, Marked, "");
         }
         catch (EntryExistsException)
         {
@@ -287,7 +285,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         }
         var selected = SelectedWordInGroup is null ? -1 : WordsInGroup.IndexOf(SelectedWordInGroup);
         var group = _groupEntry;
-        _group.Delete(ref group, ref testWord);
+        _group.Delete(group, testWord);
         UpdateWordsInGroup();
         if (selected > WordsInGroup.Count - 1)
         {

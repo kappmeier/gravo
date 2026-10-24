@@ -38,7 +38,7 @@ public class TestSelectViewModelTests
             .Select(word => new TestWord(word, false, ""))
             .ToList();
         var match = entry;
-        _group.Setup(g => g.Load(ref match)).Returns(new GroupDto(entry, words));
+        _group.Setup(g => g.Load(match)).Returns(new GroupDto(entry, words));
     }
 
     private TestSelectViewModel Create(Settings settings) =>

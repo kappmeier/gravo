@@ -7,7 +7,7 @@ Public Class GroupsDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -261,7 +261,7 @@ Public Class GroupsDao
 
     End Sub
 
-    Private Sub DropGroupTables(ByRef toDelete As IEnumerable(Of String))
+    Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
         For Each table As String In toDelete
             Dim command = "DROP TABLE " & table
             DBConnection.ExecuteNonQuery(command)

@@ -98,7 +98,7 @@ public class GroupInputViewModelTests
         fixture.WordsInGroup.Should().Equal("go");
         fixture.SelectedWordInGroup.Should().Be("go");
         var unit2 = _seed.Unit2;
-        var entry = _voc.Group.Load(ref unit2).Entries.Should().ContainSingle().Which;
+        var entry = _voc.Group.Load(unit2).Entries.Should().ContainSingle().Which;
         entry.Word.Should().Be("go");
         entry.Marked.Should().BeTrue();
     }
@@ -111,7 +111,7 @@ public class GroupInputViewModelTests
         await fixture.SelectCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("T148", "T149"), Times.Once);
         var unit1 = _seed.Unit1;
-        _voc.Group.Load(ref unit1).Entries.Select(e => e.Word).Should().Equal("house", "go");
+        _voc.Group.Load(unit1).Entries.Select(e => e.Word).Should().Equal("house", "go");
     }
 
     [Test]
@@ -149,7 +149,7 @@ public class GroupInputViewModelTests
         fixture.SelectedWordInGroup.Should().Be("go");
         fixture.Meanings.Should().ContainSingle().Which.Meaning.Should().Be("gehen");
         var unit1 = _seed.Unit1;
-        _voc.Group.Load(ref unit1).Entries.Should().ContainSingle().Which.Word.Should().Be("go");
+        _voc.Group.Load(unit1).Entries.Should().ContainSingle().Which.Word.Should().Be("go");
     }
 
     [Test]

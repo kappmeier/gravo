@@ -13,7 +13,7 @@ Public Class PropertiesDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 

@@ -38,7 +38,7 @@ Public Class ManagementDao
         {DB_VERSION_1_6, Sub() UpdateTo1_7()}
     }
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 

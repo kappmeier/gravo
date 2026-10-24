@@ -9,7 +9,8 @@ Public Module DataBaseExtension
     ''' <param name="value">value for a single parameter</param>
     ''' <returns>The cursor to the reader with the results of the query.</returns>
     <Extension()>
-    Function ExecuteReader(ByRef aDataBaseOperation As IDataBaseOperation, ByVal commandText As String, ByRef value As String) As DbDataReader
+    Function ExecuteReader(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String,
+        ByVal value As String) As DbDataReader
         Return aDataBaseOperation.ExecuteReader(commandText, Enumerable.Repeat(value, 1))
     End Function
 
@@ -21,7 +22,7 @@ Public Module DataBaseExtension
     ''' <param name="aDataBaseOperation">the database access</param>
     ''' <param name="createError">the exception factory</param>
     <Extension()>
-    Sub FailIfEmpty(Of T As Exception)(ByRef aDataBaseOperation As IDataBaseOperation, ByRef createError As Func(Of T))
+    Sub FailIfEmpty(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = False Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -29,7 +30,7 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Sub FailIfExists(Of T As Exception)(ByRef aDataBaseOperation As IDataBaseOperation, ByRef createError As Func(Of T))
+    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = True Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -37,7 +38,7 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Function IsEmpty(ByRef dataBaseOperation As IDataBaseOperation) As Boolean
+    Function IsEmpty(ByVal dataBaseOperation As IDataBaseOperation) As Boolean
         Dim command As String = "SELECT count(*) FROM sqlite_master"
         dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
         dataBaseOperation.DBCursor.Read()

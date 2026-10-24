@@ -8,7 +8,7 @@ Public Class DictionaryDao
     Private ReadOnly DBConnection As IDataBaseOperation
     Private ReadOnly SELECT_WORDENTRY As String = "SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular"
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -137,7 +137,8 @@ Public Class DictionaryDao
         Throw New EntryExistsException("Entry for " & Word & " already exists")
     End Function
 
-    Public Sub AddSubEntry(ByRef Entry As WordEntry, ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
+    Public Sub AddSubEntry(ByVal Entry As WordEntry, ByVal MainEntry As String, ByVal Language As String,
+        ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
         CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo)
         Dim mainIndex As Integer
         Try
@@ -165,7 +166,8 @@ Public Class DictionaryDao
         Entry.Index = subEntryIndex
     End Sub
 
-    Function ChangeEntry(ByRef entry As WordEntry, ByVal updateData As IDictionaryDao.UpdateData) As WordEntry Implements IDictionaryDao.ChangeEntry
+    Function ChangeEntry(ByVal entry As WordEntry, ByVal updateData As IDictionaryDao.UpdateData
+        ) As WordEntry Implements IDictionaryDao.ChangeEntry
         CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo)
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
@@ -259,7 +261,8 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Sub
 
-    Private Sub AddSubWordsToCollection(ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String, ByRef gCol As ICollection(Of WordEntry))
+    Private Sub AddSubWordsToCollection(ByVal MainEntry As String, ByVal Language As String,
+        ByVal MainLanguage As String, ByVal gCol As ICollection(Of WordEntry))
         Dim mainIndex As Int32 = GetEntryIndex(MainEntry, Language, MainLanguage)
         Dim command As String
         command = "
@@ -281,12 +284,13 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Sub
 
-    Function GetMainEntry(ByRef word As WordEntry) As MainEntry Implements IDictionaryDao.GetMainEntry
+    Function GetMainEntry(ByVal word As WordEntry) As MainEntry Implements IDictionaryDao.GetMainEntry
         Dim mainIndex As Int32 = GetMainIndex(word)
         GetMainEntry = GetMainEntry(mainIndex)
     End Function
 
-    Function GetMainEntry(ByRef mainEntry As String, ByVal language As String, ByVal mainLanguage As String) As MainEntry Implements IDictionaryDao.GetMainEntry
+    Function GetMainEntry(ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String
+        ) As MainEntry Implements IDictionaryDao.GetMainEntry
         Dim command As String = "SELECT [Index], WordEntry, LanguageName, MainLanguage FROM DictionaryMain WHERE WordEntry = ? AND LanguageName = ? AND MainLanguage = ?"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainEntry, language, mainLanguage}))
         FailIfEmpty(DBConnection, Function() As Exception
@@ -367,7 +371,8 @@ Public Class DictionaryDao
         ExtractMainEntry = New MainEntry(index, word, language, mainLanguage)
     End Function
 
-    Function ChangeMainEntry(ByRef mainEntry As MainEntry, ByVal newWord As String) As MainEntry Implements IDictionaryDao.ChangeMainEntry
+    Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String
+        ) As MainEntry Implements IDictionaryDao.ChangeMainEntry
         CheckAllowedText(newWord)
         ' Verify that the original entry exists
         CheckMainEntry(mainEntry)
@@ -390,7 +395,7 @@ Public Class DictionaryDao
         If Not dbEntry.Equals(mainEntry) Then Throw New EntryNotFoundException("Given entry not in database")
     End Sub
 
-    Sub AdaptSubEntries(ByRef mainEntry As MainEntry, ByVal word As String) Implements IDictionaryDao.AdaptSubEntries
+    Sub AdaptSubEntries(ByVal mainEntry As MainEntry, ByVal word As String) Implements IDictionaryDao.AdaptSubEntries
         Dim indices As ICollection(Of Integer) = GetSubEntryIndices(mainEntry.Index, word)
         Dim command As String
         For Each index As Integer In indices

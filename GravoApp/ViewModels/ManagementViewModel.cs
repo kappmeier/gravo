@@ -157,8 +157,8 @@ public sealed partial class ManagementViewModel : ViewModelBase
         }
         UnitName = value;
         var entry = _active.Groups.GetGroup(SelectedUnitGroup, value);
-        var wordCount = _active.Group.Load(ref entry).WordCount;
-        var languageCount = _active.Group.GetLanguages(ref entry).Count;
+        var wordCount = _active.Group.Load(entry).WordCount;
+        var languageCount = _active.Group.GetLanguages(entry).Count;
         UnitInfo = Entries(wordCount) + Environment.NewLine + Texts.Plural(languageCount,
                 localization.MANAGEMENT_USED_LANGUAGES_ONE, localization.MANAGEMENT_USED_LANGUAGES_MANY);
     }

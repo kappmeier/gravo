@@ -54,7 +54,8 @@ Public Class SQLiteDataBaseOperation
     ''' <param name="CommandText">the command text includding placeholders (?) for paramters</param>
     ''' <param name="values">the parameter values</param>
     ''' <returns></returns>
-    Function ExecuteNonQuery(ByVal CommandText As String, ByRef values As IEnumerable(Of Object)) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
+    Function ExecuteNonQuery(ByVal CommandText As String, ByVal values As IEnumerable(Of Object)
+        ) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
         If Not connected Then Return False
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
@@ -75,7 +76,8 @@ Public Class SQLiteDataBaseOperation
         Return SQLreader
     End Function
 
-    Function ExecuteReader(ByVal commandText As String, ByRef values As IEnumerable(Of Object)) As DbDataReader Implements IDataBaseOperation.ExecuteReader
+    Function ExecuteReader(ByVal commandText As String, ByVal values As IEnumerable(Of Object)
+        ) As DbDataReader Implements IDataBaseOperation.ExecuteReader
         If Not SQLreader Is Nothing Then SQLreader.Close()
         DisposePreviousCommand()
         Dim sqlCommand As SqliteCommand = CreateParameterizedCommand(commandText, values)

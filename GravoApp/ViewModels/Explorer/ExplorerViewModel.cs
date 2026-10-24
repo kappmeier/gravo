@@ -261,20 +261,20 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             var group = _groups.GetGroup(node.Group!, node.SubGroup!);
             groupEntry = group;
-            if (_group.GetLanguages(ref group).Count > 1)
+            if (_group.GetLanguages(group).Count > 1)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
                     Texts.Get(localization.EXPLORER_TOO_MANY_LANGUAGES));
                 return;
             }
-            if (_group.GetMainLanguages(ref group).Count > 1)
+            if (_group.GetMainLanguages(group).Count > 1)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
                     Texts.Get(localization.EXPLORER_TOO_MANY_MAIN_LANGUAGES));
                 return;
             }
-            language = _group.GetUniqueLanguage(ref group);
-            mainLanguage = _group.GetUniqueMainLanguage(ref group);
+            language = _group.GetUniqueLanguage(group);
+            mainLanguage = _group.GetUniqueMainLanguage(group);
             if (language.Length == 0)
             {
                 language = Editor.Language;
@@ -306,7 +306,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             Editor.Meaning, Editor.AdditionalInfo, Editor.Irregular);
         try
         {
-            _dictionary.AddSubEntry(ref word, Editor.MainEntry, language, mainLanguage);
+            _dictionary.AddSubEntry(word, Editor.MainEntry, language, mainLanguage);
         }
         catch (InputException ex)
         {
@@ -334,7 +334,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             }
             try
             {
-                _dictionary.AddSubEntry(ref word, Editor.MainEntry, language, mainLanguage);
+                _dictionary.AddSubEntry(word, Editor.MainEntry, language, mainLanguage);
             }
             catch (Exception)
             {
@@ -353,11 +353,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         if (groupEntry is not null && Editor.AddToGroup)
         {
             var group = groupEntry;
-            var marked = Editor.Marked;
-            var example = "";
             try
             {
-                _group.Add(ref group, ref word, ref marked, ref example);
+                _group.Add(group, word, Editor.Marked, "");
             }
             catch (EntryExistsException)
             {
@@ -391,13 +389,13 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var node = SelectedNode!;
         try
         {
-            var updated = _dictionary.ChangeEntry(ref entry, Editor.ToUpdateData());
+            var updated = _dictionary.ChangeEntry(entry, Editor.ToUpdateData());
             var groupChanged = IsSubGroupNode(node);
             if (groupChanged)
             {
                 ChangeMarked(node, updated, Editor.Marked);
             }
-            var main = _dictionary.GetMainEntry(ref entry);
+            var main = _dictionary.GetMainEntry(entry);
             if (main.Word != Editor.MainEntry)
             {
                 _dictionary.ChangeEntry(updated, DataTools.GetOrCreateMainEntry(_dictionary, Editor.MainEntry,
@@ -446,7 +444,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             try
             {
-                var language = node.Language ?? _dictionary.GetMainEntry(ref first).Language;
+                var language = node.Language ?? _dictionary.GetMainEntry(first).Language;
                 newMain = DataTools.GetOrCreateMainEntry(_dictionary, Multi.MainEntry, language, _mainLanguage);
             }
             catch (InputException ex)
@@ -466,7 +464,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             }
             try
             {
-                var updated = _dictionary.ChangeEntry(ref entry, Multi.ToUpdateData());
+                var updated = _dictionary.ChangeEntry(entry, Multi.ToUpdateData());
                 if (groupChanged)
                 {
                     ChangeMarked(node, updated, Multi.Marked);
@@ -545,11 +543,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     private async Task RenameMainEntryAsync(ExplorerNode node, string newName)
     {
         var oldName = node.Title;
-        var main = _dictionary.GetMainEntry(ref oldName, node.Language!, node.MainLanguage!);
+        var main = _dictionary.GetMainEntry(oldName, node.Language!, node.MainLanguage!);
         try
         {
-            var updated = _dictionary.ChangeMainEntry(ref main, newName);
-            _dictionary.AdaptSubEntries(ref updated, oldName);
+            var updated = _dictionary.ChangeMainEntry(main, newName);
+            _dictionary.AdaptSubEntries(updated, oldName);
         }
         catch (Exception ex)
         {
@@ -596,7 +594,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         WordEntry updated;
         try
         {
-            updated = _dictionary.ChangeEntry(ref entry, new IDictionaryDao.UpdateData { Word = newName });
+            updated = _dictionary.ChangeEntry(entry, new IDictionaryDao.UpdateData { Word = newName });
         }
         catch (InputException ex)
         {
@@ -833,7 +831,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             return;
         }
-        var main = _dictionary.GetMainEntry(ref entry);
+        var main = _dictionary.GetMainEntry(entry);
         if (row.Payload is TestWord word)
         {
             Editor.Show(word, main, IsSubGroupNode(SelectedNode));
@@ -847,8 +845,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <summary>Returns the dictionary entry that has the word and meaning of <paramref name="word"/>.</summary>
     private WordEntry StoredWord(WordEntry word, string language, string mainLanguage)
     {
-        var mainEntry = Editor.MainEntry;
-        var main = _dictionary.GetMainEntry(ref mainEntry, language, mainLanguage);
+        var main = _dictionary.GetMainEntry(Editor.MainEntry, language, mainLanguage);
         return _dictionary.GetEntry(main, word.Word, word.Meaning);
     }
 
@@ -889,8 +886,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     private void ChangeMarked(ExplorerNode node, WordEntry word, bool marked)
     {
         var group = _groups.GetGroup(node.Group!, node.SubGroup!);
-        var testWord = _group.Load(ref group).GetWord(word.WordIndex);
-        _group.UpdateMarked(ref group, ref testWord, marked);
+        var testWord = _group.Load(group).GetWord(word.WordIndex);
+        _group.UpdateMarked(group, testWord, marked);
     }
 
     /// <summary>Replaces <paramref name="row"/> with a new row that shows the changed word.</summary>
@@ -928,7 +925,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         return node;
     }
 
-    private GroupDto Load(GroupEntry entry) => _group.Load(ref entry);
+    private GroupDto Load(GroupEntry entry) => _group.Load(entry);
 
     private GroupDto LoadSubGroup(ExplorerNode node) => Load(_groups.GetGroup(node.Group!, node.SubGroup!));
 

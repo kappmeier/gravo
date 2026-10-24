@@ -172,7 +172,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         SelectedGroupEntry = entry;
         try
         {
-            var language = _group.GetUniqueLanguage(ref entry);
+            var language = _group.GetUniqueLanguage(entry);
             if (Languages.Contains(language))
             {
                 SelectedLanguage = language;
@@ -184,7 +184,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         try
         {
-            var mainLanguage = _group.GetUniqueMainLanguage(ref entry);
+            var mainLanguage = _group.GetUniqueMainLanguage(entry);
             if (MainLanguages.Contains(mainLanguage))
             {
                 SelectedMainLanguage = mainLanguage;
@@ -234,7 +234,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
         try
         {
-            _dictionary.AddSubEntry(ref entry, MainEntry, Language, MainLanguage);
+            _dictionary.AddSubEntry(entry, MainEntry, Language, MainLanguage);
             await AddToGroupIfDirectAsync();
         }
         catch (InputException ex)
@@ -259,9 +259,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
     private async Task<bool> ConfirmGroupLanguagesAsync(GroupEntry selected)
     {
-        var group = selected;
-        var languageCount = _group.GetLanguages(ref group).Count;
-        var mainLanguageCount = _group.GetMainLanguages(ref group).Count;
+        var languageCount = _group.GetLanguages(selected).Count;
+        var mainLanguageCount = _group.GetMainLanguages(selected).Count;
         if (languageCount == 0 || mainLanguageCount == 0)
         {
             return await _dialogs.ConfirmAsync(
@@ -269,8 +268,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
                 Texts.Format(localization.WORD_INPUT_NO_ENTRY_IN_GROUP_YET, Language, MainLanguage));
         }
         if (languageCount == 1 && mainLanguageCount == 1
-            && (_group.GetUniqueLanguage(ref group) != Language
-                || _group.GetUniqueMainLanguage(ref group) != MainLanguage))
+            && (_group.GetUniqueLanguage(selected) != Language
+                || _group.GetUniqueMainLanguage(selected) != MainLanguage))
         {
             return await _dialogs.ConfirmAsync(
                 Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
@@ -293,7 +292,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         try
         {
-            _dictionary.AddSubEntry(ref entry, MainEntry, Language, MainLanguage);
+            _dictionary.AddSubEntry(entry, MainEntry, Language, MainLanguage);
             await AddToGroupIfDirectAsync();
         }
         catch (Exception)
@@ -309,15 +308,12 @@ public sealed partial class WordInputViewModel : ViewModelBase
         {
             return;
         }
-        var main = MainEntry;
-        var mainEntry = _dictionary.GetMainEntry(ref main, Language, MainLanguage);
+        var mainEntry = _dictionary.GetMainEntry(MainEntry, Language, MainLanguage);
         var word = _dictionary.GetEntry(mainEntry, Word, Meaning);
         var group = SelectedGroupEntry!;
-        var marked = Marked;
-        var example = "";
         try
         {
-            _group.Add(ref group, ref word, ref marked, ref example);
+            _group.Add(group, word, Marked, "");
         }
         catch (EntryExistsException)
         {

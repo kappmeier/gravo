@@ -60,7 +60,7 @@ public class ExplorerViewModelEditTests
     private void VerifyMessage(string title, string message) =>
         _dialogs.Verify(d => d.ShowMessageAsync(title, message), Times.Once);
 
-    private GroupDto Load(GroupEntry group) => _voc.Group.Load(ref group);
+    private GroupDto Load(GroupEntry group) => _voc.Group.Load(group);
 
     [Test]
     public void SelectWordRow_FillsEditor()
@@ -339,7 +339,7 @@ public class ExplorerViewModelEditTests
     {
         _voc.Dictionary.AddEntry("house", "english", "spanish");
         var casa = new WordEntry("house", "", "", WordType.Substantive, "casa", "", false);
-        _voc.Dictionary.AddSubEntry(ref casa, "house", "english", "spanish");
+        _voc.Dictionary.AddSubEntry(casa, "house", "english", "spanish");
         _voc.AddToGroup(_seed.Unit1, casa);
         var fixture = Create();
         fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
@@ -411,7 +411,7 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var houses = _seed.Houses;
-        var main = _voc.Dictionary.GetMainEntry(ref houses);
+        var main = _voc.Dictionary.GetMainEntry(houses);
         var stored = _voc.Dictionary.GetEntry(main, "houses", "Häuser (pl.)");
         stored.Post.Should().Be("(pl)");
         stored.Index.Should().Be(_seed.Houses.Index);
@@ -464,7 +464,7 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var houses = _seed.Houses;
-        _voc.Dictionary.GetMainEntry(ref houses).Word.Should().Be("houses");
+        _voc.Dictionary.GetMainEntry(houses).Word.Should().Be("houses");
     }
 
     [Test]
@@ -477,7 +477,7 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var go = _seed.Go;
-        var main = _voc.Dictionary.GetMainEntry(ref go);
+        var main = _voc.Dictionary.GetMainEntry(go);
         main.Word.Should().Be("went");
         main.Language.Should().Be("english");
         main.MainLanguage.Should().Be("german");
