@@ -17,7 +17,12 @@ Public Class GroupsDao
     ''' <returns>List of all group names.</returns>
     Public Function GetGroups() As Collection(Of String) Implements IGroupsDao.GetGroups
         Dim GroupNames As New Collection(Of String)
-        Dim Command As String = "SELECT DISTINCT [GroupName] FROM [Groups];"
+        Dim Command As String = "
+            SELECT [GroupName]
+              FROM Groups
+             GROUP BY [GroupName]
+             ORDER BY [GroupName] ASC;
+        "
         DBConnection.ExecuteReader(Command)
         Do While DBConnection.DBCursor.Read
             GroupNames.Add(DBConnection.SecureGetString(0))
@@ -28,7 +33,11 @@ Public Class GroupsDao
 
     Public Function GetAllGroups() As Collection(Of GroupEntry) Implements IGroupsDao.GetAllGroups
         Dim Groups As New Collection(Of GroupEntry)
-        Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM [Groups]"
+        Dim Command As String = "
+            SELECT [Index], [GroupName], [GroupSubName], [GroupTable]
+              FROM Groups
+             ORDER BY [GroupName], [Index];
+        "
         DBConnection.ExecuteReader(Command)
         Do While DBConnection.DBCursor.Read()
             Dim Index = DBConnection.SecureGetInt32(0)

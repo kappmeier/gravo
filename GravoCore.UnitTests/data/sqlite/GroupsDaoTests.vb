@@ -54,6 +54,16 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub GetGroups_ReturnsAlphabeticalOrder()
+        _groupsDao.AddGroup("Aardvark", "Unit 1")
+        _groupsDao.AddGroup("My favourite Course", "Awesome")
+
+        Dim result = _groupsDao.GetGroups()
+
+        result.Should.Equal("Aardvark", "Language Book", "My favourite Course", "Other Group")
+    End Sub
+
+    <Test>
     Public Sub GetAllGroups_OnValidDatabase_ReturnsAll()
         Dim result As Collection(Of GroupEntry) = _groupsDao.GetAllGroups
 
@@ -64,6 +74,16 @@ Public Class GroupsDaoTests
         }
 
         CollectionAssert.AreEqual(expectedResult, result, "list of groups including sub groups not equal")
+    End Sub
+
+    <Test>
+    Public Sub GetAllGroups_NewlyAddedGroups_ReturnsIndexOrder()
+        _groupsDao.AddGroup("Aardvark", "Unit 1") ' Will be the first group returned
+        _groupsDao.AddGroup("Language Book", "Another unit") ' Returned after the existing units before "Other Group"
+
+        Dim result = _groupsDao.GetAllGroups().Select(Function(g) g.Index)
+
+        result.Should.Equal(4, 1, 2, 5, 3)
     End Sub
 
     <Test>
