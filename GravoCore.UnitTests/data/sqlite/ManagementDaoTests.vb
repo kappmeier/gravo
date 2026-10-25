@@ -408,6 +408,28 @@ Public Class ManagementDaoTests
         testDb.DBCursor.Close()
     End Sub
 
+    ''' <summary>
+    ''' Tests that a failing update properly rolls back to the previous version.
+    ''' </summary>
+    <Test>
+    Public Sub UpdateDatabaseSingle_FailingUpdate_LeavesTheOldVersionWithoutLeftovers()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        
+        Dim fixture = BuildVersion16WithGroupTable(testDb)
+        
+        ' A card without the main language columns will fail during copy into the NOT NULL columns of 1.7.
+        testDb.ExecuteNonQuery("
+                INSERT INTO [Cards] ([Index], [TestInterval], [Counter], [LastDate])
+                VALUES (1, 1, 1, '2007-01-01')
+            ",
+            Array.Empty(Of Object))
+        Assert.Throws(Of SqliteException)(Sub() fixture.UpdateDatabaseSingle())
+
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
+        testDb.TableExists("CardsCopy").Should.BeFalse()
+        Assert.Throws(Of SqliteException)(Sub() fixture.UpdateDatabaseSingle()).Message.Should.Contain("NOT NULL")
+    End Sub
+
     Private Function BuildVersion16WithGroupTable(testDb As IDataBaseOperation) As ManagementDao
         Dim fixture = New ManagementDao(testDb)
         fixture.Initialize()

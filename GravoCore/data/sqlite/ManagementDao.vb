@@ -441,12 +441,6 @@ Public Class ManagementDao
              WHERE [WordType] NOT IN (0,1,2,3,4,5,6)
         ")
 
-        ' instead of ON UPDATE CASCADE we need ON DELETE REJECT
-        SimpleUpdateCommand("
-            PRAGMA foreign_keys = ON
-        ")
-        '"ALTER TABLE  ADD CONSTRAINT TestConstraint FOREIGN KEY ([WordType]) REFERENCES SupportedWordTypes ON UPDATE CASCADE"
-
         ' Update DictionaryWords table
         SimpleUpdateCommand("
             CREATE TABLE [DictionaryWordsCopy] (
@@ -600,7 +594,14 @@ Public Class ManagementDao
 
     Private Sub UpdateToNext()
         Dim updateFunction As Action = updateFunctions(GetCurrentVersion())
-        updateFunction()
+        SimpleUpdateCommand("BEGIN")
+        Try
+            updateFunction()
+            SimpleUpdateCommand("COMMIT")
+        Catch
+            SimpleUpdateCommand("ROLLBACK")
+            Throw
+        End Try
     End Sub
 
     Function Reorganize() As Integer Implements IManagementDao.Reorganize
