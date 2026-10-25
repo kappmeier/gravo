@@ -184,6 +184,43 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub EditGroup_NameCollidesAfterStripping_MovesToFreeTables()
+        _groupsDao.EditGroup("Other Group", "LanguageBook")
+
+        _groupsDao.GetSubGroups("LanguageBook").Single().Table.Should.Be("GroupLanguageBook03")
+        _db.TableExists("GroupLanguageBook03").Should.BeTrue()
+        _db.TableExists("GroupOtherGroup01").Should.BeFalse()
+    End Sub
+
+    <Test>
+    Public Sub EditGroup_SameTableBase_KeepsTheTables()
+        _groupsDao.EditGroup("Language Book", "LanguageBook")
+
+        _groupsDao.GetSubGroups("LanguageBook").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+    End Sub
+
+    ''' <summary>
+    ''' A failing rename leaves the group under its old name and with its old tables.
+    ''' </summary>
+    <Test>
+    Public Sub EditGroup_TableMissing_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.EditGroup("Language Book", "Course"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("GroupCourse01").Should.BeFalse()
+        _db.TableExists("Damaged").Should.BeTrue()
+    End Sub
+
+    <Test>
     Public Sub DeleteGroup_WithExistingGroup_DeletesAllData()
         _groupsDao.DeleteGroup("Language Book")
 
@@ -273,7 +310,6 @@ Public Class GroupsDaoTests
     ''' </remark>
     <Test>
     Public Sub DeleteGroup_TableMissing_LeavesTheGroupUntouched()
-        ' A database damaged by the old delete: the row of Unit 2 points to a missing table.
         _db.ExecuteNonQuery("
                  ALTER TABLE [GroupLanguageBook02]
                 RENAME TO [Damaged]

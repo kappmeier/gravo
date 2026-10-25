@@ -154,28 +154,36 @@ Public Class GroupsDao
     End Sub
 
     ''' <summary>
-    ''' Renames a group's name.
+    ''' Renames a group and moves its sub group tables to free table names of the new name.
     ''' </summary>
-    ''' <param name="groupName"></param>
-    ''' <param name="newName"></param>
+    ''' <remarks>
+    ''' A new name with the same table base keeps the tables.
+    ''' </remarks>
+    ''' <param name="groupName">Current name of the group</param>
+    ''' <param name="newName">New name of the group</param>
     Public Sub EditGroup(ByVal groupName As String, ByVal newName As String) Implements IGroupsDao.EditGroup
         CheckAllowedText(newName)
         If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
 
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
-        Dim baseTableName = CreateGroupBaseTableName(groupName)
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
-        For Each group As GroupEntry In subGroups
-            ' Alter the table name
-            Dim number = group.Table.Substring(baseTableName.Length)
-            Dim newTableName = newBaseTableNAme & number
-
-            Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
-            DBConnection.ExecuteNonQuery(renameCommand)
-
-            ' Update the entry in the table
-            UpdateGroup(group, newName, group.SubGroup, newTableName)
-        Next group
+        Dim keepTables = newBaseTableName = CreateGroupBaseTableName(groupName)
+        DBConnection.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
+        Try
+            For Each group As GroupEntry In subGroups
+                Dim newTableName = group.Table
+                If Not keepTables Then
+                    newTableName = NextFreeTableName(newBaseTableName, 1)
+                    Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
+                    DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                End If
+                UpdateGroup(group, newName, group.SubGroup, newTableName)
+            Next group
+            DBConnection.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
+        Catch
+            DBConnection.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            Throw
+        End Try
     End Sub
 
     ''' <summary>
