@@ -484,7 +484,7 @@ Public Class ManagementDao
 
     ''' <summary>
     ''' Copies the global per-word test statistics of cards from the Cards table into the card columns of every group
-    ''' table.
+    ''' table. A group entry without a card keeps its current card columns.
     ''' </summary>
     Public Sub CopyGlobalCardsToGroups() Implements IManagementDao.CopyGlobalCardsToGroups
         Dim groupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
@@ -505,7 +505,10 @@ Public Class ManagementDao
                 command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
                 Dim o As Object = index
                 DBConnection.ExecuteReader(command, Enumerable.Repeat(o, 1))
-                DBConnection.DBCursor.Read()
+                If Not DBConnection.DBCursor.Read() Then
+                    DBConnection.DBCursor.Close()
+                    Continue For
+                End If
                 Dim testInterval As Integer = DBConnection.SecureGetInt32(0)
                 Dim counter As Integer = DBConnection.SecureGetInt32(1)
                 Dim lastDateTemp As System.DateTime = DBConnection.SecureGetDateTime(2)

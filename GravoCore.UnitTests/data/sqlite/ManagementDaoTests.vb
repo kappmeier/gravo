@@ -316,14 +316,18 @@ Public Class ManagementDaoTests
     End Sub
 
     <Test>
-    Public Sub CopyGlobalCardsToGroups_WordWithoutCard_Throws()
+    Public Sub CopyGlobalCardsToGroups_WordWithoutCard_LeavesThatRowUntouched()
         Dim fixture As ManagementDao = OpenRealDataBaseCopy()
 
         _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
         _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
         _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
 
-        Assert.Throws(Of InvalidOperationException)(Sub() fixture.CopyGlobalCardsToGroups())
+        fixture.CopyGlobalCardsToGroups()
+
+        AssertGroupCardColumns(1, 8, 3, "2021-12-24", 5, 2)
+        AssertGroupCardColumns(2, 16, 4, "2020-01-02", 6, 3)
+        AssertGroupCardColumns(29, 1, 1, "1900-01-01", 1, 1)
     End Sub
 
     ''' <summary>
@@ -333,27 +337,9 @@ Public Class ManagementDaoTests
     <Test>
     Public Sub UpdateTo1_7_AddsTheCardColumnsToExistingGroupTables()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
-        Dim fixture = New ManagementDao(testDb)
-        fixture.Initialize()
-
-        For updateCount As Integer = 1 To 6
-            fixture.UpdateDatabaseSingle()
-        Next updateCount
+        Dim fixture = BuildVersion16WithGroupTable(testDb)
         fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
 
-        testDb.ExecuteNonQuery("
-                INSERT INTO [Groups] ([GroupName], [GroupSubName], [GroupTable])
-                VALUES ('Test', 'Unit', 'GroupTest01')
-            ",
-            Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("
-                CREATE TABLE [GroupTest01] (
-                    [Index] INTEGER PRIMARY KEY AUTOINCREMENT,
-                    [WordIndex] LONG NOT NULL,
-                    [Marked] BIT
-                )
-            ",
-            Array.Empty(Of Object))
         testDb.ExecuteNonQuery("
                 INSERT INTO [GroupTest01] ([WordIndex], [Marked])
                 VALUES (1, 0)
@@ -370,7 +356,7 @@ Public Class ManagementDaoTests
         fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
 
         Dim command As String = "
-            SELECT [Example], [TestInterval], [Counter], [TestIntervalMain], [CounterMain]
+            SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
               FROM [GroupTest01]
              WHERE [WordIndex] = ?
         "
@@ -380,16 +366,72 @@ Public Class ManagementDaoTests
         Dim example As String = testDb.SecureGetString(0)
         Dim testInterval As Integer = testDb.SecureGetInt32(1)
         Dim counter As Integer = testDb.SecureGetInt32(2)
-        Dim testIntervalMain As Integer = testDb.SecureGetInt32(3)
-        Dim counterMain As Integer = testDb.SecureGetInt32(4)
+        Dim lastDate As String = testDb.SecureGetString(3)
+        Dim testIntervalMain As Integer = testDb.SecureGetInt32(4)
+        Dim counterMain As Integer = testDb.SecureGetInt32(5)
         testDb.DBCursor.Close()
 
         example.Should.Be("")
         testInterval.Should.Be(4)
         counter.Should.Be(2)
+        lastDate.Should.Be("2007-01-01")
         testIntervalMain.Should.Be(8)
         counterMain.Should.Be(3)
     End Sub
+
+    <Test>
+    Public Sub UpdateTo1_7_GroupWordWithoutCard_KeepsTheColumnDefaults()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        Dim fixture = BuildVersion16WithGroupTable(testDb)
+        testDb.ExecuteNonQuery("
+                INSERT INTO [GroupTest01] ([WordIndex], [Marked])
+                VALUES (2, 0)
+            ",
+            Array.Empty(Of Object))
+
+        fixture.UpdateDatabaseSingle()
+
+        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        Dim command As String = "
+            SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
+              FROM [GroupTest01]
+             WHERE [WordIndex] = ?
+        "
+        testDb.ExecuteReader(command, "2")
+        testDb.DBCursor.Read()
+        testDb.SecureGetString(0).Should.Be("")
+        testDb.SecureGetInt32(1).Should.Be(1)
+        testDb.SecureGetInt32(2).Should.Be(1)
+        testDb.SecureGetString(3).Should.Be("1900-01-01")
+        testDb.SecureGetInt32(4).Should.Be(1)
+        testDb.SecureGetInt32(5).Should.Be(1)
+        testDb.DBCursor.Close()
+    End Sub
+
+    Private Function BuildVersion16WithGroupTable(testDb As IDataBaseOperation) As ManagementDao
+        Dim fixture = New ManagementDao(testDb)
+        fixture.Initialize()
+
+        For updateCount As Integer = 1 To 6
+            fixture.UpdateDatabaseSingle()
+        Next updateCount
+
+        testDb.ExecuteNonQuery("
+                INSERT INTO [Groups] ([GroupName], [GroupSubName], [GroupTable])
+                VALUES ('Test', 'Unit', 'GroupTest01')
+            ",
+            Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+                CREATE TABLE [GroupTest01] (
+                    [Index] INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [WordIndex] LONG NOT NULL,
+                    [Marked] BIT
+                )
+            ",
+            Array.Empty(Of Object))
+
+        Return fixture
+    End Function
 
     Private Sub AssertGroupCardColumns(wordIndex As Integer, expectedTestInterval As Integer, expectedCounter As Integer, expectedLastDate As String, expectedTestIntervalMain As Integer, expectedCounterMain As Integer)
         _realDb.ExecuteReader("SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
