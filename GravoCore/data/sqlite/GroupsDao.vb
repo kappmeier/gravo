@@ -117,14 +117,7 @@ Public Class GroupsDao
             Throw New EntryExistsException("Group with the given name already exists.")
         End If
 
-        Dim nextTableNumber = CountSubGroups(groupName) + 1
-
-        Dim tableName As String
-        If nextTableNumber < 10 Then
-            tableName = CreateGroupBaseTableName(groupName) & "0" & nextTableNumber
-        Else
-            tableName = CreateGroupBaseTableName(groupName) & nextTableNumber
-        End If
+        Dim tableName As String = NextFreeTableName(CreateGroupBaseTableName(groupName), CountSubGroups(groupName) + 1)
 
         CreateNewGroupTable(tableName)
 
@@ -139,6 +132,16 @@ Public Class GroupsDao
         DBConnection.DBCursor.Read()
         CountSubGroups = DBConnection.SecureGetInt32(0)
         DBConnection.DBCursor.Close()
+    End Function
+
+    Private Function NextFreeTableName(baseName As String, firstNumber As Integer) As String
+        Dim number As Integer = firstNumber
+        Dim tableName As String
+        Do
+            tableName = baseName & number.ToString("00", CultureInfo.InvariantCulture)
+            number += 1
+        Loop While DBConnection.ExistsTable(tableName)
+        Return tableName
     End Function
 
     ''' <summary>
