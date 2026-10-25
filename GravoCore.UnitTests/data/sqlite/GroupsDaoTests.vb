@@ -172,10 +172,10 @@ Public Class GroupsDaoTests
             New GroupEntry(3, "Other Group", "Some Words", "GroupOtherGroup01")
         }
 
-        ClassicAssert.IsTrue(_db.ExistsTable(newGroupName1))
-        ClassicAssert.IsTrue(_db.ExistsTable(newGroupName2))
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists(newGroupName1))
+        ClassicAssert.IsTrue(_db.TableExists(newGroupName2))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
 
         CollectionAssert.AreEqual(expectedNewGroups, allNewGroups, "list of groups including sub groups not equal")
 
@@ -195,9 +195,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupOtherGroup01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -218,9 +218,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
 
@@ -237,9 +237,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(_db.ExistsTable("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -298,9 +298,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, result, "groups not swapped")
 
-        ClassicAssert.True(_db.ExistsTable("GroupLanguageBook01"))
-        ClassicAssert.True(_db.ExistsTable("GroupLanguageBook02"))
-        ClassicAssert.True(_db.ExistsTable("GroupOtherGroup01"))
+        ClassicAssert.True(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.True(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.True(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -357,7 +357,7 @@ Public Class GroupsDaoTests
         _groupsDao.AddGroup("Weird]Name", "Unit")
 
         _groupsDao.GetSubGroups("Weird]Name").Select(Function(g) g.SubGroup).Should.Equal("Unit")
-        ClassicAssert.IsTrue(_db.ExistsTable("GroupWeirdName01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupWeirdName01"))
     End Sub
 
     <Test>
@@ -365,7 +365,7 @@ Public Class GroupsDaoTests
         _groupsDao.AddGroup("LanguageBook", "Unit 1")
 
         _groupsDao.GetSubGroups("LanguageBook").Single().Table.Should.Be("GroupLanguageBook03")
-        _db.ExistsTable("GroupLanguageBook03").Should.BeTrue()
+        _db.TableExists("GroupLanguageBook03").Should.BeTrue()
     End Sub
 
     <Test>

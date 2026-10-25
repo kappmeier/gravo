@@ -148,7 +148,7 @@ Public Class ManagementDaoTests
 
         fixture.Initialize()
 
-        Dim result As Boolean = emptyDb.ExistsTable("DBVersion")
+        Dim result As Boolean = emptyDb.TableExists("DBVersion")
         result.Should().BeTrue()
 
         fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_0)
@@ -173,7 +173,7 @@ Public Class ManagementDaoTests
     End Sub
 
     Private Shared Sub AssertTableExists(db As IDataBaseOperation, table As String)
-        Dim result As Boolean = db.ExistsTable(table)
+        Dim result As Boolean = db.TableExists(table)
         result.Should().BeTrue()
     End Sub
 

@@ -140,7 +140,7 @@ Public Class GroupsDao
         Do
             tableName = baseName & number.ToString("00", CultureInfo.InvariantCulture)
             number += 1
-        Loop While DBConnection.ExistsTable(tableName)
+        Loop While DBConnection.TableExists(tableName)
         Return tableName
     End Function
 
