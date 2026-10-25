@@ -243,6 +243,51 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub DeleteGroup_FirstOfTwoSubGroups_MovesTheOtherIntoTheFreedTable()
+        _groupsDao.DeleteGroup("Language Book", "Unit 1")
+
+        Dim remaining = _groupsDao.GetSubGroups("Language Book").Single()
+
+        remaining.Table.Should.Be("GroupLanguageBook01")
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub DeleteGroup_FirstOfThreeSubGroups_RenumbersTheTablesDensely()
+        _groupsDao.AddGroup("Language Book", "Unit 3")
+
+        _groupsDao.DeleteGroup("Language Book", "Unit 1")
+
+        _groupsDao.GetSubGroups("Language Book").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+        _db.TableExists("GroupLanguageBook03").Should.BeFalse()
+    End Sub
+
+    ''' <summary>
+    ''' Tests failure branch for an invalid database with a missing table.
+    ''' </summary>
+    ''' <remark>
+    ''' A database in this state will likely throw all kinds of exceptions when accessed. This test ensures that the
+    ''' group remains untouched despite the missing table.
+    ''' </remark>
+    <Test>
+    Public Sub DeleteGroup_TableMissing_LeavesTheGroupUntouched()
+        ' A database damaged by the old delete: the row of Unit 2 points to a missing table.
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book", "Unit 1"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("Damaged").Should.BeTrue()
+    End Sub
+
+    <Test>
     Public Sub DeleteGroup_SubGroupNonExisting_ThrowsException()
         Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.DeleteGroup("Language Book", "Unit 3"))
     End Sub

@@ -248,29 +248,41 @@ Public Class GroupsDao
         DBConnection.ExecuteNonQuery(command, Enumerable.Repeat(groupName, 1))
     End Sub
 
+    ''' <summary>
+    ''' Deletes a sub group of a group. If the sub group is not the last one, each later sub group is moved. Thus the
+    ''' freed table is reused.
+    ''' </summary>
+    ''' <remark>
+    ''' This method ensures that the sub group tables maintain the property of consecutive numbering.
+    ''' </remark>
+    ''' <param name="groupName">Group name of the group containing the sub group to delete</param>
+    ''' <param name="subGroupName">Sub group name of the sub group to delete</param>
     Public Sub DeleteGroup(ByVal groupName As String, ByVal subGroupName As String) Implements IGroupsDao.DeleteSubGroup
         ' Retrieve original data
         Dim group = GetGroup(groupName, subGroupName)
         Dim subGroups = GetSubGroups(groupName)
 
-        DropGroupTables(Enumerable.Repeat(group.Table, 1))
-        DeleteGroupEntries(groupName, subGroupName)
+        DBConnection.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
+        Try
+            DropGroupTables(Enumerable.Repeat(group.Table, 1))
+            DeleteGroupEntries(groupName, subGroupName)
 
-        Dim lastTable As String = Nothing
-        Dim started As Boolean = False
-        For Each entry As GroupEntry In subGroups
-            If Not lastTable Is Nothing Then
-                started = True
-            End If
-            If started Then
-                Dim command = CreateRenameTableCommand(entry.Table, lastTable)
-                DBConnection.ExecuteNonQuery(command)
-            End If
-            If entry.Equals(group) Then
-                lastTable = entry.Table
-            End If
-        Next
-
+            Dim freeTable As String = Nothing
+            For Each entry As GroupEntry In subGroups
+                If freeTable IsNot Nothing Then
+                    Dim renameCommand = CreateRenameTableCommand(entry.Table, freeTable)
+                    DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                    UpdateGroup(entry, groupName, entry.SubGroup, freeTable)
+                    freeTable = entry.Table
+                ElseIf entry.Equals(group) Then
+                    freeTable = entry.Table
+                End If
+            Next
+            DBConnection.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
+        Catch
+            DBConnection.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            Throw
+        End Try
     End Sub
 
     Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
