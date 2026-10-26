@@ -231,6 +231,53 @@ public class WordInputViewModelTests
     }
 
     [Test]
+    public async Task AddSubEntry_MainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var mainAdded = false;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
+            {
+                if (!mainAdded)
+                {
+                    throw new EntryNotFoundException("Main entry missing.");
+                }
+            });
+        _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
+            .Callback(() => mainAdded = true)
+            .Returns(new MainEntry("Haus", "english", "german"));
+        var fixture = Create();
+        FillHouse(fixture);
+        fixture.MainEntry = " Haus ";
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
+        _dictionary.Verify(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"), Times.Exactly(2));
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_MainEntryCreatedMeanwhile_RetriesWithoutMessage()
+    {
+        var calls = 0;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
+            {
+                if (++calls == 1)
+                {
+                    throw new EntryNotFoundException("Main entry missing.");
+                }
+            });
+        _dictionary.Setup(d => d.AddEntry("Haus", "english", "german")).Throws(new EntryExistsException("exists"));
+        var fixture = Create();
+        FillHouse(fixture);
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
+        calls.Should().Be(2);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
     public async Task AddSubEntry_MainEntryMissing_ConfirmNo_Stops()
     {
         _dialogs = Fakes.Dialogs(confirm: false);

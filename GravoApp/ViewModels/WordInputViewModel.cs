@@ -232,10 +232,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
 
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
+        var trimmedMainEntry = MainEntry.Trim();
         try
         {
-            _dictionary.AddSubEntry(entry, MainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync();
+            _dictionary.AddSubEntry(entry, trimmedMainEntry, Language, MainLanguage);
+            await AddToGroupIfDirectAsync(trimmedMainEntry);
         }
         catch (InputException ex)
         {
@@ -243,14 +244,14 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         catch (EntryExistsException)
         {
-            await AddToGroupIfDirectAsync();
+            await AddToGroupIfDirectAsync(trimmedMainEntry);
         }
         catch (EntryNotFoundException notFound)
         {
             if (await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, MainEntry)))
+                    Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry)))
             {
-                await AddMainEntryAndRetryAsync(entry, notFound);
+                await AddMainEntryAndRetryAsync(entry, trimmedMainEntry, notFound);
             }
         }
         _wordEdited = false;
@@ -279,12 +280,22 @@ public sealed partial class WordInputViewModel : ViewModelBase
     }
 
     /// <summary>Creates a missing main entry and adds the sub entry again.</summary>
-    /// <remarks>The conflict message names the original <paramref name="notFound"/> error.</remarks>
-    private async Task AddMainEntryAndRetryAsync(WordEntry entry, EntryNotFoundException notFound)
+    /// <remarks>
+    /// A main entry that exists by now is used as it is. The conflict message names the original
+    /// <paramref name="notFound"/> error.
+    /// </remarks>
+    /// <param name="entry">The sub entry to add.</param>
+    /// <param name="mainEntry">The trimmed main entry.</param>
+    /// <param name="notFound">The error of the first attempt.</param>
+    private async Task AddMainEntryAndRetryAsync(WordEntry entry, string trimmedMainEntry, EntryNotFoundException notFound)
     {
         try
         {
-            _dictionary.AddEntry(MainEntry.Trim(), Language, MainLanguage);
+            _dictionary.AddEntry(trimmedMainEntry, Language, MainLanguage);
+        }
+        catch (EntryExistsException)
+        {
+            // Nothing todo, created in the meantime, the retry below uses it.
         }
         catch (Exception ex) when (ex is LanguageNotFoundException or EntryNotFoundException or InputException)
         {
@@ -292,8 +303,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         try
         {
-            _dictionary.AddSubEntry(entry, MainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync();
+            _dictionary.AddSubEntry(entry, trimmedMainEntry, Language, MainLanguage);
+            await AddToGroupIfDirectAsync(trimmedMainEntry);
         }
         catch (Exception)
         {
@@ -302,13 +313,13 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
     }
 
-    private async Task AddToGroupIfDirectAsync()
+    private async Task AddToGroupIfDirectAsync(string trimmedMainEntry)
     {
         if (!DirectAdd)
         {
             return;
         }
-        var mainEntry = _dictionary.GetMainEntry(MainEntry, Language, MainLanguage);
+        var mainEntry = _dictionary.GetMainEntry(trimmedMainEntry, Language, MainLanguage);
         var word = _dictionary.GetEntry(mainEntry, Word, Meaning);
         var group = SelectedGroupEntry!;
         try
