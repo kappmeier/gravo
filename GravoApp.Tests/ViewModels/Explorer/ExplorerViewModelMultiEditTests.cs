@@ -154,6 +154,19 @@ public class ExplorerViewModelMultiEditTests
     }
 
     [Test]
+    public async Task ChangeSelected_MainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = " home ";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _voc.Dictionary.GetMainEntry(_seed.House).Word.Should().Be("home");
+    }
+
+    [Test]
     public async Task ChangeSelected_MainEntryOnSubGroup_UsesTheWordsLanguage()
     {
         var fixture = Create();

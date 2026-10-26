@@ -363,10 +363,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             {
                 ChangeMarked(node, updated, Editor.Marked);
             }
+            var trimmedMainEntry = Editor.MainEntry.Trim();
             var main = _dictionary.GetMainEntry(entry);
-            if (main.Word != Editor.MainEntry)
+            if (main.Word != trimmedMainEntry)
             {
-                _dictionary.ChangeEntry(updated, DataTools.GetOrCreateMainEntry(_dictionary, Editor.MainEntry,
+                _dictionary.ChangeEntry(updated, DataTools.GetOrCreateMainEntry(_dictionary, trimmedMainEntry,
                     node.Language ?? main.Language, _mainLanguage));
             }
             ReplaceRow(row, ChangedRow(row, updated, groupChanged ? Editor.Marked : null));
@@ -413,7 +414,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             try
             {
                 var language = node.Language ?? _dictionary.GetMainEntry(first).Language;
-                newMain = DataTools.GetOrCreateMainEntry(_dictionary, Multi.MainEntry, language, _mainLanguage);
+                newMain = DataTools.GetOrCreateMainEntry(_dictionary, Multi.MainEntry.Trim(), language, _mainLanguage);
             }
             catch (InputException ex)
             {

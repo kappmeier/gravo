@@ -502,6 +502,18 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task ChangeWord_MainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var fixture = Create();
+        SelectRow(fixture, "houses", Dictionary, "german", "english", "H");
+
+        fixture.Editor.MainEntry = " houses ";
+        await fixture.ChangeWordCommand.ExecuteAsync(null);
+
+        _voc.Dictionary.GetMainEntry(_seed.Houses).Word.Should().Be("houses");
+    }
+
+    [Test]
     public async Task ChangeWord_NewMainEntryOnGroupRow_UsesTheWordsLanguage()
     {
         var fixture = Create();
