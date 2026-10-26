@@ -58,11 +58,11 @@ public class ManagementViewModelTests
     private static Mock<IManagementDao> Outdated()
     {
         var management = new Mock<IManagementDao>();
-        management.Setup(m => m.IsVersionUpToDate()).Returns(false);
-        management.Setup(m => m.GetCurrentVersion())
-            .Returns(new Properties.DBVersion(1, 6, new DateTime(2019, 1, 1), ""));
-        management.Setup(m => m.GetNextVersion())
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(false);
+        management.Setup(m => m.GetCurrentSchemaVersion())
+            .Returns(new Properties.DbSchemaVersion(1, 6, new DateTime(2019, 1, 1), ""));
+        management.Setup(m => m.GetNextSchemaVersion())
+            .Returns(new Properties.DbSchemaVersion(1, 7, new DateTime(2020, 1, 1), ""));
         return management;
     }
 
@@ -328,11 +328,11 @@ public class ManagementViewModelTests
     public async Task UpdateVersion_Complex_ShowsHintAndUpdates()
     {
         var management = Outdated();
-        management.Setup(m => m.IsUpdateComplex(It.IsAny<Properties.DBVersion>())).Returns(true);
+        management.Setup(m => m.IsSchemaUpdateComplex(It.IsAny<Properties.DbSchemaVersion>())).Returns(true);
         var fixture = Create(management: management.Object);
         await fixture.UpdateVersionCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("T11", "T205"), Times.Once);
-        management.Verify(m => m.UpdateDatabaseVersion(), Times.Once);
+        management.Verify(m => m.UpdateDatabaseSchemaVersion(), Times.Once);
     }
 
     [Test]
@@ -410,7 +410,7 @@ public class ManagementViewModelTests
         await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
         await fixture.ImportGroupsCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("T118", "T200"), Times.Once);
-        outdated.Verify(m => m.UpdateDatabaseVersion(), Times.Never);
+        outdated.Verify(m => m.UpdateDatabaseSchemaVersion(), Times.Never);
         _active.Groups.GetGroups().Should().Equal("Book", "Other");
     }
 

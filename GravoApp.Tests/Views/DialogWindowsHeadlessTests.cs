@@ -141,8 +141,8 @@ public class DialogWindowsHeadlessTests
     public void Info_CreatesInfoWindowWithLocalizedTexts()
     {
         var management = new Mock<IManagementDao>();
-        management.Setup(m => m.LatestVersion)
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        management.Setup(m => m.LatestSchemaVersion)
+            .Returns(new Properties.DbSchemaVersion(1, 7, new DateTime(2020, 1, 1), ""));
         var fixture = new InfoViewModel(management.Object, Fakes.Texts());
 
         var window = ViewLocator.CreateWindow(fixture).Should().BeOfType<InfoWindow>().Which;
@@ -178,8 +178,8 @@ public class DialogWindowsHeadlessTests
     public void Info_FocusesCloseButton()
     {
         var management = new Mock<IManagementDao>();
-        management.Setup(m => m.LatestVersion)
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        management.Setup(m => m.LatestSchemaVersion)
+            .Returns(new Properties.DbSchemaVersion(1, 7, new DateTime(2020, 1, 1), ""));
         var viewModel = new InfoViewModel(management.Object, Fakes.Texts());
 
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<InfoWindow>().Which;

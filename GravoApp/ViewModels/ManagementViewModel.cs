@@ -327,14 +327,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
 
     private void RefreshVersionText()
     {
-        var next = _management.GetNextVersion();
+        var next = _management.GetNextSchemaVersion();
         CanUpdateVersion = next is not null;
         VersionButtonText = next is null
-            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, Format(_management.GetCurrentVersion()))
+            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, Format(_management.GetCurrentSchemaVersion()))
             : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, Format(next));
     }
 
-    private static string Format(Properties.DBVersion version) => version.Major + "." + version.Minor;
+    private static string Format(Properties.DbSchemaVersion version) => version.Major + "." + version.Minor;
 
     /// <summary>Updates the database to the next version.</summary>
     /// <remarks>
@@ -343,12 +343,12 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task UpdateVersionAsync()
     {
-        if (_management.IsUpdateComplex(_management.GetCurrentVersion()))
+        if (_management.IsSchemaUpdateComplex(_management.GetCurrentSchemaVersion()))
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.HINT_TITLE), Texts.Get(localization.MANAGEMENT_UPDATE_MAY_TAKE_TIME));
         }
-        _management.UpdateDatabaseVersion();
+        _management.UpdateDatabaseSchemaVersion();
         RefreshVersionText();
     }
 
@@ -416,7 +416,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportGroupsAsync()
     {
-        if (!_management.IsVersionUpToDate())
+        if (!_management.IsSchemaVersionUpToDate())
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.ERROR_TITLE), Texts.Get(localization.MANAGEMENT_DATABASE_OUTDATED));
@@ -425,14 +425,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
         await ImportAsync(async db =>
         {
             var sourceManagement = _managementFor(db);
-            if (!sourceManagement.IsVersionUpToDate())
+            if (!sourceManagement.IsSchemaVersionUpToDate())
             {
                 if (!await _dialogs.ConfirmAsync(
                     Texts.Get(localization.WARNING_TITLE), Texts.Get(localization.MANAGEMENT_IMPORT_SOURCE_OUTDATED)))
                 {
                     return null;
                 }
-                sourceManagement.UpdateDatabaseVersion();
+                sourceManagement.UpdateDatabaseSchemaVersion();
             }
             return new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyAllGroups();
         });
@@ -492,7 +492,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportAsync()
     {
-        if (!_management.IsVersionUpToDate())
+        if (!_management.IsSchemaVersionUpToDate())
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.ERROR_TITLE), Texts.Get(localization.MANAGEMENT_DATABASE_OUTDATED));

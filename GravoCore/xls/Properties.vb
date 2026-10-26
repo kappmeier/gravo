@@ -14,7 +14,7 @@ Public Class Properties
         DictionaryMainMaxLengthWordEntry = builder.DictionaryMainMaxLengthWordEntry
         DictionaryMainMaxLengthLanguage = builder.DictionaryMainMaxLengthLanguage
         DictionaryMainMaxLengthMainLanguage = builder.DictionaryMainMaxLengthMainLanguage
-        DBVersionMaxLengthDescription = builder.DBVersionMaxLengthDescription
+        DbSchemaVersionMaxLengthDescription = builder.DbSchemaVersionMaxLengthDescription
         GroupsMaxLengthName = builder.GroupsMaxLengthName
         GroupsMaxLengthTable = builder.GroupsMaxLengthTable
         GroupsMaxLengthSubName = builder.GroupsMaxLengthSubName
@@ -30,15 +30,15 @@ Public Class Properties
     Public ReadOnly Property DictionaryMainMaxLengthWordEntry As Byte
     Public ReadOnly Property DictionaryMainMaxLengthLanguage As Byte
     Public ReadOnly Property DictionaryMainMaxLengthMainLanguage As Byte
-    Public ReadOnly Property DBVersionMaxLengthDescription As Byte
+    Public ReadOnly Property DbSchemaVersionMaxLengthDescription As Byte
     Public ReadOnly Property GroupsMaxLengthName As Byte
     Public ReadOnly Property GroupsMaxLengthSubName As Byte
     Public ReadOnly Property GroupsMaxLengthTable As Byte
     Public ReadOnly Property GroupMaxLengthExample As Byte
-    Public ReadOnly Property Version As DBVersion
+    Public ReadOnly Property Version As DbSchemaVersion
 
-    Public Class DBVersion
-        Implements IComparable(Of DBVersion)
+    Public Class DbSchemaVersion
+        Implements IComparable(Of DbSchemaVersion)
 
         Private ReadOnly _major As UInt16
         Private ReadOnly _minor As UInt16
@@ -76,7 +76,8 @@ Public Class Properties
             End Get
         End Property
 
-        Public Function CompareTo(other As DBVersion) As Integer Implements IComparable(Of DBVersion).CompareTo
+        Public Function CompareTo(other As DbSchemaVersion) As _
+            Integer Implements IComparable(Of DbSchemaVersion).CompareTo
             If (_major > other._major) Then
                 Return 1
             ElseIf (_major < other._major) Then
@@ -87,7 +88,7 @@ Public Class Properties
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            Dim version = TryCast(obj, DBVersion)
+            Dim version = TryCast(obj, DbSchemaVersion)
             Return version IsNot Nothing AndAlso
                    _major = version._major AndAlso
                    _minor = version._minor AndAlso
@@ -112,12 +113,12 @@ Public Class Properties
         Friend Property DictionaryMainMaxLengthWordEntry As Byte
         Friend Property DictionaryMainMaxLengthLanguage As Byte
         Friend Property DictionaryMainMaxLengthMainLanguage As Byte
-        Friend Property DBVersionMaxLengthDescription As Byte
+        Friend Property DbSchemaVersionMaxLengthDescription As Byte
         Friend Property GroupsMaxLengthName As Byte
         Friend Property GroupsMaxLengthTable As Byte
         Friend Property GroupsMaxLengthSubName As Byte
         Friend Property GroupMaxLengthExample As Byte
-        Friend Property Version As DBVersion
+        Friend Property Version As DbSchemaVersion
 
         Public Function WithDictionaryWordsMaxLengthWord(value As Byte) As PropertiesBuilder
             DictionaryWordsMaxLengthWord = value
@@ -159,8 +160,8 @@ Public Class Properties
             Return Me
         End Function
 
-        Public Function WithDBVersionMaxLengthDescription(value As Byte) As PropertiesBuilder
-            DBVersionMaxLengthDescription = value
+        Public Function WithDbSchemaVersionMaxLengthDescription(value As Byte) As PropertiesBuilder
+            DbSchemaVersionMaxLengthDescription = value
             Return Me
         End Function
 
@@ -184,7 +185,7 @@ Public Class Properties
             Return Me
         End Function
 
-        Public Function WithVersion(value As DBVersion) As PropertiesBuilder
+        Public Function WithVersion(value As DbSchemaVersion) As PropertiesBuilder
             Version = value
             Return Me
         End Function

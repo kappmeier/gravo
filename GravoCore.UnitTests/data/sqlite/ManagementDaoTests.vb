@@ -44,51 +44,52 @@ Public Class ManagementDaoTests
     End Sub
 
     <Test>
-    Public Sub LatestVersion_NonInitialized_Works()
+    Public Sub LatestSchemaVersion_NonInitialized_Works()
         Dim emptyDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb
 
         Dim fixture = New ManagementDao(emptyDb)
 
-        fixture.IsVersionUpToDate().Should.BeFalse()
+        fixture.IsSchemaVersionUpToDate().Should.BeFalse()
     End Sub
 
     <Test>
-    Public Sub LatestVersion_Returns_Correct()
+    Public Sub LatestSchemaVersion_Returns_Correct()
         Dim emptyDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
 
         Dim fixture = New ManagementDao(emptyDb)
         fixture.Initialize()
 
         Dim lastIndex = fixture.supportedVersions.Length - 1
-        For Each version As Properties.DBVersion In fixture.supportedVersions.Take(lastIndex)
-            fixture.IsVersionUpToDate().Should.BeFalse()
+        For Each version As Properties.DbSchemaVersion In fixture.supportedVersions.Take(lastIndex)
+            fixture.IsSchemaVersionUpToDate().Should.BeFalse()
             fixture.UpdateDatabaseSingle()
         Next version
-        fixture.IsVersionUpToDate().Should.BeTrue()
+        fixture.IsSchemaVersionUpToDate().Should.BeTrue()
     End Sub
 
     <Test>
     Public Sub ComplexUpdate_Returns_Correct()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_0).Should.BeFalse()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_1).Should.BeFalse()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_2).Should.BeFalse()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_3).Should.BeFalse()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_4).Should.BeTrue()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_5).Should.BeFalse()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_6).Should.BeTrue()
-        _managementDao.IsUpdateComplex(ManagementDao.DB_VERSION_1_7).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_0).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_1).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_2).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_3).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_4).Should.BeTrue()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_5).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_6).Should.BeTrue()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_7).Should.BeFalse()
     End Sub
 
     <Test>
     Public Sub ComplexUpdate_Throws_ForUnknownVersions()
-        Assert.Throws(Of IllegalVersionException)(Sub() _managementDao.IsUpdateComplex(New Properties.DBVersion(1, 0, New Date(), "")))
+        Assert.Throws(Of IllegalVersionException)(
+            Sub() _managementDao.IsSchemaUpdateComplex(New Properties.DbSchemaVersion(1, 0, New Date(), "")))
     End Sub
 
     <Test>
     Public Sub UpdateVersion_WithIllegalData_Throws()
         Dim illegalDb As IDataBaseOperation = CreateIllegalDb()
         Dim fixture As ManagementDao = New ManagementDao(illegalDb)
-        Assert.Throws(Of IllegalVersionException)(Sub() fixture.UpdateDatabaseVersion())
+        Assert.Throws(Of IllegalVersionException)(Sub() fixture.UpdateDatabaseSchemaVersion())
 
         CloseIllegalDb(illegalDb)
     End Sub
@@ -96,24 +97,24 @@ Public Class ManagementDaoTests
     Private NotInheritable Class FixedVersionManagementDao
         Inherits ManagementDao
 
-        Private ReadOnly version As DBVersion
+        Private ReadOnly version As DbSchemaVersion
 
-        Public Sub New(version As DBVersion)
+        Public Sub New(version As DbSchemaVersion)
             MyBase.New(New Mock(Of IDataBaseOperation)(MockBehavior.Strict).Object)
             Me.version = version
         End Sub
 
-        Shadows Function GetNextVersion() As DBVersion
+        Shadows Function GetNextSchemaVersion() As DbSchemaVersion
             Return version
         End Function
 
-        Shadows Function GetCurrentVersion() As DBVersion
+        Shadows Function GetCurrentSchemaVersion() As DbSchemaVersion
             Return version
         End Function
     End Class
 
     <Test>
-    Public Sub UpdateVersion_WithLatestVersion_DoesNotUpdate()
+    Public Sub UpdateVersion_WithLatestSchemaVersion_DoesNotUpdate()
         Dim mockedDb = New Mock(Of IDataBaseOperation)(MockBehavior.Strict)
         Dim mockDbDataReader = New Mock(Of DbDataReader)(MockBehavior.Strict)
 
@@ -128,7 +129,7 @@ Public Class ManagementDaoTests
         mockDbDataReader.Setup(Sub(x) x.Close())
 
         Dim fixture As ManagementDao = New ManagementDao(mockedDb.Object)
-        fixture.UpdateDatabaseVersion()
+        fixture.UpdateDatabaseSchemaVersion()
     End Sub
 
     <Test>
@@ -137,7 +138,7 @@ Public Class ManagementDaoTests
 
         Dim fixture = New ManagementDao(emptyDb)
 
-        Assert.Throws(Of IllegalVersionException)(Sub() fixture.UpdateDatabaseVersion())
+        Assert.Throws(Of IllegalVersionException)(Sub() fixture.UpdateDatabaseSchemaVersion())
     End Sub
 
     <Test>
@@ -151,7 +152,7 @@ Public Class ManagementDaoTests
         Dim result As Boolean = emptyDb.TableExists("DBVersion")
         result.Should().BeTrue()
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_0)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_0)
     End Sub
 
     <Test>
@@ -165,11 +166,11 @@ Public Class ManagementDaoTests
         Dim fixture = New ManagementDao(testDb)
         fixture.Initialize()
 
-        fixture.UpdateDatabaseVersion()
+        fixture.UpdateDatabaseSchemaVersion()
 
         AssertTableExists(testDb, "DBVersion")
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
     End Sub
 
     Private Shared Sub AssertTableExists(db As IDataBaseOperation, table As String)
@@ -178,25 +179,25 @@ Public Class ManagementDaoTests
     End Sub
 
     <Test>
-    Public Sub Latest_Returns_LatestVersion()
-        _managementDao.LatestVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+    Public Sub Latest_Returns_LatestSchemaVersion()
+        _managementDao.LatestSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
     End Sub
 
     <Test>
     Public Sub CurrentVersion_Returns_CurrentVersion()
-        _managementDao.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_0)
+        _managementDao.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_0)
     End Sub
 
     <Test>
     Public Sub Next_Returns_Next()
-        _managementDao.GetNextVersion.Should.Be(ManagementDao.DB_VERSION_1_1)
+        _managementDao.GetNextSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_1)
     End Sub
 
     <Test>
     Public Sub Next_WithIllegalData_Throws()
         Dim illegalDb As IDataBaseOperation = CreateIllegalDb()
         Dim fixture As ManagementDao = New ManagementDao(illegalDb)
-        Assert.Throws(Of IllegalVersionException)(Sub() fixture.GetNextVersion())
+        Assert.Throws(Of IllegalVersionException)(Sub() fixture.GetNextSchemaVersion())
 
         CloseIllegalDb(illegalDb)
     End Sub
@@ -234,7 +235,7 @@ Public Class ManagementDaoTests
         For updateCount As Integer = 1 To 4
             fixture.UpdateDatabaseSingle()
         Next updateCount
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_4)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_4)
 
         testDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'UpgradeGroup01')", Array.Empty(Of Object))
         testDb.ExecuteNonQuery("CREATE TABLE [UpgradeGroup01] ([WordIndex] INT NOT NULL)", Array.Empty(Of Object))
@@ -246,7 +247,7 @@ Public Class ManagementDaoTests
 
         fixture.UpdateDatabaseSingle()
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_5)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_5)
 
         Dim command As String = "SELECT [Marked] FROM [UpgradeGroup01] WHERE [WordIndex] = ?"
 
@@ -338,7 +339,7 @@ Public Class ManagementDaoTests
     Public Sub UpdateTo1_7_AddsTheCardColumnsToExistingGroupTables()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
         Dim fixture = BuildVersion16WithGroupTable(testDb)
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
 
         testDb.ExecuteNonQuery("
                 INSERT INTO [GroupTest01] ([WordIndex], [Marked])
@@ -353,7 +354,7 @@ Public Class ManagementDaoTests
 
         fixture.UpdateDatabaseSingle()
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
 
         Dim command As String = "
             SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
@@ -391,7 +392,7 @@ Public Class ManagementDaoTests
 
         fixture.UpdateDatabaseSingle()
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
         Dim command As String = "
             SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
               FROM [GroupTest01]
@@ -425,7 +426,7 @@ Public Class ManagementDaoTests
             Array.Empty(Of Object))
         Assert.Throws(Of SqliteException)(Sub() fixture.UpdateDatabaseSingle())
 
-        fixture.GetCurrentVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_6)
         testDb.TableExists("CardsCopy").Should.BeFalse()
         Assert.Throws(Of SqliteException)(Sub() fixture.UpdateDatabaseSingle()).Message.Should.Contain("NOT NULL")
     End Sub

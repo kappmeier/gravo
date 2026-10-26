@@ -33,7 +33,7 @@ Public Class PropertiesDaoTests
     Public Sub Load_LoadsDefault()
         Dim p As Properties = _propertiesDao.LoadProperties()
 
-        p.DBVersionMaxLengthDescription.Should.Be(80)
+        p.DbSchemaVersionMaxLengthDescription.Should.Be(80)
         p.DictionaryMainMaxLengthLanguage.Should.Be(16)
         p.DictionaryMainMaxLengthMainLanguage.Should.Be(16)
         p.DictionaryMainMaxLengthWordEntry.Should.Be(50)
@@ -52,7 +52,7 @@ Public Class PropertiesDaoTests
     Public Sub Load_Loads_Version()
         Dim p As Properties = _propertiesDao.LoadProperties()
 
-        Dim expectedVersion As New Properties.DBVersion(1, 23, New Date(2017, 4, 5), "DB-Version Test")
+        Dim expectedVersion As New Properties.DbSchemaVersion(1, 23, New Date(2017, 4, 5), "DB-Version Test")
 
         p.Version.Should.BeEquivalentTo(expectedVersion)
     End Sub

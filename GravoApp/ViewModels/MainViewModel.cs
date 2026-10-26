@@ -44,7 +44,7 @@ public sealed partial class MainViewModel : ViewModelBase
     /// </summary>
     public async Task CheckDatabaseVersionAsync()
     {
-        if (!_s.Management.IsVersionUpToDate())
+        if (!_s.Management.IsSchemaVersionUpToDate())
         {
             await _s.Dialogs.ShowMessageAsync(
                 Texts.Get(localization.HINT), Texts.Get(localization.DB_VERSION_OUTDATED));
