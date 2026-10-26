@@ -242,6 +242,40 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task AddWord_NewMainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
+
+        fixture.Editor.AddToGroup = true;
+        fixture.Editor.MainEntry = " cat ";
+        fixture.Editor.Word = "cat";
+        fixture.Editor.Meaning = "Katze";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _voc.Dictionary.GetWordsAndSubWords("cat", "english", "german").Select(w => w.Word).Should().Equal("cat");
+        Load(_seed.Unit1).Entries.Select(e => e.Word).Should().Contain("cat");
+    }
+
+    [Test]
+    public async Task AddWord_ExistingMainEntryWithSpaces_AddsWithoutQuestion()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
+
+        fixture.Editor.AddToGroup = false;
+        fixture.Editor.MainEntry = " go ";
+        fixture.Editor.Word = "went";
+        fixture.Editor.Meaning = "ging";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _voc.Dictionary.GetSubWords("go", "english", "german").Select(w => w.Word).Should().Contain("went");
+    }
+
+    [Test]
     public async Task AddWord_OnSubGroupNode_AddsToGroupWhenChecked()
     {
         var fixture = Create();

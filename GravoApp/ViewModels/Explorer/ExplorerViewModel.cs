@@ -42,6 +42,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
+    private readonly SubEntryAdder _adder;
     private readonly string _mainLanguage;
     private bool _showSubRows;
     private bool _keepEditor;
@@ -84,6 +85,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         // Throws DataInvalidException for a database without all known word types.
         properties.LoadWordTypes();
         Texts = texts;
+        _adder = new SubEntryAdder(_dictionary, dialogs, texts);
         Editor = new WordEditorViewModel(texts, properties.LoadProperties());
         Multi = new MultiEditViewModel(texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
@@ -302,52 +304,18 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             return;
         }
 
+        var mainEntry = Editor.MainEntry.Trim();
         var word = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType,
             Editor.Meaning, Editor.AdditionalInfo, Editor.Irregular);
-        try
+        var result = await _adder.AddAsync(word, mainEntry, language, mainLanguage,
+            Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, mainEntry, mainLanguage, language));
+        if (result == SubEntryAdder.Result.NotAdded)
         {
-            _dictionary.AddSubEntry(word, Editor.MainEntry, language, mainLanguage);
-        }
-        catch (InputException ex)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
             return;
         }
-        catch (EntryExistsException)
+        if (result == SubEntryAdder.Result.AlreadyStored)
         {
-            word = StoredWord(word, language, mainLanguage);
-        }
-        catch (EntryNotFoundException notFound)
-        {
-            if (!await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, Editor.MainEntry, mainLanguage, language)))
-            {
-                return;
-            }
-            try
-            {
-                _dictionary.AddEntry(Editor.MainEntry.Trim(), language, mainLanguage);
-            }
-            catch (Exception ex) when (ex is LanguageNotFoundException or EntryNotFoundException or InputException)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-            }
-            try
-            {
-                _dictionary.AddSubEntry(word, Editor.MainEntry, language, mainLanguage);
-            }
-            catch (Exception)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                    Texts.Format(localization.ENTRY_CONFLICT, notFound.Message));
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                Texts.Format(localization.ENTRY_CONFLICT, ex.Message));
-            return;
+            word = StoredWord(word, mainEntry, language, mainLanguage);
         }
 
         if (groupEntry is not null && Editor.AddToGroup)
@@ -843,9 +811,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     }
 
     /// <summary>Returns the dictionary entry that has the word and meaning of <paramref name="word"/>.</summary>
-    private WordEntry StoredWord(WordEntry word, string language, string mainLanguage)
+    private WordEntry StoredWord(WordEntry word, string mainEntry, string language, string mainLanguage)
     {
-        var main = _dictionary.GetMainEntry(Editor.MainEntry, language, mainLanguage);
+        var main = _dictionary.GetMainEntry(mainEntry, language, mainLanguage);
         return _dictionary.GetEntry(main, word.Word, word.Meaning);
     }
 

@@ -21,6 +21,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
+    private readonly SubEntryAdder _adder;
     private readonly TaskCompletionSource _opened = new(); // Potentially open dialog task to be waited upon
     private bool _wordEdited;
     private bool _syncing;
@@ -57,6 +58,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         _group = group;
         _dialogs = dialogs;
         Texts = texts;
+        _adder = new SubEntryAdder(dictionary, dialogs, texts);
         Title = texts.Get(localization.MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY);
         Limits = properties.LoadProperties();
         // Throws DataInvalidException for a database without all known word types.
@@ -233,26 +235,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
         var trimmedMainEntry = MainEntry.Trim();
-        try
-        {
-            _dictionary.AddSubEntry(entry, trimmedMainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync(trimmedMainEntry);
-        }
-        catch (InputException ex)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-        }
-        catch (EntryExistsException)
+        var result = await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
+            Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry));
+        if (result != SubEntryAdder.Result.NotAdded)
         {
             await AddToGroupIfDirectAsync(trimmedMainEntry);
-        }
-        catch (EntryNotFoundException notFound)
-        {
-            if (await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry)))
-            {
-                await AddMainEntryAndRetryAsync(entry, trimmedMainEntry, notFound);
-            }
         }
         _wordEdited = false;
         SelectMainEntryRequested?.Invoke();
@@ -277,40 +264,6 @@ public sealed partial class WordInputViewModel : ViewModelBase
                 Texts.Format(localization.WORD_INPUT_SECOND_LANGUAGE, Language, MainLanguage));
         }
         return true;
-    }
-
-    /// <summary>Creates a missing main entry and adds the sub entry again.</summary>
-    /// <remarks>
-    /// A main entry that exists by now is used as it is. The conflict message names the original
-    /// <paramref name="notFound"/> error.
-    /// </remarks>
-    /// <param name="entry">The sub entry to add.</param>
-    /// <param name="mainEntry">The trimmed main entry.</param>
-    /// <param name="notFound">The error of the first attempt.</param>
-    private async Task AddMainEntryAndRetryAsync(WordEntry entry, string trimmedMainEntry, EntryNotFoundException notFound)
-    {
-        try
-        {
-            _dictionary.AddEntry(trimmedMainEntry, Language, MainLanguage);
-        }
-        catch (EntryExistsException)
-        {
-            // Nothing todo, created in the meantime, the retry below uses it.
-        }
-        catch (Exception ex) when (ex is LanguageNotFoundException or EntryNotFoundException or InputException)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-        }
-        try
-        {
-            _dictionary.AddSubEntry(entry, trimmedMainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync(trimmedMainEntry);
-        }
-        catch (Exception)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                Texts.Format(localization.ENTRY_CONFLICT, notFound.Message));
-        }
     }
 
     private async Task AddToGroupIfDirectAsync(string trimmedMainEntry)
