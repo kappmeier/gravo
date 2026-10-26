@@ -54,7 +54,7 @@ Public Class PropertiesDaoTests
 
         Dim expectedVersion As New Properties.DBVersion(1, 23, New Date(2017, 4, 5), "DB-Version Test")
 
-        p.Verion.Should.BeEquivalentTo(expectedVersion)
+        p.Version.Should.BeEquivalentTo(expectedVersion)
     End Sub
 
     <Test>
