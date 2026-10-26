@@ -6,14 +6,35 @@ Public Class DictionaryDao
     Implements IDictionaryDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
-    Private ReadOnly SELECT_WORDENTRY As String = "SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular"
+
+    Private ReadOnly _wordEntryColumns As String = "W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular"
+    Private ReadOnly _wordEntryTable As String = "DictionaryWords as W"
+    Private ReadOnly _mainEntryColumns As String = "M.[Index], M.WordEntry, M.LanguageName, M.MainLanguage"
+    Private ReadOnly _mainEntryTable As String = "DictionaryMain AS M"
+    Private ReadOnly _joinedTables As String = $"{_wordEntryTable}, {_mainEntryTable}"
+    Private ReadOnly _joinCondition As String = "W.MainIndex = M.[Index]"
+
+    Private Function basicSelect() As String
+        basicSelect = $"
+            SELECT {_wordEntryColumns}
+              FROM {_wordEntryTable}
+        "
+    End Function
+
+    Private Shared Function ParamEquals(table As String, ParamArray columns As String()) As String
+        Return String.Join(" AND ", columns.Select(Of String)(Function(column) $"{table}.{column} = ?"))
+    End Function
 
     Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
     Function GetEntry(mainEntry As MainEntry, word As String, meaning As String) As WordEntry Implements IDictionaryDao.GetEntry
-        Dim command As String = SELECT_WORDENTRY & " FROM DictionaryWords WHERE MainIndex = ? AND Word = ? AND Meaning = ?"
+        Dim command As String = $"
+            SELECT {_wordEntryColumns}
+              FROM {_wordEntryTable}
+             WHERE {ParamEquals("W", "MainIndex", "Word", "Meaning")}
+        "
 
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainEntry.Index, word, meaning}))
         FailIfEmpty(DBConnection, Function() As Exception
@@ -25,23 +46,12 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
     End Function
 
-    Private ReadOnly SELECT_FROM_DictionaryWords_AS_W As String = "
-        SELECT W.[Index],
-               W.Word, W.Pre, W.Post, W.WordType, W.Meaning,
-               W.TargetLanguageInfo, W.Irregular
-          FROM DictionaryWords AS W
-    "
-    Private ReadOnly WHERE_MainIndexJoin As String = "
-               , DictionaryMain AS M
-         WHERE (W.MainIndex = M.[Index])
-    "
-
     Function GetWords(ByVal mainEntry As String, ByVal subEntry As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
         Dim mainIndex As Int32 = GetEntryIndex(mainEntry, language, mainLanguage)
-        Dim command As String =
-            SELECT_FROM_DictionaryWords_AS_W & "
-             WHERE W.Word = ?
-               AND W.MainIndex = ?
+        Dim command As String = $"
+            SELECT {_wordEntryColumns}
+              FROM {_wordEntryTable}
+             WHERE {ParamEquals("W", "Word", "MainIndex")}
              ORDER BY W.[Index]
         "
         DBConnection.ExecuteReader(command, New List(Of String) From {subEntry, CStr(mainIndex)})
@@ -49,22 +59,22 @@ Public Class DictionaryDao
     End Function
 
     Function GetWords(ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
-        Dim command =
-            SELECT_FROM_DictionaryWords_AS_W &
-             WHERE_MainIndexJoin & "
-               AND (M.LanguageName = ?)
-               AND (M.MainLanguage = ?)
+        Dim command = $"
+            SELECT {_wordEntryColumns}
+              FROM {_joinedTables}
+             WHERE {_joinCondition}
+               AND {ParamEquals("M", "LanguageName", "MainLanguage")}
              ORDER BY W.[Index]"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {language, mainLanguage}))
         Return ExtractWordsFromCursor()
     End Function
 
     Public Function GetWords(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWords
-        Dim command As String = 
-            SELECT_FROM_DictionaryWords_AS_W &
-             WHERE_MainIndexJoin & "
-               AND (M.LanguageName = ?)
-               AND (M.MainLanguage = ?)
+        Dim command As String = $"
+            SELECT {_wordEntryColumns}
+              FROM {_joinedTables}
+             WHERE {_joinCondition}
+               AND {ParamEquals("M", "LanguageName", "MainLanguage")}
                AND (W.Word LIKE ?)
                AND (M.WordEntry LIKE ?)
              ORDER BY W.[Index]
@@ -89,12 +99,12 @@ Public Class DictionaryDao
     End Function
 
     Function GetWordsWithMeaning(ByVal meaning As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry) Implements IDictionaryDao.GetWordsWithMeaning
-        Dim command As String =
-            SELECT_FROM_DictionaryWords_AS_W &
-             WHERE_MainIndexJoin & "
+        Dim command As String = $"
+            SELECT {_wordEntryColumns}
+              FROM {_joinedTables}
+             WHERE {_joinCondition}
                AND W.Meaning = ?
-               AND M.LanguageName = ?
-               AND M.MainLanguage = ?
+               AND {ParamEquals("M", "LanguageName", "MainLanguage")}
         "
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {meaning, language, mainLanguage}))
         Return ExtractWordsFromCursor()
@@ -265,9 +275,9 @@ Public Class DictionaryDao
         ByVal MainLanguage As String, ByVal gCol As ICollection(Of WordEntry))
         Dim mainIndex As Int32 = GetEntryIndex(MainEntry, Language, MainLanguage)
         Dim command As String
-        command = "
-            SELECT [Index], Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular
-              FROM DictionaryWords
+        command = $"
+            SELECT {_wordEntryColumns}
+              FROM {_wordEntryTable}
              WHERE (NOT Word= ? )
                AND MainIndex = ?
              ORDER BY [Index]
@@ -291,7 +301,11 @@ Public Class DictionaryDao
 
     Function GetMainEntry(ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String
         ) As MainEntry Implements IDictionaryDao.GetMainEntry
-        Dim command As String = "SELECT [Index], WordEntry, LanguageName, MainLanguage FROM DictionaryMain WHERE WordEntry = ? AND LanguageName = ? AND MainLanguage = ?"
+        Dim command As String = $"
+            SELECT {_mainEntryColumns}
+              FROM {_mainEntryTable}
+             WHERE {ParamEquals("M", "WordEntry", "LanguageName", "MainLanguage")}
+        "
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainEntry, language, mainLanguage}))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("Main entry not found.")
@@ -303,7 +317,11 @@ Public Class DictionaryDao
     End Function
 
     Private Function GetMainEntry(ByVal mainIndex As Int32) As MainEntry
-        Dim command As String = "SELECT [Index], WordEntry, LanguageName, MainLanguage FROM DictionaryMain WHERE [Index] = ?"
+        Dim command As String = $"
+            SELECT {_mainEntryColumns}
+              FROM {_mainEntryTable}
+             WHERE {ParamEquals("M", "[Index]")}
+        "
         DBConnection.ExecuteReader(command, Enumerable.Repeat(CStr(mainIndex), 1))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("No main entry found for given entry.")
