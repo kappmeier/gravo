@@ -201,6 +201,15 @@ Public Class GroupsDaoTests
             Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
     End Sub
 
+    <Test>
+    Public Sub EditGroup_OnlyCaseChanges_KeepsTheTables()
+        _groupsDao.EditGroup("Language Book", "language book")
+
+        _groupsDao.GetSubGroups("language book").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+    End Sub
+
     ''' <summary>
     ''' A failing rename leaves the group under its old name and with its old tables.
     ''' </summary>
@@ -447,6 +456,14 @@ Public Class GroupsDaoTests
 
         _groupsDao.GetSubGroups("LanguageBook").Single().Table.Should.Be("GroupLanguageBook03")
         _db.TableExists("GroupLanguageBook03").Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub AddGroup_NameDiffersOnlyInCase_UsesTheNextFreeTable()
+        _groupsDao.AddGroup("language book", "Unit 1")
+
+        _groupsDao.GetSubGroups("language book").Single().Table.Should.Be("Grouplanguagebook03")
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
     End Sub
 
     <Test>

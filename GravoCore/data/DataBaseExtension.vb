@@ -47,9 +47,23 @@ Public Module DataBaseExtension
         IsEmpty = (objects = 0)
     End Function
 
+    ''' <summary>
+    ''' Checks whether a table exists.
+    ''' </summary>
+    ''' <remarks>
+    ''' Table names are compared case-insensitively similar to SQLite.
+    ''' </remarks>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    ''' <param name="tableName">Name of the table</param>
+    ''' <returns>Whether a table with the name exists</returns>
     <Extension()>
     Public Function TableExists(dataBaseOperation As IDataBaseOperation, tableName As String) As Boolean
-        Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+        Dim command As String = "
+            SELECT name
+              FROM sqlite_master
+             WHERE type = 'table'
+               AND name = ? COLLATE NOCASE;
+        "
         dataBaseOperation.ExecuteReader(command, ToDbParameters(New List(Of Object) From {tableName}))
         TableExists = dataBaseOperation.DBCursor.HasRows
         dataBaseOperation.DBCursor.Close()

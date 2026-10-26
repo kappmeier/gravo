@@ -157,7 +157,7 @@ Public Class GroupsDao
     ''' Renames a group and moves its sub group tables to free table names of the new name.
     ''' </summary>
     ''' <remarks>
-    ''' A new name with the same table base keeps the tables.
+    ''' A new name with the same table base, ignoring case, keeps the tables.
     ''' </remarks>
     ''' <param name="groupName">Current name of the group</param>
     ''' <param name="newName">New name of the group</param>
@@ -167,7 +167,8 @@ Public Class GroupsDao
 
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
-        Dim keepTables = newBaseTableName = CreateGroupBaseTableName(groupName)
+        Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
+            StringComparison.OrdinalIgnoreCase)
         DBConnection.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
         Try
             For Each group As GroupEntry In subGroups
