@@ -424,5 +424,6 @@ public class MainViewModelTests
 
         tabViewModel.Close(false);
         mainViewModel.Tabs.Should().BeEmpty();
+        tabViewModel.ClosedCount.Should().Be(1);
     }
 }

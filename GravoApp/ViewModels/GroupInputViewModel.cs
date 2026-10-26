@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gravo;
@@ -60,6 +61,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         Languages = new ObservableCollection<string>(dictionary.DictionaryLanguages(mainLanguage));
         SelectedLanguage = Languages.FirstOrDefault();
         SelectedGroup = Groups.FirstOrDefault();
+        texts.PropertyChanged += OnTextsChanged;
     }
 
     public UiTexts Texts { get; }
@@ -240,6 +242,18 @@ public sealed partial class GroupInputViewModel : ViewModelBase
                 localization.GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_ONE,
                 localization.GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_MANY);
     }
+
+    /// <summary>Handles a language switch. Resets the title and the count texts.</summary>
+    private void OnTextsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == UiTexts.IndexerName)
+        {
+            Title = Texts.Get(localization.MAIN_MENU_VOCABULARY_INSERT_GROUPS);
+            UpdateDisplayedInfo();
+        }
+    }
+
+    public override void OnClosed() => Texts.PropertyChanged -= OnTextsChanged;
 
     /// <summary>Adds the selected dictionary word to the sub group with the marked flag and an empty example.</summary>
     /// <remarks>A word that is in the sub group already is not added again. Instead, a message is shown.</remarks>

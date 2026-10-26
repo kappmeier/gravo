@@ -307,6 +307,18 @@ public class ExplorerViewModelBrowseTests
     }
 
     [Test]
+    public void OnClosed_StopsListeningToTheTexts()
+    {
+        var fixture = Create();
+        fixture.OnClosed();
+
+        _loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
+        fixture.Title.Should().Be("T" + localization.EXPLORER_TITLE);
+    }
+
+    [Test]
     public void Reload_RebuildsTree()
     {
         var fixture = Create();

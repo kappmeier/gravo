@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Gravo;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -44,6 +45,36 @@ public class GroupInputViewModelTests
         fixture.SelectedLanguage.Should().Be("english");
         fixture.WordsInGroupText.Should().Be("T161");
         fixture.WordsInSubGroupText.Should().Be("T156" + "T157" + NL + "T159");
+        fixture.WordsInLanguageText.Should().Be("T154");
+    }
+
+    [Test]
+    public void TextsRefresh_RecomputesTheCountTexts()
+    {
+        var loc = Fakes.Localization();
+        var fixture = new GroupInputViewModel(_voc.Groups, _voc.Dictionary, _voc.Group, _dialogs.Object,
+            Fakes.Texts(loc), TempVocabulary.MainLanguage);
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
+        fixture.Title.Should().Be("X" + localization.MAIN_MENU_VOCABULARY_INSERT_GROUPS);
+        fixture.WordsInLanguageText.Should().Be("X154");
+        fixture.WordsInSubGroupText.Should().Be("X156" + "X157" + NL + "X159");
+        fixture.WordsInGroupText.Should().Be("X161");
+    }
+
+    [Test]
+    public void OnClosed_StopsListeningToTheTexts()
+    {
+        var loc = Fakes.Localization();
+        var fixture = new GroupInputViewModel(_voc.Groups, _voc.Dictionary, _voc.Group, _dialogs.Object,
+            Fakes.Texts(loc), TempVocabulary.MainLanguage);
+        fixture.OnClosed();
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
         fixture.WordsInLanguageText.Should().Be("T154");
     }
 

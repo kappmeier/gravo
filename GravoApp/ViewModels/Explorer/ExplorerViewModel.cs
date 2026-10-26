@@ -33,8 +33,6 @@ public enum PanelMode
 /// </remarks>
 public sealed partial class ExplorerViewModel : ViewModelBase
 {
-    private const string IndexerName = "Item[]";
-
     private static readonly string[] Letters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Select(c => new string(c, 1)).ToArray();
 
@@ -902,7 +900,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <remarks>The selected row keeps its position.</remarks>
     private void OnTextsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != IndexerName)
+        if (e.PropertyName != UiTexts.IndexerName)
         {
             return;
         }
@@ -918,4 +916,6 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             SelectedRow = Rows[selected];
         }
     }
+
+    public override void OnClosed() => Texts.PropertyChanged -= OnTextsChanged;
 }

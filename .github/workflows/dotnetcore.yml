@@ -14,7 +14,7 @@ jobs:
       # `dotnet test` exits 0 when no tests are discovered, this check avoids it.
       # Bump both floors in the same commit that adds or removes tests.
       TEST_FLOOR: 365
-      UI_TEST_FLOOR: 268
+      UI_TEST_FLOOR: 271
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
