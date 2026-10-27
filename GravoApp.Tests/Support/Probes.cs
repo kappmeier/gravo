@@ -13,10 +13,12 @@ namespace GravoApp.ViewModels
 
         public int ClosedCount { get; private set; }
 
+        public Exception? OpenedError { get; set; }
+
         public override Task OnOpenedAsync()
         {
             OpenedCount++;
-            return Task.CompletedTask;
+            return OpenedError is null ? Task.CompletedTask : Task.FromException(OpenedError);
         }
 
         public override void OnClosed() => ClosedCount++;
