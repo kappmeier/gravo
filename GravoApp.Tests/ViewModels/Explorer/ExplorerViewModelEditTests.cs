@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels.Explorer;
@@ -30,8 +31,8 @@ public class ExplorerViewModelEditTests
     [TearDown]
     public void TearDown() => _voc.Dispose();
 
-    private ExplorerViewModel Create() => new(_voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
-        _dialogs.Object, TempVocabulary.MainLanguage);
+    private ExplorerViewModel Create(UiTexts? texts = null) => new(_voc.Vocabulary, Fakes.Properties().Object,
+        texts ?? Fakes.Texts(), _dialogs.Object, TempVocabulary.MainLanguage);
 
     /// <summary>Walks the tree along the titles in <paramref name="path"/> and expands every node on it.</summary>
     /// <returns>The node at the end of the path.</returns>
@@ -204,6 +205,24 @@ public class ExplorerViewModelEditTests
         fixture.SelectedNode.Should().BeSameAs(letter);
         letter.Children.Select(n => n.Title).Should().BeEquivalentTo("hat", "house");
         added.Should().Be(1);
+    }
+
+    [Test]
+    public async Task AddWord_MainEntryMissing_RealTexts_NamesTheMainEntryAndLanguages()
+    {
+        using var real = new RealLocalization();
+
+        var fixture = Create(real.Texts);
+        var dictionary = real.Texts.Get(localization.TREE_DICTIONARY);
+        fixture.SelectedNode = Node(fixture, dictionary, "german", "english", "H");
+        fixture.Editor.MainEntry = "hat";
+        fixture.Editor.Word = "hat";
+        fixture.Editor.Meaning = "Hut";
+
+        await fixture.AddWordCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Haupteintrag nicht vorhanden",
+            "Der Haupteintrag 'hat' ist für die gewählten Sprachen 'german' und 'english' nicht vorhanden. "
+            + "Soll er erstellt werden?"), Times.Once);
     }
 
     [Test]

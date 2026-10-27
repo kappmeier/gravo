@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -36,8 +37,8 @@ public class WordInputViewModelTests
         _dialogs = Fakes.Dialogs();
     }
 
-    private WordInputViewModel Create() => new(_dictionary.Object, _groups.Object, _group.Object,
-        Fakes.Properties().Object, Fakes.Texts(), _dialogs.Object, AppServices.MainLanguage);
+    private WordInputViewModel Create(UiTexts? texts = null) => new(_dictionary.Object, _groups.Object, _group.Object,
+        Fakes.Properties().Object, texts ?? Fakes.Texts(), _dialogs.Object, AppServices.MainLanguage);
 
     private void SetUpAddSubEntry() =>
         _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"));
@@ -371,6 +372,23 @@ public class WordInputViewModelTests
     }
 
     [Test]
+    public async Task AddSubEntry_DirectAdd_EmptyGroup_RealTexts_NamesBothLanguages()
+    {
+        _dialogs = Fakes.Dialogs(confirm: false);
+        _group.Setup(g => g.GetLanguages(It.IsAny<GroupEntry>())).Returns(new List<string>());
+
+        using var real = new RealLocalization();
+        var fixture = Create(real.Texts);
+        FillHouse(fixture);
+        fixture.DirectAdd = true;
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
+            "Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den "
+            + "Sprachen 'english' und 'german' erstellt werden?"), Times.Once);
+    }
+
+    [Test]
     public async Task AddSubEntry_DirectAdd_SecondLanguage_ConfirmNo_Aborts()
     {
         _dialogs = Fakes.Dialogs(confirm: false);
@@ -385,6 +403,23 @@ public class WordInputViewModelTests
         _dictionary.Verify(
             d => d.AddSubEntry(It.IsAny<WordEntry>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_DirectAdd_SecondLanguage_RealTexts_NamesBothLanguages()
+    {
+        _dialogs = Fakes.Dialogs(confirm: false);
+
+        using var real = new RealLocalization();
+        var fixture = Create(real.Texts);
+        FillHouse(fixture);
+        fixture.SelectedLanguage = "italian";
+        fixture.DirectAdd = true;
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
+            "Sie beabsichtigen einen Eintrag mit neuen Sprachen 'italian' und 'german' zu erstellen. "
+            + "Soll damit fortgefahren werden?"), Times.Once);
     }
 
     [Test]

@@ -1,6 +1,7 @@
 using System.IO;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -39,9 +40,10 @@ public class ManagementViewModelTests
     }
 
     private ManagementViewModel Create(
-        IManagementDao? management = null, Func<IDataBaseOperation, IManagementDao>? managementFor = null) => new(
-        _active.Vocabulary, management ?? _active.Management, _active.Properties, _dialogs.Object, Fakes.Texts(),
-        _active.FilePath, TempVocabulary.MainLanguage, SQLiteDataBaseOperation.OpenDatabase,
+        IManagementDao? management = null, Func<IDataBaseOperation, IManagementDao>? managementFor = null,
+        UiTexts? texts = null) => new(
+        _active.Vocabulary, management ?? _active.Management, _active.Properties, _dialogs.Object,
+        texts ?? Fakes.Texts(), _active.FilePath, TempVocabulary.MainLanguage, SQLiteDataBaseOperation.OpenDatabase,
         managementFor ?? DaoFactory.Management);
 
     /// <summary>Returns a path in the temp directory that does not exist yet and is deleted after the test.</summary>
@@ -383,6 +385,30 @@ public class ManagementViewModelTests
         fixture.ImportGroupCountText.Should().Be("T202");
         fixture.ImportDictCountText.Should().Be("T201");
         _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T203"), Times.Once);
+    }
+
+    [Test]
+    public async Task ImportGroups_RealTexts_ShowsTheCounts()
+    {
+        using var source = new TempVocabulary();
+        var casa = source.AddWord("casa", "latin", "casa", "Haus");
+        var casae = source.AddWord("casa", "latin", "casae", "Häuser");
+        var l1 = source.AddGroup("Lat", "L1");
+        source.AddToGroup(l1, casa);
+        source.AddToGroup(l1, casae);
+        source.AddToGroup(source.AddGroup("Lat", "L2"), casa);
+
+        _dialogs.Setup(d => d.PickOpenFileAsync(It.IsAny<string>(), "s3db")).ReturnsAsync(source.FilePath);
+
+        using var real = new RealLocalization();
+        var fixture = Create(texts: real.Texts);
+
+        await fixture.SelectImportDatabaseCommand.ExecuteAsync(null);
+        await fixture.ImportGroupsCommand.ExecuteAsync(null);
+
+        fixture.ImportDictCountText.Should().Be("Importierte Haupteinträge: 1\nImportierte Untereinträge: 2");
+        fixture.ImportGroupCountText.Should()
+            .Be("Importierte Gruppen: 1\nImportierte Untergruppen: 2\nImportierte Gruppeneinträge: 3");
     }
 
     [Test]
