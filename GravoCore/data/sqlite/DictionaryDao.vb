@@ -14,13 +14,6 @@ Public Class DictionaryDao
     Private ReadOnly _joinedTables As String = $"{_wordEntryTable}, {_mainEntryTable}"
     Private ReadOnly _joinCondition As String = "W.MainIndex = M.[Index]"
 
-    Private Function basicSelect() As String
-        basicSelect = $"
-            SELECT {_wordEntryColumns}
-              FROM {_wordEntryTable}
-        "
-    End Function
-
     Private Shared Function ParamEquals(table As String, ParamArray columns As String()) As String
         Return String.Join(" AND ", columns.Select(Of String)(Function(column) $"{table}.{column} = ?"))
     End Function
