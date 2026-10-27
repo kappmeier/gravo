@@ -566,7 +566,8 @@ Public Class ManagementDao
         Return Version.Equals(GetLatest())
     End Function
 
-    Public Function IsSchemaUpdateComplex(version As DbSchemaVersion) As Boolean Implements IManagementDao.IsSchemaUpdateComplex
+    Public Function IsSchemaUpdateComplex(version As DbSchemaVersion) As Boolean _
+        Implements IManagementDao.IsSchemaUpdateComplex
         If Not supportedVersions.Contains(version) Then Throw New IllegalVersionException("Version " & version.ToString & " is not supported.")
         Return ComplexVersionUpdates.Contains(version)
     End Function

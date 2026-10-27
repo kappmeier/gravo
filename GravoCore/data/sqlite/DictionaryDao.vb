@@ -7,7 +7,8 @@ Public Class DictionaryDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Private ReadOnly _wordEntryColumns As String = "W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular"
+    Private ReadOnly _wordEntryColumns As String =
+        "W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular"
     Private ReadOnly _wordEntryTable As String = "DictionaryWords as W"
     Private ReadOnly _mainEntryColumns As String = "M.[Index], M.WordEntry, M.LanguageName, M.MainLanguage"
     Private ReadOnly _mainEntryTable As String = "DictionaryMain AS M"
