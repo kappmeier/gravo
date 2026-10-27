@@ -431,7 +431,7 @@ Public Class ManagementDaoTests
         Assert.Throws(Of SqliteException)(Sub() fixture.UpdateDatabaseSingle()).Message.Should.Contain("NOT NULL")
     End Sub
 
-    Private Function BuildVersion16WithGroupTable(testDb As IDataBaseOperation) As ManagementDao
+    Private Shared Function BuildVersion16WithGroupTable(testDb As IDataBaseOperation) As ManagementDao
         Dim fixture = New ManagementDao(testDb)
         fixture.Initialize()
 
