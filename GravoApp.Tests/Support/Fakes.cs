@@ -72,7 +72,8 @@ public static class Fakes
         IDictionary<string, WordType> found = keys.ToDictionary(k => k.Value, k => k.Key);
         var propertiesMock = new Mock<IPropertiesDao>();
         propertiesMock.Setup(p => p.LoadWordTypes()).Returns(new WordTypes(codes, found));
-        propertiesMock.Setup(p => p.LoadProperties()).Returns(limits ?? new Properties(new Properties.PropertiesBuilder()));
+        propertiesMock.Setup(p => p.LoadProperties())
+            .Returns(limits ?? new Properties(new Properties.PropertiesBuilder()));
         return propertiesMock;
     }
 }
