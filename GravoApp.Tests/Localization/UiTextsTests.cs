@@ -73,7 +73,7 @@ public class UiTextsTests
         var names = new List<string?>();
         texts.PropertyChanged += (_, e) => names.Add(e.PropertyName);
         texts.Refresh();
-        names.Should().Contain("Item[]").And.Contain("");
+        names.Should().Contain(UiTexts.IndexerName).And.Contain("");
     }
 
     [Test]

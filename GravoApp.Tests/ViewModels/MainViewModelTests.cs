@@ -219,7 +219,7 @@ public class MainViewModelTests
     {
         var viewModel = Create();
         var refreshed = false;
-        viewModel.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == "Item[]";
+        viewModel.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == UiTexts.IndexerName;
         viewModel.Languages.Single(l => l.Name == "English").SelectCommand.Execute(null);
         _loc.Verify(l => l.SwitchToLanguage("English"), Times.Once);
         viewModel.Languages.Single(l => l.IsChecked).Name.Should().Be("English");
