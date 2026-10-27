@@ -334,7 +334,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public async Task SaveDatabaseAs_Cancelled_CopiesNothingAndShowsNothing()
+    public async Task SaveDatabaseAs_Cancelled_ShowsNothing()
     {
         File.WriteAllText(_dbPath, "db");
         try
