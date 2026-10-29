@@ -40,64 +40,40 @@ Public Class Properties
     Public Class DbSchemaVersion
         Implements IComparable(Of DbSchemaVersion)
 
-        Private ReadOnly _major As UInt16
-        Private ReadOnly _minor As UInt16
-        Private ReadOnly _date As Date
-        Private ReadOnly _description As String
-
         Public Sub New(major As UShort, minor As UShort, introduced As Date, description As String)
-            _major = major
-            _minor = minor
-            _date = introduced
-            _description = description
+            Me.Major = major
+            Me.Minor = minor
+            Introduction = introduced
+            Me.Description = description
         End Sub
 
         Public ReadOnly Property Major As UInt16
-            Get
-                Return _major
-            End Get
-        End Property
-
         Public ReadOnly Property Minor As UInt16
-            Get
-                Return _minor
-            End Get
-        End Property
-
         Public ReadOnly Property Introduction As Date
-            Get
-                Return _date
-            End Get
-        End Property
-
         Public ReadOnly Property Description As String
-            Get
-                Return _description
-            End Get
-        End Property
 
         Public Function CompareTo(other As DbSchemaVersion) As _
             Integer Implements IComparable(Of DbSchemaVersion).CompareTo
-            If (_major > other._major) Then
+            If (Major > other.Major) Then
                 Return 1
-            ElseIf (_major < other._major) Then
+            ElseIf (Major < other.Major) Then
                 Return -1
             Else
-                Return Math.Sign(CInt(_minor) - CInt(other._minor))
+                Return Math.Sign(CInt(Minor) - CInt(other.Minor))
             End If
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
             Dim version = TryCast(obj, DbSchemaVersion)
             Return version IsNot Nothing AndAlso
-                   _major = version._major AndAlso
-                   _minor = version._minor AndAlso
-                   _date = version._date AndAlso
-                   _description = version._description
+                   Major = version.Major AndAlso
+                   Minor = version.Minor AndAlso
+                   Introduction = version.Introduction AndAlso
+                   Description = version.Description
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return (_major, _minor, _date, _description).GetHashCode()
+            Return (Major, Minor, Introduction, Description).GetHashCode()
         End Function
 
         Public Overrides Function ToString() As String
