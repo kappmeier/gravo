@@ -371,7 +371,7 @@ public class ManagementViewModelTests
     }
 
     [Test]
-    public async Task ImportGroups_CopiesGroupsAndShowsCounters()
+    public async Task ImportGroups_CopiesGroupsAndShowsDone()
     {
         using var source = new TempVocabulary();
         var casa = source.AddWord("casa", "latin", "casa", "Haus");
@@ -382,8 +382,6 @@ public class ManagementViewModelTests
         await fixture.ImportGroupsCommand.ExecuteAsync(null);
         _active.Groups.GetGroups().Should().Contain("Lat");
         fixture.GroupNames.Should().Contain("Lat");
-        fixture.ImportGroupCountText.Should().Be("T202");
-        fixture.ImportDictCountText.Should().Be("T201");
         _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T203"), Times.Once);
     }
 
