@@ -83,7 +83,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         // Throws DataInvalidException for a database without all known word types.
         properties.LoadWordTypes();
         Texts = texts;
-        _adder = new SubEntryAdder(_dictionary, dialogs, texts);
+        _adder = new SubEntryAdder(_dictionary, _group, dialogs, texts);
         Editor = new WordEditorViewModel(texts, properties.LoadProperties());
         Multi = new MultiEditViewModel(texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
@@ -303,31 +303,18 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
 
         var mainEntry = Editor.MainEntry.Trim();
-        var word = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType,
+        var entry = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType,
             Editor.Meaning, Editor.AdditionalInfo, Editor.Irregular);
-        var result = await _adder.AddAsync(word, mainEntry, language, mainLanguage,
+        var word = await _adder.AddAsync(entry, mainEntry, language, mainLanguage,
             Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, mainEntry, mainLanguage, language));
-        if (result == SubEntryAdder.Result.NotAdded)
+        if (word is null)
         {
             return;
-        }
-        if (result == SubEntryAdder.Result.AlreadyStored)
-        {
-            word = StoredWord(word, mainEntry, language, mainLanguage);
         }
 
         if (groupEntry is not null && Editor.AddToGroup)
         {
-            var group = groupEntry;
-            try
-            {
-                _group.Add(group, word, Editor.Marked, "");
-            }
-            catch (EntryExistsException)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.ADD_NOT_POSSIBLE_TITLE),
-                    Texts.Get(localization.WORD_ALREADY_IN_GROUP));
-            }
+            await _adder.AddToGroupAsync(groupEntry, word, Editor.Marked);
         }
         ReloadAfterAdd(node, word);
         WordAdded?.Invoke();
@@ -807,13 +794,6 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             Editor.Show(entry, main);
         }
-    }
-
-    /// <summary>Returns the dictionary entry that has the word and meaning of <paramref name="word"/>.</summary>
-    private WordEntry StoredWord(WordEntry word, string mainEntry, string language, string mainLanguage)
-    {
-        var main = _dictionary.GetMainEntry(mainEntry, language, mainLanguage);
-        return _dictionary.GetEntry(main, word.Word, word.Meaning);
     }
 
     /// <summary>

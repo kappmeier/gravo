@@ -17,7 +17,6 @@ namespace GravoApp.ViewModels;
 /// </remarks>
 public sealed partial class WordInputViewModel : ViewModelBase
 {
-    private readonly IDictionaryDao _dictionary;
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
@@ -53,12 +52,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
     public WordInputViewModel(IDictionaryDao dictionary, IGroupsDao groups, IGroupDao group,
         IPropertiesDao properties, UiTexts texts, IDialogService dialogs, string mainLanguage)
     {
-        _dictionary = dictionary;
         _groups = groups;
         _group = group;
         _dialogs = dialogs;
         Texts = texts;
-        _adder = new SubEntryAdder(dictionary, dialogs, texts);
+        _adder = new SubEntryAdder(dictionary, group, dialogs, texts);
         Title = texts.Get(localization.MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY);
         Limits = properties.LoadProperties();
         // Throws DataInvalidException for a database without all known word types.
@@ -235,11 +233,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
         var trimmedMainEntry = MainEntry.Trim();
-        var result = await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
+        var word = await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
             Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry));
-        if (result != SubEntryAdder.Result.NotAdded)
+        if (word is not null && DirectAdd)
         {
-            await AddToGroupIfDirectAsync(trimmedMainEntry);
+            await _adder.AddToGroupAsync(SelectedGroupEntry!, word, Marked);
         }
         _wordEdited = false;
         SelectMainEntryRequested?.Invoke();
@@ -264,26 +262,6 @@ public sealed partial class WordInputViewModel : ViewModelBase
                 Texts.Format(localization.WORD_INPUT_SECOND_LANGUAGE, Language, MainLanguage));
         }
         return true;
-    }
-
-    private async Task AddToGroupIfDirectAsync(string trimmedMainEntry)
-    {
-        if (!DirectAdd)
-        {
-            return;
-        }
-        var mainEntry = _dictionary.GetMainEntry(trimmedMainEntry, Language, MainLanguage);
-        var word = _dictionary.GetEntry(mainEntry, Word, Meaning);
-        var group = SelectedGroupEntry!;
-        try
-        {
-            _group.Add(group, word, Marked, "");
-        }
-        catch (EntryExistsException)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.ADD_NOT_POSSIBLE_TITLE),
-                Texts.Get(localization.WORD_ALREADY_IN_GROUP));
-        }
     }
 
     [RelayCommand]

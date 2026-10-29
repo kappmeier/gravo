@@ -425,8 +425,9 @@ public class WordInputViewModelTests
     [Test]
     public async Task AddSubEntry_DirectAdd_AddsToGroupWithMarked()
     {
-        SetUpAddSubEntry();
-        SetUpAddToGroup(out _, out var word);
+        WordEntry? addedWord = null;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) => addedWord = entry);
         GroupEntry? capturedGroup = null;
         WordEntry? capturedWord = null;
         bool? capturedMarked = null;
@@ -448,7 +449,7 @@ public class WordInputViewModelTests
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         capturedGroup.Should().BeSameAs(_unit1);
-        capturedWord.Should().BeSameAs(word);
+        capturedWord.Should().BeSameAs(addedWord);
         capturedMarked.Should().BeTrue();
         capturedExample.Should().Be("");
         _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
