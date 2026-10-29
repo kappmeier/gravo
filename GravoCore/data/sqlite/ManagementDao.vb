@@ -603,15 +603,7 @@ Public Class ManagementDao
     End Function
 
     Private Sub UpdateToNext()
-        Dim updateFunction As Action = updateFunctions(GetCurrentSchemaVersion())
-        SimpleUpdateCommand("BEGIN")
-        Try
-            updateFunction()
-            SimpleUpdateCommand("COMMIT")
-        Catch
-            SimpleUpdateCommand("ROLLBACK")
-            Throw
-        End Try
+        DBConnection.InTransaction(updateFunctions(GetCurrentSchemaVersion()))
     End Sub
 
     Function Reorganize() As Integer Implements IManagementDao.Reorganize

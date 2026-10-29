@@ -68,4 +68,22 @@ Public Module DataBaseExtension
         TableExists = dataBaseOperation.DBCursor.HasRows
         dataBaseOperation.DBCursor.Close()
     End Function
+
+    ''' <summary>
+    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns and
+    ''' rolled back when it throws.
+    ''' </summary>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    ''' <param name="work">The writes to run</param>
+    <Extension()>
+    Public Sub InTransaction(dataBaseOperation As IDataBaseOperation, work As Action)
+        dataBaseOperation.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
+        Try
+            work()
+            dataBaseOperation.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
+        Catch
+            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            Throw
+        End Try
+    End Sub
 End Module

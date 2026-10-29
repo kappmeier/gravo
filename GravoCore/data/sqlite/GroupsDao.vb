@@ -169,22 +169,20 @@ Public Class GroupsDao
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
         Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
             StringComparison.OrdinalIgnoreCase)
-        DBConnection.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
-        Try
-            For Each group As GroupEntry In subGroups
-                Dim newTableName = group.Table
-                If Not keepTables Then
-                    newTableName = NextFreeTableName(newBaseTableName, 1)
-                    Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
-                    DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
-                End If
-                UpdateGroup(group, newName, group.SubGroup, newTableName)
-            Next group
-            DBConnection.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
-        Catch
-            DBConnection.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
-            Throw
-        End Try
+        DBConnection.InTransaction(Sub() MoveSubGroupTables(subGroups, newBaseTableName, keepTables, newName))
+    End Sub
+
+    Private Sub MoveSubGroupTables(subGroups As Collection(Of GroupEntry), newBaseTableName As String,
+        keepTables As Boolean, newName As String)
+        For Each group As GroupEntry In subGroups
+            Dim newTableName = group.Table
+            If Not keepTables Then
+                newTableName = NextFreeTableName(newBaseTableName, 1)
+                Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
+                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+            End If
+            UpdateGroup(group, newName, group.SubGroup, newTableName)
+        Next group
     End Sub
 
     ''' <summary>
@@ -271,27 +269,27 @@ Public Class GroupsDao
         Dim group = GetGroup(groupName, subGroupName)
         Dim subGroups = GetSubGroups(groupName)
 
-        DBConnection.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
-        Try
-            DropGroupTables(Enumerable.Repeat(group.Table, 1))
-            DeleteGroupEntries(groupName, subGroupName)
+        DBConnection.InTransaction(
+            Sub()
+                DropGroupTables(Enumerable.Repeat(group.Table, 1))
+                DeleteGroupEntries(groupName, subGroupName)
+                RenameSubGroupTables(groupName, group, subGroups)
+            End Sub)
+    End Sub
 
-            Dim freeTable As String = Nothing
-            For Each entry As GroupEntry In subGroups
-                If freeTable IsNot Nothing Then
-                    Dim renameCommand = CreateRenameTableCommand(entry.Table, freeTable)
-                    DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
-                    UpdateGroup(entry, groupName, entry.SubGroup, freeTable)
-                    freeTable = entry.Table
-                ElseIf entry.Equals(group) Then
-                    freeTable = entry.Table
-                End If
-            Next
-            DBConnection.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
-        Catch
-            DBConnection.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
-            Throw
-        End Try
+    Private Sub RenameSubGroupTables(ByVal groupName As String, ByVal group As GroupEntry,
+        ByVal subGroups As ICollection(Of GroupEntry))
+        Dim freeTable As String = Nothing
+        For Each entry As GroupEntry In subGroups
+            If freeTable IsNot Nothing Then
+                Dim renameCommand = CreateRenameTableCommand(entry.Table, freeTable)
+                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                UpdateGroup(entry, groupName, entry.SubGroup, freeTable)
+                freeTable = entry.Table
+            ElseIf entry.Equals(group) Then
+                freeTable = entry.Table
+            End If
+        Next
     End Sub
 
     Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
