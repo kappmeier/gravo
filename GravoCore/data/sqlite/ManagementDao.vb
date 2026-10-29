@@ -494,40 +494,17 @@ Public Class ManagementDao
         Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
         For Each group As GroupEntry In groups
             Dim table As String = StripSpecialCharacters(group.Table)
-
-            Dim command As String = "SELECT [WordIndex] FROM [" & table & "]"
-            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
-            Dim indices As ICollection(Of Integer) = New List(Of Integer)
-            While DBConnection.DBCursor.Read()
-                Dim index = DBConnection.SecureGetInt32(0)
-                ' store the index for later
-                indices.Add(index)
-            End While
-
-            For Each index As Integer In indices
-                command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
-                Dim o As Object = index
-                DBConnection.ExecuteReader(command, Enumerable.Repeat(o, 1))
-                If Not DBConnection.DBCursor.Read() Then
-                    DBConnection.DBCursor.Close()
-                    Continue For
-                End If
-                Dim testInterval As Integer = DBConnection.SecureGetInt32(0)
-                Dim counter As Integer = DBConnection.SecureGetInt32(1)
-                Dim lastDateTemp As System.DateTime = DBConnection.SecureGetDateTime(2)
-                Dim lastDate As String = SQLiteDataBaseOperation.ToDbDate(lastDateTemp)
-                Dim testIntervalMain As Integer = DBConnection.SecureGetInt32(3)
-                Dim counterMain As Integer = DBConnection.SecureGetInt32(4)
-                DBConnection.DBCursor.Close()
-
-                ' save
-                command = $"
-                    UPDATE [{table}]
-                       SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ?
-                     WHERE [WordIndex] = ?
-                "
-                DBConnection.ExecuteNonQuery(command, New List(Of Object) From {testInterval, counter, lastDate, testIntervalMain, counterMain, index})
-            Next index
+            ' date() stores the yyyy-MM-dd form that ToDbDate writes
+            SimpleUpdateCommand($"
+                UPDATE [{table}]
+                   SET [TestInterval] = [Cards].[TestInterval],
+                       [Counter] = [Cards].[Counter],
+                       [LastDate] = date([Cards].[LastDate]),
+                       [TestIntervalMain] = [Cards].[TestIntervalMain],
+                       [CounterMain] = [Cards].[CounterMain]
+                  FROM [Cards]
+                 WHERE [Cards].[Index] = [{table}].[WordIndex]
+            ")
         Next group
     End Sub
 

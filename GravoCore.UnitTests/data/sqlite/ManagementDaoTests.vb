@@ -331,6 +331,25 @@ Public Class ManagementDaoTests
         AssertGroupCardColumns(29, 1, 1, "1900-01-01", 1, 1)
     End Sub
 
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_LastDateWithTime_StoresTheDateOnly()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+        _realDb.ExecuteNonQuery("
+                INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+                VALUES ('G', 'S', 'GroupTest-Example01')
+            ",
+            Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+                INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+                VALUES (1, 8, 3, '2021-12-24 13:45:00', 5, 2)
+            ",
+            Array.Empty(Of Object))
+
+        fixture.CopyGlobalCardsToGroups()
+
+        AssertGroupCardColumns(1, 8, 3, "2021-12-24", 5, 2)
+    End Sub
+
     ''' <summary>
     ''' Successful update of a 1.6 database with a populated group table to 1.7. The new NOT NULL columns need defaults
     ''' and the global card values are copied into the group afterwards.
