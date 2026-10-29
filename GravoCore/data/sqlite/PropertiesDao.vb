@@ -13,7 +13,7 @@ Public Class PropertiesDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -27,7 +27,7 @@ Public Class PropertiesDao
         builder.WithDictionaryMainMaxLengthWordEntry(MEDIUM_VALUE)
         builder.WithDictionaryMainMaxLengthLanguage(SHORT_VALUE)
         builder.WithDictionaryMainMaxLengthMainLanguage(SHORT_VALUE)
-        builder.WithDBVersionMaxLengthDescription(LONG_VALUE)
+        builder.WithDbSchemaVersionMaxLengthDescription(LONG_VALUE)
         builder.WithGroupsMaxLengthName(MEDIUM_VALUE)
         builder.WithGroupsMaxLengthSubName(MEDIUM_VALUE)
         builder.WithGroupsMaxLengthTable(MEDIUM_VALUE)
@@ -41,13 +41,13 @@ Public Class PropertiesDao
     ''' Returns nothing if no version information was found.    
     ''' </summary>
     ''' <returns></returns>
-    Function LoadVersions() As ICollection(Of Properties.DBVersion)
+    Function LoadVersions() As ICollection(Of Properties.DbSchemaVersion)
         Try
             Dim command As String = "SELECT [Version], [Date], [Description] FROM DBVersion"
             DBConnection.ExecuteReader(command, Array.Empty(Of Object))
         Catch ex As SqliteException
             If ex.SqliteErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
-                Return ImmutableList(Of Properties.DBVersion).Empty
+                Return ImmutableList(Of Properties.DbSchemaVersion).Empty
             End If
             Throw
         End Try
@@ -56,8 +56,8 @@ Public Class PropertiesDao
         If LoadVersions.Count = 0 Then Throw New IllegalVersionException("Version table exists, but no version found. Database invalid.")
     End Function
 
-    Private Function ExtractVersions(cursor As DbDataReader) As ICollection(Of Properties.DBVersion)
-        Dim versions As New List(Of Properties.DBVersion)
+    Private Function ExtractVersions(cursor As DbDataReader) As ICollection(Of Properties.DbSchemaVersion)
+        Dim versions As New List(Of Properties.DbSchemaVersion)
         Do While DBConnection.DBCursor.Read()
             Dim versionString As String = DBConnection.SecureGetString(0)
             Dim introduced As Date = DBConnection.SecureGetDateTime(1)
@@ -66,7 +66,7 @@ Public Class PropertiesDao
             Dim splits = versionString.Split(".".ToCharArray(), 2)
             Dim major As UInt16 = Convert.ToUInt16(splits(0), CultureInfo.InvariantCulture)
             Dim minor As UInt16 = Convert.ToUInt16(splits(1), CultureInfo.InvariantCulture)
-            Dim version As New Properties.DBVersion(major, minor, introduced, description)
+            Dim version As New Properties.DbSchemaVersion(major, minor, introduced, description)
             versions.Add(version)
         Loop
         versions.Sort()
@@ -102,7 +102,7 @@ Public Class PropertiesDao
 
         Dim wordTypes As IDictionary(Of String, Integer) = New Dictionary(Of String, Integer)
 
-        Dim dbVersion As Properties.DBVersion = LoadVersions().Last
+        Dim dbVersion As Properties.DbSchemaVersion = LoadVersions().Last
         ' Erst möglich, ab version 1.07 der Datenbank
         If (dbVersion.Major = 1 And dbVersion.Minor >= 7) Or dbVersion.Major > 1 Then
             Dim command As String = "SELECT [Type], [Index] FROM [SupportedWordTypes]"

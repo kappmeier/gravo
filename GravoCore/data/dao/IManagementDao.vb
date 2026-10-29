@@ -6,22 +6,22 @@ Public Interface IManagementDao
     ''' </summary>
     Sub Initialize()
 
-    Function IsVersionUpToDate() As Boolean
+    Function IsSchemaVersionUpToDate() As Boolean
 
-    Function IsUpdateComplex(version As DBVersion) As Boolean
+    Function IsSchemaUpdateComplex(version As DbSchemaVersion) As Boolean
 
-    ReadOnly Property LatestVersion() As DBVersion
+    ReadOnly Property LatestSchemaVersion() As DbSchemaVersion
 
-    Function GetCurrentVersion() As DBVersion
+    Function GetCurrentSchemaVersion() As DbSchemaVersion
 
-    Function GetNextVersion() As DBVersion
+    Function GetNextSchemaVersion() As DbSchemaVersion
 
     ''' <summary>
     ''' Updates the database from one version to the next.
     ''' </summary>
     ''' <exception cref="Gravo.IllegalVersionException">Thrown if the current version is not known
     ''' or database is up to date.</exception>
-    Sub UpdateDatabaseVersion()
+    Sub UpdateDatabaseSchemaVersion()
 
     ''' <summary>
     ''' Check the data base for errors that can be fixed automatically. Do performance improvements, if possible.

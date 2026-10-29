@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels.Explorer;
@@ -30,8 +31,8 @@ public class ExplorerViewModelEditTests
     [TearDown]
     public void TearDown() => _voc.Dispose();
 
-    private ExplorerViewModel Create() => new(_voc.Vocabulary, Fakes.Properties().Object, Fakes.Texts(),
-        _dialogs.Object, TempVocabulary.MainLanguage);
+    private ExplorerViewModel Create(UiTexts? texts = null) => new(_voc.Vocabulary, Fakes.Properties().Object,
+        texts ?? Fakes.Texts(), _dialogs.Object, TempVocabulary.MainLanguage);
 
     /// <summary>Walks the tree along the titles in <paramref name="path"/> and expands every node on it.</summary>
     /// <returns>The node at the end of the path.</returns>
@@ -60,7 +61,7 @@ public class ExplorerViewModelEditTests
     private void VerifyMessage(string title, string message) =>
         _dialogs.Verify(d => d.ShowMessageAsync(title, message), Times.Once);
 
-    private GroupDto Load(GroupEntry group) => _voc.Group.Load(ref group);
+    private GroupDto Load(GroupEntry group) => _voc.Group.Load(group);
 
     [Test]
     public void SelectWordRow_FillsEditor()
@@ -207,6 +208,24 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task AddWord_MainEntryMissing_RealTexts_NamesTheMainEntryAndLanguages()
+    {
+        using var real = new RealLocalization();
+
+        var fixture = Create(real.Texts);
+        var dictionary = real.Texts.Get(localization.TREE_DICTIONARY);
+        fixture.SelectedNode = Node(fixture, dictionary, "german", "english", "H");
+        fixture.Editor.MainEntry = "hat";
+        fixture.Editor.Word = "hat";
+        fixture.Editor.Meaning = "Hut";
+
+        await fixture.AddWordCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Haupteintrag nicht vorhanden",
+            "Der Haupteintrag 'hat' ist für die gewählten Sprachen 'german' und 'english' nicht vorhanden. "
+            + "Soll er erstellt werden?"), Times.Once);
+    }
+
+    [Test]
     public async Task AddWord_MainEntryDeclined_AddsNothing()
     {
         _dialogs = Fakes.Dialogs(confirm: false);
@@ -239,6 +258,40 @@ public class ExplorerViewModelEditTests
         // "Haus" and "Gebäude" (added second) are meanings for "house" coming before "Häuser", a meaning for "houses"
         fixture.Rows.Select(r => r.Meaning).Should().Equal("Haus", "Gebäude", "Häuser");
         fixture.SelectedRow!.Meaning.Should().Be("Gebäude");
+    }
+
+    [Test]
+    public async Task AddWord_NewMainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
+
+        fixture.Editor.AddToGroup = true;
+        fixture.Editor.MainEntry = " cat ";
+        fixture.Editor.Word = "cat";
+        fixture.Editor.Meaning = "Katze";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _voc.Dictionary.GetWordsAndSubWords("cat", "english", "german").Select(w => w.Word).Should().Equal("cat");
+        Load(_seed.Unit1).Entries.Select(e => e.Word).Should().Contain("cat");
+    }
+
+    [Test]
+    public async Task AddWord_ExistingMainEntryWithSpaces_AddsWithoutQuestion()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
+
+        fixture.Editor.AddToGroup = false;
+        fixture.Editor.MainEntry = " go ";
+        fixture.Editor.Word = "went";
+        fixture.Editor.Meaning = "ging";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _voc.Dictionary.GetSubWords("go", "english", "german").Select(w => w.Word).Should().Contain("went");
     }
 
     [Test]
@@ -339,7 +392,7 @@ public class ExplorerViewModelEditTests
     {
         _voc.Dictionary.AddEntry("house", "english", "spanish");
         var casa = new WordEntry("house", "", "", WordType.Substantive, "casa", "", false);
-        _voc.Dictionary.AddSubEntry(ref casa, "house", "english", "spanish");
+        _voc.Dictionary.AddSubEntry(casa, "house", "english", "spanish");
         _voc.AddToGroup(_seed.Unit1, casa);
         var fixture = Create();
         fixture.SelectedNode = Node(fixture, Groups, "Book", "Unit 1");
@@ -411,7 +464,7 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var houses = _seed.Houses;
-        var main = _voc.Dictionary.GetMainEntry(ref houses);
+        var main = _voc.Dictionary.GetMainEntry(houses);
         var stored = _voc.Dictionary.GetEntry(main, "houses", "Häuser (pl.)");
         stored.Post.Should().Be("(pl)");
         stored.Index.Should().Be(_seed.Houses.Index);
@@ -464,7 +517,19 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var houses = _seed.Houses;
-        _voc.Dictionary.GetMainEntry(ref houses).Word.Should().Be("houses");
+        _voc.Dictionary.GetMainEntry(houses).Word.Should().Be("houses");
+    }
+
+    [Test]
+    public async Task ChangeWord_MainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var fixture = Create();
+        SelectRow(fixture, "houses", Dictionary, "german", "english", "H");
+
+        fixture.Editor.MainEntry = " houses ";
+        await fixture.ChangeWordCommand.ExecuteAsync(null);
+
+        _voc.Dictionary.GetMainEntry(_seed.Houses).Word.Should().Be("houses");
     }
 
     [Test]
@@ -477,7 +542,7 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         var go = _seed.Go;
-        var main = _voc.Dictionary.GetMainEntry(ref go);
+        var main = _voc.Dictionary.GetMainEntry(go);
         main.Word.Should().Be("went");
         main.Language.Should().Be("english");
         main.MainLanguage.Should().Be("german");

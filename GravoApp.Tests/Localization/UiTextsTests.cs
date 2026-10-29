@@ -1,33 +1,13 @@
-using System.IO;
 using AwesomeAssertions;
 using Gravo;
 using GravoApp.Localization;
 using GravoApp.Tests.Support;
-using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
 namespace GravoApp.Tests.Localization;
 
 public class UiTextsTests
 {
-    /// <summary>Runs <paramref name="test"/> on texts read from a temporary copy of <c>languages.s3db</c>.</summary>
-    private static void WithRealLocalizationTexts(Action<UiTexts> test)
-    {
-        var temp = Path.GetTempFileName();
-        File.Copy(Path.Combine(AppContext.BaseDirectory, "languages.s3db"), temp, true);
-        var db = SQLiteDataBaseOperation.OpenDatabase(temp);
-        try
-        {
-            test(new UiTexts(new localization(db)));
-        }
-        finally
-        {
-            db.Close();
-            SqliteConnection.ClearAllPools();
-            File.Delete(temp);
-        }
-    }
-
     [Test]
     public void Indexer_ByConstantName_ReadsTheConstantsCode()
     {
@@ -93,28 +73,25 @@ public class UiTextsTests
         var names = new List<string?>();
         texts.PropertyChanged += (_, e) => names.Add(e.PropertyName);
         texts.Refresh();
-        names.Should().Contain("Item[]").And.Contain("");
+        names.Should().Contain(UiTexts.IndexerName).And.Contain("");
     }
 
     [Test]
     public void Indexer_OverRealLanguagesDatabase_ReturnsGermanText()
     {
-        WithRealLocalizationTexts(fixture =>
-        {
-            fixture["MAIN_MENU_FILE"].Should().Be("_Datei");
-        });
+        using var real = new RealLocalization();
+
+        real.Texts["MAIN_MENU_FILE"].Should().Be("_Datei");
     }
 
     [Test]
     public void Format_RealDatabase_FormatsTheGermanText()
     {
-        WithRealLocalizationTexts(fixture =>
-        {
-            var text = fixture.Format(localization.MAIN_CHECK_DATABASE_FIXED, 3);
+        using var real = new RealLocalization();
 
-            text.Should()
-                .Be("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden 3 Fehler behoben.");
-        });
+        var text = real.Texts.Format(localization.MAIN_CHECK_DATABASE_FIXED, 3);
+
+        text.Should().Be("Testen der Datenbank auf Konsistenz abgeschlossen. Es wurden 3 Fehler behoben.");
     }
 
     [TestCase(WordType.Substantive, "T3")]

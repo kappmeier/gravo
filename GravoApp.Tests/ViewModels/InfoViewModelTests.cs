@@ -9,13 +9,13 @@ namespace GravoApp.Tests.ViewModels;
 
 public class InfoViewModelTests
 {
-    private static readonly Properties.DBVersion DefaultVersion =
+    private static readonly Properties.DbSchemaVersion DefaultSchemaVersion =
         new(1, 7, new DateTime(2020, 1, 1), "");
 
     private static InfoViewModel Create()
     {
         var management = new Mock<IManagementDao>();
-        management.Setup(m => m.LatestVersion).Returns(DefaultVersion);
+        management.Setup(m => m.LatestSchemaVersion).Returns(DefaultSchemaVersion);
         return new InfoViewModel(management.Object, Fakes.Texts());
     }
 

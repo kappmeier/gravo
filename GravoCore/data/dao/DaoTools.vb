@@ -39,7 +39,7 @@ Public Module DaoTools
     ''' unchanged. Parameter values are bound raw and must never be escaped. Quote doubling should only be done for
     ''' string literals built with <see cref="GetDBEntry(String)"/>.
     ''' </summary>
-    Public Function ToDbParameters(ByRef parameters As List(Of Object)) As IEnumerable(Of Object)
+    Public Function ToDbParameters(ByVal parameters As List(Of Object)) As IEnumerable(Of Object)
         ToDbParameters = parameters.Select(Of Object)(
             Function(data) If(TypeOf data Is Boolean, EscapeBoolean(CType(data, Boolean)), data)
         )
@@ -51,7 +51,7 @@ Public Module DaoTools
     ''' </summary>
     ''' <param name="Text">The string to be escaped.</param>
     ''' <returns></returns>
-    Public Function EscapeSingleQuotes(ByRef Text As String) As String
+    Public Function EscapeSingleQuotes(ByVal Text As String) As String
         Dim sTemp, sTemp2 As String
         Dim i As Integer = 0
         sTemp2 = Text
@@ -70,7 +70,7 @@ Public Module DaoTools
         Return sTemp
     End Function
 
-    Public Function EscapeBoolean(ByRef value As Boolean) As String
+    Public Function EscapeBoolean(ByVal value As Boolean) As String
         Return If(value, "1", "0")
     End Function
 

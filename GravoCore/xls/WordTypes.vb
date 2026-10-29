@@ -14,7 +14,8 @@ Public Class WordTypes
     ''' </summary>
     ''' <param name="wordTypes"></param>
     ''' <param name="foundWordTypes"></param>
-    Public Sub New(ByRef wordTypes As IDictionary(Of String, Integer), ByRef foundWordTypes As IDictionary(Of String, WordType))
+    Public Sub New(ByVal wordTypes As IDictionary(Of String, Integer),
+        ByVal foundWordTypes As IDictionary(Of String, WordType))
         Me.wordTypes = wordTypes
         Me.foundWordTypes = foundWordTypes
     End Sub

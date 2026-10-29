@@ -73,7 +73,7 @@ public class ExplorerViewModelRenameTests
 
         _dialogs.Verify(d => d.PromptAsync("T134", "T135", "house"), Times.Once);
         var home = "home";
-        _voc.Dictionary.GetMainEntry(ref home, "english", "german").Word.Should().Be("home");
+        _voc.Dictionary.GetMainEntry(home, "english", "german").Word.Should().Be("home");
         _voc.Dictionary.GetWordsAndSubWords("home", "english", "german").Select(w => w.Word).Should()
             .BeEquivalentTo("home", "houses");
         node.Title.Should().Be("home");
@@ -108,7 +108,7 @@ public class ExplorerViewModelRenameTests
         _voc.Groups.GetGroups().Should().BeEquivalentTo("Buch", "Other");
         SubGroupNames("Buch").Should().BeEquivalentTo("Unit 1", "Unit 2");
         var unit1 = _voc.Groups.GetGroup("Buch", "Unit 1");
-        _voc.Group.Load(ref unit1).WordCount.Should().Be(2);
+        _voc.Group.Load(unit1).WordCount.Should().Be(2);
         node.Title.Should().Be("Buch");
         node.Children.Select(c => c.Group).Should().Equal("Buch", "Buch");
         VerifyNoMessage();

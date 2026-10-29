@@ -74,4 +74,44 @@ Public Class SQLiteDataBaseOperationTests
     Public Sub NowDB_IsIsoDate()
         SQLiteDataBaseOperation.NowDB().Should.MatchRegex("^\d{4}-\d{2}-\d{2}$")
     End Sub
+
+    <Test>
+    Public Sub Dispose_WithOpenReader_ClosesTheReader()
+        _db.ExecuteNonQuery("
+            CREATE TABLE [Words] (
+                [Name] TEXT NOT NULL
+            );
+        ", Array.Empty(Of Object))
+        Dim reader = _db.ExecuteReader("
+            SELECT [Name]
+              FROM [Words];
+        ", Array.Empty(Of Object))
+
+        _db.Dispose()
+
+        reader.IsClosed.Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub Dispose_Twice_AndCloseAfterwards_DoNotThrow()
+        _db.Dispose()
+
+        _db.Dispose()
+        _db.Close()
+    End Sub
+
+    <Test>
+    Public Sub Dispose_ReleasesTheFile()
+        _db.ExecuteNonQuery("
+            CREATE TABLE [Words] (
+                [Name] TEXT NOT NULL
+            );
+        ", Array.Empty(Of Object))
+
+        _db.Dispose()
+        SqliteConnection.ClearAllPools()
+
+        File.Delete(_tempDb)
+        File.Exists(_tempDb).Should.BeFalse()
+    End Sub
 End Class

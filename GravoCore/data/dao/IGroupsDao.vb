@@ -4,7 +4,7 @@ Public Interface IGroupsDao
     ''' <summary>
     ''' Returns the names of all major groups.
     ''' 
-    ''' TODO: Define the order the strings have to be.
+    ''' Ordered alphabetically by the name of the groups.
     ''' </summary>
     ''' <returns></returns>
     Function GetGroups() As Collection(Of String)
@@ -12,7 +12,7 @@ Public Interface IGroupsDao
     ''' <summary>
     ''' Returns all groups as full entities.
     ''' 
-    ''' TODO: Define the order the strings have to be.
+    ''' Ordered by the sub group index, grouped per group.
     ''' </summary>
     ''' <returns></returns>
     Function GetAllGroups() As Collection(Of GroupEntry)

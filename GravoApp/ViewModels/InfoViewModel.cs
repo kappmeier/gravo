@@ -15,8 +15,7 @@ public sealed partial class InfoViewModel : ViewModelBase
         Texts = texts;
         Title = texts.Get(localization.INFO_TITLE);
         VersionText = texts.Format(localization.INFO_VERSION, FormatVersion(typeof(App).Assembly.GetName().Version));
-        var latest = management.LatestVersion;
-        DbVersionText = texts.Format(localization.INFO_DB_VERSION, latest.Major + "." + latest.Minor);
+        DbVersionText = texts.Format(localization.INFO_DB_SCHEMA_VERSION, management.LatestSchemaVersion);
     }
 
     public UiTexts Texts { get; }

@@ -17,10 +17,10 @@ namespace GravoApp.ViewModels;
 /// </remarks>
 public sealed partial class WordInputViewModel : ViewModelBase
 {
-    private readonly IDictionaryDao _dictionary;
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
+    private readonly SubEntryAdder _adder;
     private readonly TaskCompletionSource _opened = new(); // Potentially open dialog task to be waited upon
     private bool _wordEdited;
     private bool _syncing;
@@ -52,11 +52,11 @@ public sealed partial class WordInputViewModel : ViewModelBase
     public WordInputViewModel(IDictionaryDao dictionary, IGroupsDao groups, IGroupDao group,
         IPropertiesDao properties, UiTexts texts, IDialogService dialogs, string mainLanguage)
     {
-        _dictionary = dictionary;
         _groups = groups;
         _group = group;
         _dialogs = dialogs;
         Texts = texts;
+        _adder = new SubEntryAdder(dictionary, group, dialogs, texts);
         Title = texts.Get(localization.MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY);
         Limits = properties.LoadProperties();
         // Throws DataInvalidException for a database without all known word types.
@@ -172,7 +172,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         SelectedGroupEntry = entry;
         try
         {
-            var language = _group.GetUniqueLanguage(ref entry);
+            var language = _group.GetUniqueLanguage(entry);
             if (Languages.Contains(language))
             {
                 SelectedLanguage = language;
@@ -184,7 +184,7 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
         try
         {
-            var mainLanguage = _group.GetUniqueMainLanguage(ref entry);
+            var mainLanguage = _group.GetUniqueMainLanguage(entry);
             if (MainLanguages.Contains(mainLanguage))
             {
                 SelectedMainLanguage = mainLanguage;
@@ -232,26 +232,12 @@ public sealed partial class WordInputViewModel : ViewModelBase
         }
 
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
-        try
+        var trimmedMainEntry = MainEntry.Trim();
+        var word = await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
+            Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry));
+        if (word is not null && DirectAdd)
         {
-            _dictionary.AddSubEntry(ref entry, MainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync();
-        }
-        catch (InputException ex)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-        }
-        catch (EntryExistsException)
-        {
-            await AddToGroupIfDirectAsync();
-        }
-        catch (EntryNotFoundException notFound)
-        {
-            if (await _dialogs.ConfirmAsync(Texts.Get(localization.MAIN_ENTRY_MISSING_TITLE),
-                    Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, MainEntry)))
-            {
-                await AddMainEntryAndRetryAsync(entry, notFound);
-            }
+            await _adder.AddToGroupAsync(SelectedGroupEntry!, word, Marked);
         }
         _wordEdited = false;
         SelectMainEntryRequested?.Invoke();
@@ -259,9 +245,8 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
     private async Task<bool> ConfirmGroupLanguagesAsync(GroupEntry selected)
     {
-        var group = selected;
-        var languageCount = _group.GetLanguages(ref group).Count;
-        var mainLanguageCount = _group.GetMainLanguages(ref group).Count;
+        var languageCount = _group.GetLanguages(selected).Count;
+        var mainLanguageCount = _group.GetMainLanguages(selected).Count;
         if (languageCount == 0 || mainLanguageCount == 0)
         {
             return await _dialogs.ConfirmAsync(
@@ -269,61 +254,14 @@ public sealed partial class WordInputViewModel : ViewModelBase
                 Texts.Format(localization.WORD_INPUT_NO_ENTRY_IN_GROUP_YET, Language, MainLanguage));
         }
         if (languageCount == 1 && mainLanguageCount == 1
-            && (_group.GetUniqueLanguage(ref group) != Language
-                || _group.GetUniqueMainLanguage(ref group) != MainLanguage))
+            && (_group.GetUniqueLanguage(selected) != Language
+                || _group.GetUniqueMainLanguage(selected) != MainLanguage))
         {
             return await _dialogs.ConfirmAsync(
                 Texts.Get(localization.WORD_INPUT_NEW_LANGUAGE_TITLE),
                 Texts.Format(localization.WORD_INPUT_SECOND_LANGUAGE, Language, MainLanguage));
         }
         return true;
-    }
-
-    /// <summary>Creates a missing main entry and adds the sub entry again.</summary>
-    /// <remarks>The conflict message names the original <paramref name="notFound"/> error.</remarks>
-    private async Task AddMainEntryAndRetryAsync(WordEntry entry, EntryNotFoundException notFound)
-    {
-        try
-        {
-            _dictionary.AddEntry(MainEntry.Trim(), Language, MainLanguage);
-        }
-        catch (Exception ex) when (ex is LanguageNotFoundException or EntryNotFoundException or InputException)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-        }
-        try
-        {
-            _dictionary.AddSubEntry(ref entry, MainEntry, Language, MainLanguage);
-            await AddToGroupIfDirectAsync();
-        }
-        catch (Exception)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE),
-                Texts.Format(localization.ENTRY_CONFLICT, notFound.Message));
-        }
-    }
-
-    private async Task AddToGroupIfDirectAsync()
-    {
-        if (!DirectAdd)
-        {
-            return;
-        }
-        var main = MainEntry;
-        var mainEntry = _dictionary.GetMainEntry(ref main, Language, MainLanguage);
-        var word = _dictionary.GetEntry(mainEntry, Word, Meaning);
-        var group = SelectedGroupEntry!;
-        var marked = Marked;
-        var example = "";
-        try
-        {
-            _group.Add(ref group, ref word, ref marked, ref example);
-        }
-        catch (EntryExistsException)
-        {
-            await _dialogs.ShowMessageAsync(Texts.Get(localization.ADD_NOT_POSSIBLE_TITLE),
-                Texts.Get(localization.WORD_ALREADY_IN_GROUP));
-        }
     }
 
     [RelayCommand]

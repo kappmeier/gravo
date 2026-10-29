@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -11,12 +12,6 @@ namespace GravoApp.Tests.ViewModels;
 
 public class WordInputViewModelTests
 {
-    private delegate void AddSubEntryCallback(
-        ref WordEntry entry, string mainEntry, string language, string mainLanguage);
-
-    private delegate void GroupAddCallback(
-        ref GroupEntry group, ref WordEntry word, ref bool marked, ref string example);
-
     private readonly GroupEntry _unit1 = new(1, "Book", "Unit 1", "GroupBook01");
 
     private Mock<IDictionaryDao> _dictionary = null!;
@@ -35,24 +30,24 @@ public class WordInputViewModelTests
         _groups.Setup(g => g.GetSubGroups("Book")).Returns(new List<GroupEntry> { _unit1 });
         _groups.Setup(g => g.GetGroup("Book", "Unit 1")).Returns(_unit1);
         _group = new Mock<IGroupDao>(MockBehavior.Strict);
-        _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny)).Returns("english");
-        _group.Setup(g => g.GetUniqueMainLanguage(ref It.Ref<GroupEntry>.IsAny)).Returns("german");
-        _group.Setup(g => g.GetLanguages(ref It.Ref<GroupEntry>.IsAny)).Returns(new List<string> { "english" });
-        _group.Setup(g => g.GetMainLanguages(ref It.Ref<GroupEntry>.IsAny)).Returns(new List<string> { "german" });
+        _group.Setup(g => g.GetUniqueLanguage(It.IsAny<GroupEntry>())).Returns("english");
+        _group.Setup(g => g.GetUniqueMainLanguage(It.IsAny<GroupEntry>())).Returns("german");
+        _group.Setup(g => g.GetLanguages(It.IsAny<GroupEntry>())).Returns(new List<string> { "english" });
+        _group.Setup(g => g.GetMainLanguages(It.IsAny<GroupEntry>())).Returns(new List<string> { "german" });
         _dialogs = Fakes.Dialogs();
     }
 
-    private WordInputViewModel Create() => new(_dictionary.Object, _groups.Object, _group.Object,
-        Fakes.Properties().Object, Fakes.Texts(), _dialogs.Object, AppServices.MainLanguage);
+    private WordInputViewModel Create(UiTexts? texts = null) => new(_dictionary.Object, _groups.Object, _group.Object,
+        Fakes.Properties().Object, texts ?? Fakes.Texts(), _dialogs.Object, AppServices.MainLanguage);
 
     private void SetUpAddSubEntry() =>
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"));
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"));
 
     private void SetUpAddToGroup(out MainEntry main, out WordEntry word)
     {
         var m = new MainEntry("Haus", "english", "german");
         var w = new WordEntry("house", "", "", WordType.Substantive, "Haus", "", false);
-        _dictionary.Setup(d => d.GetMainEntry(ref It.Ref<string>.IsAny, "english", "german")).Returns(m);
+        _dictionary.Setup(d => d.GetMainEntry(It.IsAny<string>(), "english", "german")).Returns(m);
         _dictionary.Setup(d => d.GetEntry(m, "house", "Haus")).Returns(w);
         main = m;
         word = w;
@@ -67,9 +62,9 @@ public class WordInputViewModelTests
 
     private void MakeGroupLanguagesAmbiguous()
     {
-        _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny))
+        _group.Setup(g => g.GetUniqueLanguage(It.IsAny<GroupEntry>()))
             .Throws(new LanguageException("two"));
-        _group.Setup(g => g.GetUniqueMainLanguage(ref It.Ref<GroupEntry>.IsAny))
+        _group.Setup(g => g.GetUniqueMainLanguage(It.IsAny<GroupEntry>()))
             .Throws(new LanguageException("two"));
     }
 
@@ -153,9 +148,8 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_NewWord_PassesAllFields()
     {
         WordEntry? captured = null;
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
-            .Callback(new AddSubEntryCallback(
-                (ref WordEntry entry, string _, string _, string _) => captured = entry));
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) => captured = entry);
 
         var fixture = Create();
         fixture.MainEntry = "Haus";
@@ -184,9 +178,8 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_SelectedWordType_IsStored()
     {
         WordEntry? captured = null;
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
-            .Callback(new AddSubEntryCallback(
-                (ref WordEntry entry, string _, string _, string _) => captured = entry));
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) => captured = entry);
 
         var fixture = Create();
         FillHouse(fixture);
@@ -201,7 +194,7 @@ public class WordInputViewModelTests
     [Test]
     public async Task AddSubEntry_InputException_ShowsInvalidInput()
     {
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
             .Throws(new InputException(InputException.ErrorType.IllegalCharacter));
 
         var fixture = Create();
@@ -215,14 +208,14 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_MainEntryMissing_ConfirmYes_AddsMainAndRetries()
     {
         var mainAdded = false;
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
-            .Callback(new AddSubEntryCallback((ref WordEntry entry, string _, string _, string _) =>
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
             {
                 if (!mainAdded)
                 {
                     throw new EntryNotFoundException("Main entry missing.");
                 }
-            }));
+            });
         _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
             .Callback(() => mainAdded = true)
             .Returns(new MainEntry("Haus", "english", "german"));
@@ -234,7 +227,54 @@ public class WordInputViewModelTests
         _dialogs.Verify(d => d.ConfirmAsync("T143", "T144"), Times.Once);
         _dictionary.Verify(d => d.AddEntry("Haus", "english", "german"), Times.Once);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"), Times.Exactly(2));
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"), Times.Exactly(2));
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_MainEntryWithSpaces_UsesTheTrimmedName()
+    {
+        var mainAdded = false;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
+            {
+                if (!mainAdded)
+                {
+                    throw new EntryNotFoundException("Main entry missing.");
+                }
+            });
+        _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
+            .Callback(() => mainAdded = true)
+            .Returns(new MainEntry("Haus", "english", "german"));
+        var fixture = Create();
+        FillHouse(fixture);
+        fixture.MainEntry = " Haus ";
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
+        _dictionary.Verify(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"), Times.Exactly(2));
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_MainEntryCreatedMeanwhile_RetriesWithoutMessage()
+    {
+        var calls = 0;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
+            {
+                if (++calls == 1)
+                {
+                    throw new EntryNotFoundException("Main entry missing.");
+                }
+            });
+        _dictionary.Setup(d => d.AddEntry("Haus", "english", "german")).Throws(new EntryExistsException("exists"));
+        var fixture = Create();
+        FillHouse(fixture);
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+
+        calls.Should().Be(2);
         _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -242,7 +282,7 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_MainEntryMissing_ConfirmNo_Stops()
     {
         _dialogs = Fakes.Dialogs(confirm: false);
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
             .Throws(new EntryNotFoundException("Main entry missing."));
 
         var fixture = Create();
@@ -251,21 +291,21 @@ public class WordInputViewModelTests
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dictionary.Verify(d => d.AddEntry(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"), Times.Once);
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"), Times.Once);
     }
 
     [Test]
     public async Task AddSubEntry_MainEntryCannotBeCreated_ShowsInvalidInputAndConflict()
     {
         var calls = 0;
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
-            .Callback(new AddSubEntryCallback((ref WordEntry entry, string _, string _, string _) =>
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) =>
             {
                 calls++;
                 throw calls == 1
                     ? (Exception)new EntryNotFoundException("Main entry missing.")
                     : new InvalidOperationException("Index conflict.");
-            }));
+            });
         _dictionary.Setup(d => d.AddEntry("Haus", "english", "german"))
             .Throws(new LanguageNotFoundException("Language missing."));
 
@@ -276,7 +316,7 @@ public class WordInputViewModelTests
         _dialogs.Verify(d => d.ShowMessageAsync("T119", "Language missing."), Times.Once);
         _dialogs.Verify(d => d.ShowMessageAsync("T104", "T145"), Times.Once);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"), Times.Exactly(2));
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"), Times.Exactly(2));
     }
 
     [Test]
@@ -295,7 +335,7 @@ public class WordInputViewModelTests
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("T118", "T139"), Times.Once);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
     }
 
@@ -318,7 +358,7 @@ public class WordInputViewModelTests
     public async Task AddSubEntry_DirectAdd_EmptyGroup_ConfirmNo_Aborts()
     {
         _dialogs = Fakes.Dialogs(confirm: false);
-        _group.Setup(g => g.GetLanguages(ref It.Ref<GroupEntry>.IsAny)).Returns(new List<string>());
+        _group.Setup(g => g.GetLanguages(It.IsAny<GroupEntry>())).Returns(new List<string>());
 
         var fixture = Create();
         FillHouse(fixture);
@@ -327,8 +367,25 @@ public class WordInputViewModelTests
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("T140", "T141"), Times.Once);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_DirectAdd_EmptyGroup_RealTexts_NamesBothLanguages()
+    {
+        _dialogs = Fakes.Dialogs(confirm: false);
+        _group.Setup(g => g.GetLanguages(It.IsAny<GroupEntry>())).Returns(new List<string>());
+
+        using var real = new RealLocalization();
+        var fixture = Create(real.Texts);
+        FillHouse(fixture);
+        fixture.DirectAdd = true;
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
+            "Es ist bisher noch kein Eintrag in der gewählten Gruppe vorhanden. Soll ein neuer Eintrag mit den "
+            + "Sprachen 'english' und 'german' erstellt werden?"), Times.Once);
     }
 
     [Test]
@@ -344,29 +401,46 @@ public class WordInputViewModelTests
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ConfirmAsync("T140", "T142"), Times.Once);
         _dictionary.Verify(
-            d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, It.IsAny<string>(), It.IsAny<string>(),
+            d => d.AddSubEntry(It.IsAny<WordEntry>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AddSubEntry_DirectAdd_SecondLanguage_RealTexts_NamesBothLanguages()
+    {
+        _dialogs = Fakes.Dialogs(confirm: false);
+
+        using var real = new RealLocalization();
+        var fixture = Create(real.Texts);
+        FillHouse(fixture);
+        fixture.SelectedLanguage = "italian";
+        fixture.DirectAdd = true;
+
+        await fixture.AddSubEntryCommand.ExecuteAsync(null);
+        _dialogs.Verify(d => d.ConfirmAsync("Neue Sprache",
+            "Sie beabsichtigen einen Eintrag mit neuen Sprachen 'italian' und 'german' zu erstellen. "
+            + "Soll damit fortgefahren werden?"), Times.Once);
     }
 
     [Test]
     public async Task AddSubEntry_DirectAdd_AddsToGroupWithMarked()
     {
-        SetUpAddSubEntry();
-        SetUpAddToGroup(out _, out var word);
+        WordEntry? addedWord = null;
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
+            .Callback<WordEntry, string, string, string>((entry, _, _, _) => addedWord = entry);
         GroupEntry? capturedGroup = null;
         WordEntry? capturedWord = null;
         bool? capturedMarked = null;
         string? capturedExample = null;
-        _group.Setup(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
-                ref It.Ref<string>.IsAny))
-            .Callback(new GroupAddCallback((ref GroupEntry group, ref WordEntry entry, ref bool marked,
-                ref string example) =>
+        _group.Setup(g => g.Add(It.IsAny<GroupEntry>(), It.IsAny<WordEntry>(), It.IsAny<bool>(),
+                It.IsAny<string>()))
+            .Callback<GroupEntry, WordEntry, bool, string>((group, entry, marked, example) =>
             {
                 capturedGroup = group;
                 capturedWord = entry;
                 capturedMarked = marked;
                 capturedExample = example;
-            }));
+            });
 
         var fixture = Create();
         FillHouse(fixture);
@@ -375,7 +449,7 @@ public class WordInputViewModelTests
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
         capturedGroup.Should().BeSameAs(_unit1);
-        capturedWord.Should().BeSameAs(word);
+        capturedWord.Should().BeSameAs(addedWord);
         capturedMarked.Should().BeTrue();
         capturedExample.Should().Be("");
         _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -385,19 +459,19 @@ public class WordInputViewModelTests
     [Test]
     public async Task AddSubEntry_DirectAdd_WordExistsInDictionary_AddsToGroup()
     {
-        _dictionary.Setup(d => d.AddSubEntry(ref It.Ref<WordEntry>.IsAny, "Haus", "english", "german"))
+        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
             .Throws(new EntryExistsException("Entry exists."));
         SetUpAddToGroup(out _, out _);
-        _group.Setup(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
-            ref It.Ref<string>.IsAny));
+        _group.Setup(g => g.Add(It.IsAny<GroupEntry>(), It.IsAny<WordEntry>(), It.IsAny<bool>(),
+            It.IsAny<string>()));
 
         var fixture = Create();
         FillHouse(fixture);
         fixture.DirectAdd = true;
 
         await fixture.AddSubEntryCommand.ExecuteAsync(null);
-        _group.Verify(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
-            ref It.Ref<string>.IsAny), Times.Once);
+        _group.Verify(g => g.Add(It.IsAny<GroupEntry>(), It.IsAny<WordEntry>(), It.IsAny<bool>(),
+            It.IsAny<string>()), Times.Once);
         _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -406,8 +480,8 @@ public class WordInputViewModelTests
     {
         SetUpAddSubEntry();
         SetUpAddToGroup(out _, out _);
-        _group.Setup(g => g.Add(ref It.Ref<GroupEntry>.IsAny, ref It.Ref<WordEntry>.IsAny, ref It.Ref<bool>.IsAny,
-                ref It.Ref<string>.IsAny))
+        _group.Setup(g => g.Add(It.IsAny<GroupEntry>(), It.IsAny<WordEntry>(), It.IsAny<bool>(),
+                It.IsAny<string>()))
             .Throws(new EntryExistsException("Entry exists."));
 
         var fixture = Create();
@@ -421,14 +495,14 @@ public class WordInputViewModelTests
     [Test]
     public void SelectSubGroup_UniqueLanguages_SelectsThem()
     {
-        _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny)).Returns("italian");
+        _group.Setup(g => g.GetUniqueLanguage(It.IsAny<GroupEntry>())).Returns("italian");
         Create().SelectedLanguage.Should().Be("italian");
     }
 
     [Test]
     public async Task SelectSubGroup_MultipleLanguages_ShowsMessage()
     {
-        _group.Setup(g => g.GetUniqueLanguage(ref It.Ref<GroupEntry>.IsAny))
+        _group.Setup(g => g.GetUniqueLanguage(It.IsAny<GroupEntry>()))
             .Throws(new LanguageException("More than one language."));
 
         var fixture = Create();
@@ -441,7 +515,7 @@ public class WordInputViewModelTests
     [Test]
     public async Task SelectSubGroup_MultipleMainLanguages_ShowsMessage()
     {
-        _group.Setup(g => g.GetUniqueMainLanguage(ref It.Ref<GroupEntry>.IsAny))
+        _group.Setup(g => g.GetUniqueMainLanguage(It.IsAny<GroupEntry>()))
             .Throws(new LanguageException("More than one language."));
 
         var fixture = Create();

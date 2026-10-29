@@ -39,6 +39,7 @@ public partial class App : Application
                 var services = AppServices.Create(dbPath, languagesPath, texts => new DialogService(
                     () => desktop.Windows.FirstOrDefault(w => w.IsActive) ?? window!, texts));
                 window = new MainWindow { DataContext = new MainViewModel(services) };
+                desktop.Exit += (_, _) => services.Db.Dispose();
                 desktop.MainWindow = window;
             }
         }

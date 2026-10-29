@@ -122,7 +122,8 @@ Public Interface IDictionaryDao
 
     Function AddEntry(ByVal word As String, ByVal language As String, ByVal mainLanguage As String) As MainEntry
 
-    Sub AddSubEntry(ByRef entry As WordEntry, ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String)
+    Sub AddSubEntry(ByVal entry As WordEntry, ByVal mainEntry As String, ByVal language As String,
+        ByVal mainLanguage As String)
 
     ''' <summary>
     ''' Sets data entries of a word entry to new values.
@@ -130,7 +131,7 @@ Public Interface IDictionaryDao
     ''' <param name="entry"></param>
     ''' <param name="updateData"></param>
     ''' <returns></returns>
-    Function ChangeEntry(ByRef entry As WordEntry, ByVal updateData As UpdateData) As WordEntry
+    Function ChangeEntry(ByVal entry As WordEntry, ByVal updateData As UpdateData) As WordEntry
 
     ''' <summary>
     ''' Sets a new main entry for a word
@@ -140,22 +141,24 @@ Public Interface IDictionaryDao
     ''' <returns></returns>
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry)
 
-    Function GetMainEntry(ByRef word As WordEntry) As MainEntry
+    Function GetMainEntry(ByVal word As WordEntry) As MainEntry
 
-    Function GetMainEntry(ByRef mainEntry As String, ByVal language As String, ByVal mainLanguage As String) As MainEntry
+    Function GetMainEntry(ByVal mainEntry As String, ByVal language As String, ByVal mainLanguage As String
+        ) As MainEntry
 
     Function GetMainEntries(ByVal language As String, ByVal mainLanguage As String) As ICollection(Of MainEntry)
 
-    Function GetMainEntries(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String) As ICollection(Of MainEntry)
+    Function GetMainEntries(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String
+        ) As ICollection(Of MainEntry)
 
-    Function ChangeMainEntry(ByRef mainEntry As MainEntry, ByVal newWord As String) As MainEntry
+    Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String) As MainEntry
 
     ''' <summary>
     ''' Changes all sub entries of a main entry with a given word to the main entrie's word entry.
     ''' </summary>
     ''' <param name="mainEntry">The main entry whose sub entries are adapted.</param>
     ''' <param name="word">The word that the sub entries must have.</param>
-    Sub AdaptSubEntries(ByRef mainEntry As MainEntry, ByVal word As String)
+    Sub AdaptSubEntries(ByVal mainEntry As MainEntry, ByVal word As String)
 
     Function WordCount(ByVal language As String, ByVal mainLanguage As String) As Integer
 
