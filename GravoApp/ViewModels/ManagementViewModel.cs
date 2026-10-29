@@ -330,11 +330,9 @@ public sealed partial class ManagementViewModel : ViewModelBase
         var next = _management.GetNextSchemaVersion();
         CanUpdateVersion = next is not null;
         VersionButtonText = next is null
-            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, Format(_management.GetCurrentSchemaVersion()))
-            : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, Format(next));
+            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, _management.GetCurrentSchemaVersion())
+            : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, next);
     }
-
-    private static string Format(Properties.DbSchemaVersion version) => version.Major + "." + version.Minor;
 
     /// <summary>Updates the database to the next version.</summary>
     /// <remarks>

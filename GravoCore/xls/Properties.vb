@@ -99,6 +99,10 @@ Public Class Properties
         Public Overrides Function GetHashCode() As Integer
             Return (_major, _minor, _date, _description).GetHashCode()
         End Function
+
+        Public Overrides Function ToString() As String
+            Return $"{Major}.{Minor}"
+        End Function
     End Class
 
     ''' <summary>
