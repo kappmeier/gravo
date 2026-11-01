@@ -252,6 +252,17 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub DeleteGroup_NameWithQuestionMark_DropsTheTable()
+        _groupsDao.AddGroup("Wh?t", "Unit 1")
+        Dim table As String = _groupsDao.GetSubGroups("Wh?t").Single().Table
+
+        _groupsDao.DeleteGroup("Wh?t")
+
+        _db.TableExists(table).Should.BeFalse()
+        _groupsDao.GroupExists("Wh?t").Should.BeFalse()
+    End Sub
+
+    <Test>
     Public Sub DeleteGroup_WithExistingSubGroup_DeletesAllData()
         _groupsDao.DeleteGroup("Language Book", "Unit 1")
 

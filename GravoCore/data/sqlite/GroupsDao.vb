@@ -294,7 +294,7 @@ Public Class GroupsDao
 
     Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
         For Each table As String In toDelete
-            Dim command = "DROP TABLE " & table
+            Dim command = "DROP TABLE [" & table & "]"
             ExecuteNonQuery(DBConnection, command)
         Next
     End Sub
@@ -324,9 +324,12 @@ Public Class GroupsDao
         Dim table2 As String = group.Table
 
         ' Swap the tables
-        ExecuteNonQuery(DBConnection, CreateRenameTableCommand(table1, table1 & "_"))
-        ExecuteNonQuery(DBConnection, CreateRenameTableCommand(table2, table1))
-        ExecuteNonQuery(DBConnection, CreateRenameTableCommand(table1 & "_", table2))
+        Dim renameFirstToTemp = CreateRenameTableCommand(table1, table1 & "_")
+        Dim renameSecondToFirst = CreateRenameTableCommand(table2, table1)
+        Dim renameTempToSecond = CreateRenameTableCommand(table1 & "_", table2)
+        ExecuteNonQuery(DBConnection, renameFirstToTemp)
+        ExecuteNonQuery(DBConnection, renameSecondToFirst)
+        ExecuteNonQuery(DBConnection, renameTempToSecond)
 
         ' Swap the names
         command = "UPDATE Groups SET [GroupSubName] = ? WHERE [Index] = ?"
