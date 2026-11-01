@@ -30,7 +30,8 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
+    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation,
+        ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = True Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -70,8 +71,8 @@ Public Module DataBaseExtension
     End Function
 
     ''' <summary>
-    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns and
-    ''' rolled back when it throws.
+    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns
+    ''' and rolled back when it throws.
     ''' </summary>
     ''' <param name="dataBaseOperation">Connection to the database</param>
     ''' <param name="work">The writes to run</param>
@@ -82,8 +83,24 @@ Public Module DataBaseExtension
             work()
             dataBaseOperation.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
         Catch
-            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            RollbackSafely(dataBaseOperation)
             Throw
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Roll the open transaction back.
+    ''' </summary>
+    ''' <remarks>
+    ''' Catches any exceptions and ignores them: SQLite rolls back by itself on some errors (full disk, I/O), so a
+    ''' failing <c>ROLLBACK</c> is expected in these cases. The original error should be reported instead.
+    ''' </remarks>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    Private Sub RollbackSafely(dataBaseOperation As IDataBaseOperation)
+        Try
+            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+        Catch
+            ' Nothing left to roll back, the caller rethrows the original error
         End Try
     End Sub
 End Module
