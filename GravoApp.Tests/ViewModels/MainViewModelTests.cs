@@ -60,7 +60,7 @@ public class MainViewModelTests
         var tests = new MainViewModelTests();
         tests.SetUp();
         tests._loc = loc;
-        tests._management.Setup(m => m.IsVersionUpToDate()).Returns(true);
+        tests._management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(true);
         tests._groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
         tests._groups.Setup(g => g.GetAllGroups()).Returns(new Collection<GroupEntry>());
         tests._groups.Setup(g => g.GetSubGroups(It.IsAny<string>())).Returns(new List<GroupEntry>());
@@ -89,7 +89,7 @@ public class MainViewModelTests
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string> { "G" });
         _groups.Setup(g => g.GetSubGroups("G")).Returns(new List<GroupEntry> { entry });
         _groups.Setup(g => g.GetGroup("G", "U")).Returns(entry);
-        _group.Setup(g => g.Load(ref It.Ref<GroupEntry>.IsAny)).Returns(new GroupDto(entry, words.ToList()));
+        _group.Setup(g => g.Load(It.IsAny<GroupEntry>())).Returns(new GroupDto(entry, words.ToList()));
     }
 
     [Test]
@@ -219,7 +219,7 @@ public class MainViewModelTests
     {
         var viewModel = Create();
         var refreshed = false;
-        viewModel.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == "Item[]";
+        viewModel.Texts.PropertyChanged += (_, e) => refreshed |= e.PropertyName == UiTexts.IndexerName;
         viewModel.Languages.Single(l => l.Name == "English").SelectCommand.Execute(null);
         _loc.Verify(l => l.SwitchToLanguage("English"), Times.Once);
         viewModel.Languages.Single(l => l.IsChecked).Name.Should().Be("English");
@@ -229,7 +229,7 @@ public class MainViewModelTests
     [Test]
     public async Task CheckDatabaseVersion_Outdated_ShowsHint()
     {
-        _management.Setup(m => m.IsVersionUpToDate()).Returns(false);
+        _management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(false);
         await Create().CheckDatabaseVersionAsync();
         _dialogs.Verify(
             d => d.ShowMessageAsync("T" + localization.HINT, "T" + localization.DB_VERSION_OUTDATED), Times.Once);
@@ -238,7 +238,7 @@ public class MainViewModelTests
     [Test]
     public async Task CheckDatabaseVersion_UpToDate_ShowsNothing()
     {
-        _management.Setup(m => m.IsVersionUpToDate()).Returns(true);
+        _management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(true);
         await Create().CheckDatabaseVersionAsync();
         _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
@@ -246,7 +246,7 @@ public class MainViewModelTests
     [Test]
     public async Task Initialize_VersionCheckThrows_ShowsTheErrorAndStaysOpen()
     {
-        _management.Setup(m => m.IsVersionUpToDate()).Throws(new InvalidOperationException("boom"));
+        _management.Setup(m => m.IsSchemaVersionUpToDate()).Throws(new InvalidOperationException("boom"));
 
         var fixture = Create();
         await fixture.InitializeAsync();
@@ -334,7 +334,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public async Task SaveDatabaseAs_Cancelled_CopiesNothingAndShowsNothing()
+    public async Task SaveDatabaseAs_Cancelled_ShowsNothing()
     {
         File.WriteAllText(_dbPath, "db");
         try
@@ -388,8 +388,8 @@ public class MainViewModelTests
     [Test]
     public async Task ShowInfo_OpensInfoDialog()
     {
-        _management.Setup(m => m.LatestVersion)
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        _management.Setup(m => m.LatestSchemaVersion)
+            .Returns(new Properties.DbSchemaVersion(1, 7, new DateTime(2020, 1, 1), ""));
         await Create().ShowInfoCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowDialogAsync(It.IsAny<InfoViewModel>()), Times.Once);
     }
@@ -397,9 +397,9 @@ public class MainViewModelTests
     [Test]
     public async Task ShowManagement_OpensManagementDialog()
     {
-        _management.Setup(m => m.GetNextVersion()).Returns((Properties.DBVersion)null!);
-        _management.Setup(m => m.GetCurrentVersion())
-            .Returns(new Properties.DBVersion(1, 7, new DateTime(2020, 1, 1), ""));
+        _management.Setup(m => m.GetNextSchemaVersion()).Returns((Properties.DbSchemaVersion)null!);
+        _management.Setup(m => m.GetCurrentSchemaVersion())
+            .Returns(new Properties.DbSchemaVersion(1, 7, new DateTime(2020, 1, 1), ""));
         _groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
         _dictionary.Setup(d => d.DictionaryLanguages("german")).Returns(new List<string>());
         ManagementViewModel? management = null;
@@ -424,5 +424,6 @@ public class MainViewModelTests
 
         tabViewModel.Close(false);
         mainViewModel.Tabs.Should().BeEmpty();
+        tabViewModel.ClosedCount.Should().Be(1);
     }
 }

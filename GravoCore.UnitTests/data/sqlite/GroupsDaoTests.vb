@@ -54,6 +54,16 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub GetGroups_ReturnsAlphabeticalOrder()
+        _groupsDao.AddGroup("Aardvark", "Unit 1")
+        _groupsDao.AddGroup("My favourite Course", "Awesome")
+
+        Dim result = _groupsDao.GetGroups()
+
+        result.Should.Equal("Aardvark", "Language Book", "My favourite Course", "Other Group")
+    End Sub
+
+    <Test>
     Public Sub GetAllGroups_OnValidDatabase_ReturnsAll()
         Dim result As Collection(Of GroupEntry) = _groupsDao.GetAllGroups
 
@@ -64,6 +74,16 @@ Public Class GroupsDaoTests
         }
 
         CollectionAssert.AreEqual(expectedResult, result, "list of groups including sub groups not equal")
+    End Sub
+
+    <Test>
+    Public Sub GetAllGroups_NewlyAddedGroups_ReturnsIndexOrder()
+        _groupsDao.AddGroup("Aardvark", "Unit 1") ' Will be the first group returned
+        _groupsDao.AddGroup("Language Book", "Another unit") ' Returned after the existing units before "Other Group"
+
+        Dim result = _groupsDao.GetAllGroups().Select(Function(g) g.Index)
+
+        result.Should.Equal(4, 1, 2, 5, 3)
     End Sub
 
     <Test>
@@ -152,15 +172,61 @@ Public Class GroupsDaoTests
             New GroupEntry(3, "Other Group", "Some Words", "GroupOtherGroup01")
         }
 
-        ClassicAssert.IsTrue(TableExists(newGroupName1))
-        ClassicAssert.IsTrue(TableExists(newGroupName2))
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists(newGroupName1))
+        ClassicAssert.IsTrue(_db.TableExists(newGroupName2))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
 
         CollectionAssert.AreEqual(expectedNewGroups, allNewGroups, "list of groups including sub groups not equal")
 
         ClassicAssert.IsTrue(_groupsDao.GroupExists("Crazy Lecture"))
         ClassicAssert.IsFalse(_groupsDao.GroupExists("Language Book"))
+    End Sub
+
+    <Test>
+    Public Sub EditGroup_NameCollidesAfterStripping_MovesToFreeTables()
+        _groupsDao.EditGroup("Other Group", "LanguageBook")
+
+        _groupsDao.GetSubGroups("LanguageBook").Single().Table.Should.Be("GroupLanguageBook03")
+        _db.TableExists("GroupLanguageBook03").Should.BeTrue()
+        _db.TableExists("GroupOtherGroup01").Should.BeFalse()
+    End Sub
+
+    <Test>
+    Public Sub EditGroup_SameTableBase_KeepsTheTables()
+        _groupsDao.EditGroup("Language Book", "LanguageBook")
+
+        _groupsDao.GetSubGroups("LanguageBook").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+    End Sub
+
+    <Test>
+    Public Sub EditGroup_OnlyCaseChanges_KeepsTheTables()
+        _groupsDao.EditGroup("Language Book", "language book")
+
+        _groupsDao.GetSubGroups("language book").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+    End Sub
+
+    ''' <summary>
+    ''' A failing rename leaves the group under its old name and with its old tables.
+    ''' </summary>
+    <Test>
+    Public Sub EditGroup_TableMissing_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.EditGroup("Language Book", "Course"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("GroupCourse01").Should.BeFalse()
+        _db.TableExists("Damaged").Should.BeTrue()
     End Sub
 
     <Test>
@@ -175,9 +241,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -198,9 +264,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsTrue(TableExists("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
 
@@ -217,9 +283,53 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, verification, "list of groups does contain deleted group")
 
-        ClassicAssert.IsTrue(TableExists("GroupLanguageBook01"))
-        ClassicAssert.IsFalse(TableExists("GroupLanguageBook02"))
-        ClassicAssert.IsTrue(TableExists("GroupOtherGroup01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.IsFalse(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupOtherGroup01"))
+    End Sub
+
+    <Test>
+    Public Sub DeleteGroup_FirstOfTwoSubGroups_MovesTheOtherIntoTheFreedTable()
+        _groupsDao.DeleteGroup("Language Book", "Unit 1")
+
+        Dim remaining = _groupsDao.GetSubGroups("Language Book").Single()
+
+        remaining.Table.Should.Be("GroupLanguageBook01")
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub DeleteGroup_FirstOfThreeSubGroups_RenumbersTheTablesDensely()
+        _groupsDao.AddGroup("Language Book", "Unit 3")
+
+        _groupsDao.DeleteGroup("Language Book", "Unit 1")
+
+        _groupsDao.GetSubGroups("Language Book").
+            Select(Function(g) g.Table).
+            Should.Equal("GroupLanguageBook01", "GroupLanguageBook02")
+        _db.TableExists("GroupLanguageBook03").Should.BeFalse()
+    End Sub
+
+    ''' <summary>
+    ''' Tests failure branch for an invalid database with a missing table.
+    ''' </summary>
+    ''' <remark>
+    ''' A database in this state will likely throw all kinds of exceptions when accessed. This test ensures that the
+    ''' group remains untouched despite the missing table.
+    ''' </remark>
+    <Test>
+    Public Sub DeleteGroup_TableMissing_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book", "Unit 1"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("Damaged").Should.BeTrue()
     End Sub
 
     <Test>
@@ -278,9 +388,9 @@ Public Class GroupsDaoTests
 
         CollectionAssert.AreEqual(expectedResult, result, "groups not swapped")
 
-        ClassicAssert.True(TableExists("GroupLanguageBook01"))
-        ClassicAssert.True(TableExists("GroupLanguageBook02"))
-        ClassicAssert.True(TableExists("GroupOtherGroup01"))
+        ClassicAssert.True(_db.TableExists("GroupLanguageBook01"))
+        ClassicAssert.True(_db.TableExists("GroupLanguageBook02"))
+        ClassicAssert.True(_db.TableExists("GroupOtherGroup01"))
     End Sub
 
     <Test>
@@ -306,19 +416,6 @@ Public Class GroupsDaoTests
     Private Function TableHasRows(tableName As String) As Boolean
         _db.ExecuteReader("SELECT [Index] FROM [" & tableName & "]", Array.Empty(Of Object))
         TableHasRows = _db.DBCursor.HasRows
-        _db.CloseReader()
-    End Function
-
-    Private Function TableExists(tableName As String) As Boolean
-        'Dim sinsertSQL = New SQLiteCommand("INSERT INTO Book (Id, Title, Language, PublicationDate, Publisher, Edition, OfficialUrl, Description, EBookFormat) VALUES (?,?,?,?,?,?,?,?)", _db)
-        Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
-        _db.ExecuteReader(command, Enumerable.Repeat(tableName, 1))
-
-        If _db.DBCursor.HasRows Then
-            TableExists = True
-        Else
-            TableExists = False
-        End If
         _db.CloseReader()
     End Function
 
@@ -350,7 +447,23 @@ Public Class GroupsDaoTests
         _groupsDao.AddGroup("Weird]Name", "Unit")
 
         _groupsDao.GetSubGroups("Weird]Name").Select(Function(g) g.SubGroup).Should.Equal("Unit")
-        ClassicAssert.IsTrue(TableExists("GroupWeirdName01"))
+        ClassicAssert.IsTrue(_db.TableExists("GroupWeirdName01"))
+    End Sub
+
+    <Test>
+    Public Sub AddGroup_NameCollidesAfterStripping_UsesTheNextFreeTable()
+        _groupsDao.AddGroup("LanguageBook", "Unit 1")
+
+        _groupsDao.GetSubGroups("LanguageBook").Single().Table.Should.Be("GroupLanguageBook03")
+        _db.TableExists("GroupLanguageBook03").Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub AddGroup_NameDiffersOnlyInCase_UsesTheNextFreeTable()
+        _groupsDao.AddGroup("language book", "Unit 1")
+
+        _groupsDao.GetSubGroups("language book").Single().Table.Should.Be("Grouplanguagebook03")
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
     End Sub
 
     <Test>

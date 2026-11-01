@@ -17,8 +17,11 @@ public abstract partial class ViewModelBase : ObservableObject
     /// <remarks>The default does nothing. Called by <c>DialogService</c> for every opened window.</remarks>
     public virtual Task OnOpenedAsync() => Task.CompletedTask;
 
-    /// <summary>Called once the window has closed. Independent of how the window was closed</summary>
-    /// <remarks>The default does nothing. Called by <c>DialogService</c> for every opened window.</remarks>
+    /// <summary>Called once the window or tab has closed. Independent of how it was closed</summary>
+    /// <remarks>
+    /// The default does nothing. Called by <c>DialogService</c> for every opened window and by <c>MainViewModel</c>
+    /// for every removed tab.
+    /// </remarks>
     public virtual void OnClosed()
     {
     }

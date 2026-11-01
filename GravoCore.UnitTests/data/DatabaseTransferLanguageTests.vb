@@ -160,7 +160,7 @@ Public Class DatabaseTransferLanguageTests
         Dim groupMock As New Mock(Of IGroupDao)(MockBehavior.Strict)
         Dim targetMain As New MainEntry("word1", "lang", mainLanguage)
         Dim targetWord As New WordEntry("word1", "", "", WordType.Verb, "m", "", False)
-        dictionaryMock.Setup(Function(x) x.GetMainEntry(It.Ref(Of String).IsAny, "lang", mainLanguage)).Returns(targetMain)
+        dictionaryMock.Setup(Function(x) x.GetMainEntry(It.IsAny(Of String), "lang", mainLanguage)).Returns(targetMain)
         dictionaryMock.Setup(Function(x) x.GetEntry(targetMain, It.IsAny(Of String), It.IsAny(Of String))).Returns(targetWord)
         Dim transfer As New DatabaseTransfer(_source, New VocabularyDatabase(dictionaryMock.Object, groupsMock.Object, groupMock.Object))
 

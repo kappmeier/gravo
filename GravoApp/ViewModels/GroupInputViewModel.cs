@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gravo;
@@ -60,6 +61,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         Languages = new ObservableCollection<string>(dictionary.DictionaryLanguages(mainLanguage));
         SelectedLanguage = Languages.FirstOrDefault();
         SelectedGroup = Groups.FirstOrDefault();
+        texts.PropertyChanged += OnTextsChanged;
     }
 
     public UiTexts Texts { get; }
@@ -180,7 +182,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         string language;
         try
         {
-            language = _group.GetUniqueLanguage(ref entry);
+            language = _group.GetUniqueLanguage(entry);
         }
         catch (Exception ex) when (ex is LanguageException or LanguageNotFoundException)
         {
@@ -204,7 +206,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         {
             var entry = _groups.GetGroup(SelectedGroup, SelectedSubGroup);
             _groupEntry = entry;
-            _groupData = _group.Load(ref entry);
+            _groupData = _group.Load(entry);
             foreach (var word in _groupData.GetWords())
             {
                 WordsInGroup.Add(word);
@@ -241,6 +243,18 @@ public sealed partial class GroupInputViewModel : ViewModelBase
                 localization.GROUP_INPUT_ENTRIES_IN_WHOLE_GROUP_MANY);
     }
 
+    /// <summary>Handles a language switch. Resets the title and the count texts.</summary>
+    private void OnTextsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == UiTexts.IndexerName)
+        {
+            Title = Texts.Get(localization.MAIN_MENU_VOCABULARY_INSERT_GROUPS);
+            UpdateDisplayedInfo();
+        }
+    }
+
+    public override void OnClosed() => Texts.PropertyChanged -= OnTextsChanged;
+
     /// <summary>Adds the selected dictionary word to the sub group with the marked flag and an empty example.</summary>
     /// <remarks>A word that is in the sub group already is not added again. Instead, a message is shown.</remarks>
     [RelayCommand]
@@ -257,11 +271,9 @@ public sealed partial class GroupInputViewModel : ViewModelBase
             return;
         }
         var group = _groupEntry;
-        var marked = Marked;
-        var example = "";
         try
         {
-            _group.Add(ref group, ref word, ref marked, ref example);
+            _group.Add(group, word, Marked, "");
         }
         catch (EntryExistsException)
         {
@@ -287,7 +299,7 @@ public sealed partial class GroupInputViewModel : ViewModelBase
         }
         var selected = SelectedWordInGroup is null ? -1 : WordsInGroup.IndexOf(SelectedWordInGroup);
         var group = _groupEntry;
-        _group.Delete(ref group, ref testWord);
+        _group.Delete(group, testWord);
         UpdateWordsInGroup();
         if (selected > WordsInGroup.Count - 1)
         {

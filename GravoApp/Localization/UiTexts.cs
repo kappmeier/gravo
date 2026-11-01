@@ -12,6 +12,9 @@ namespace GravoApp.Localization;
 /// </summary>
 public sealed class UiTexts : ObservableObject
 {
+    /// <summary>The property name that <see cref="Refresh"/> raises for the indexer.</summary>
+    public const string IndexerName = "Item[]";
+
     private static readonly Dictionary<string, int> Codes =
         typeof(localization).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(f => f.IsLiteral && f.FieldType == typeof(int))
@@ -67,7 +70,7 @@ public sealed class UiTexts : ObservableObject
     /// <summary>Re-reads every bound text. Necessary after <see cref="ILocalization.SwitchToLanguage"/>.</summary>
     public void Refresh()
     {
-        OnPropertyChanged("Item[]");
+        OnPropertyChanged(IndexerName);
         OnPropertyChanged(string.Empty);
     }
 

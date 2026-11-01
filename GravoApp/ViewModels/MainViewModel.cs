@@ -44,7 +44,7 @@ public sealed partial class MainViewModel : ViewModelBase
     /// </summary>
     public async Task CheckDatabaseVersionAsync()
     {
-        if (!_s.Management.IsVersionUpToDate())
+        if (!_s.Management.IsSchemaVersionUpToDate())
         {
             await _s.Dialogs.ShowMessageAsync(
                 Texts.Get(localization.HINT), Texts.Get(localization.DB_VERSION_OUTDATED));
@@ -104,12 +104,12 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>
     /// Adds a new <paramref name="tab"/> unless it is open already and selects it.
     /// </summary>
-    /// <remarks>The tab is removed again when it requests to close.</remarks>
+    /// <remarks>The tab is removed again when it requests to close. Its <c>OnClosed</c> is called.</remarks>
     internal void ShowTab(ViewModelBase tab)
     {
         if (!Tabs.Contains(tab))
         {
-            tab.CloseRequested += _ => Tabs.Remove(tab);
+            tab.CloseRequested += _ => { Tabs.Remove(tab); tab.OnClosed(); };
             Tabs.Add(tab);
         }
         SelectedTab = tab;

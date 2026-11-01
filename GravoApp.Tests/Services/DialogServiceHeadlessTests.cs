@@ -3,6 +3,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using Gravo;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -163,5 +164,20 @@ public class DialogServiceHeadlessTests
         probeViewModel.Close(true);
         Dispatcher.UIThread.RunJobs();
         owner.OwnedWindows.OfType<ProbeWindow>().Should().BeEmpty();
+    }
+
+    [AvaloniaTest]
+    public void ShowWindow_OpenedThrows_ShowsTheErrorMessage()
+    {
+        var owner = Owner();
+        var viewModel = new ProbeViewModel { OpenedError = new InvalidOperationException("oops") };
+
+        new DialogService(() => owner, Fakes.Texts()).ShowWindow(viewModel);
+        Dispatcher.UIThread.RunJobs();
+
+        var message = owner.OwnedWindows.OfType<MessageWindow>().Single();
+        message.Title.Should().Be("T" + localization.ERROR_TITLE);
+        message.MessageText.Text.Should().Be("oops");
+        viewModel.Close(true);
     }
 }

@@ -7,7 +7,7 @@ Public Class GroupsDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -17,7 +17,12 @@ Public Class GroupsDao
     ''' <returns>List of all group names.</returns>
     Public Function GetGroups() As Collection(Of String) Implements IGroupsDao.GetGroups
         Dim GroupNames As New Collection(Of String)
-        Dim Command As String = "SELECT DISTINCT [GroupName] FROM [Groups];"
+        Dim Command As String = "
+            SELECT [GroupName]
+              FROM Groups
+             GROUP BY [GroupName]
+             ORDER BY [GroupName] ASC;
+        "
         DBConnection.ExecuteReader(Command)
         Do While DBConnection.DBCursor.Read
             GroupNames.Add(DBConnection.SecureGetString(0))
@@ -28,7 +33,11 @@ Public Class GroupsDao
 
     Public Function GetAllGroups() As Collection(Of GroupEntry) Implements IGroupsDao.GetAllGroups
         Dim Groups As New Collection(Of GroupEntry)
-        Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM [Groups]"
+        Dim Command As String = "
+            SELECT [Index], [GroupName], [GroupSubName], [GroupTable]
+              FROM Groups
+             ORDER BY [GroupName], [Index];
+        "
         DBConnection.ExecuteReader(Command)
         Do While DBConnection.DBCursor.Read()
             Dim Index = DBConnection.SecureGetInt32(0)
@@ -108,14 +117,7 @@ Public Class GroupsDao
             Throw New EntryExistsException("Group with the given name already exists.")
         End If
 
-        Dim nextTableNumber = CountSubGroups(groupName) + 1
-
-        Dim tableName As String
-        If nextTableNumber < 10 Then
-            tableName = CreateGroupBaseTableName(groupName) & "0" & nextTableNumber
-        Else
-            tableName = CreateGroupBaseTableName(groupName) & nextTableNumber
-        End If
+        Dim tableName As String = NextFreeTableName(CreateGroupBaseTableName(groupName), CountSubGroups(groupName) + 1)
 
         CreateNewGroupTable(tableName)
 
@@ -132,6 +134,16 @@ Public Class GroupsDao
         DBConnection.DBCursor.Close()
     End Function
 
+    Private Function NextFreeTableName(baseName As String, firstNumber As Integer) As String
+        Dim number As Integer = firstNumber
+        Dim tableName As String
+        Do
+            tableName = baseName & number.ToString("00", CultureInfo.InvariantCulture)
+            number += 1
+        Loop While DBConnection.TableExists(tableName)
+        Return tableName
+    End Function
+
     ''' <summary>
     ''' Creates a new group table with the given name. The method does not perform any checks on the table name.
     ''' </summary>
@@ -142,26 +154,33 @@ Public Class GroupsDao
     End Sub
 
     ''' <summary>
-    ''' Renames a group's name.
+    ''' Renames a group and moves its sub group tables to free table names of the new name.
     ''' </summary>
-    ''' <param name="groupName"></param>
-    ''' <param name="newName"></param>
+    ''' <remarks>
+    ''' A new name with the same table base, ignoring case, keeps the tables.
+    ''' </remarks>
+    ''' <param name="groupName">Current name of the group</param>
+    ''' <param name="newName">New name of the group</param>
     Public Sub EditGroup(ByVal groupName As String, ByVal newName As String) Implements IGroupsDao.EditGroup
         CheckAllowedText(newName)
         If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
 
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
-        Dim baseTableName = CreateGroupBaseTableName(groupName)
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
+        Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
+            StringComparison.OrdinalIgnoreCase)
+        DBConnection.InTransaction(Sub() MoveSubGroupTables(subGroups, newBaseTableName, keepTables, newName))
+    End Sub
+
+    Private Sub MoveSubGroupTables(subGroups As Collection(Of GroupEntry), newBaseTableName As String,
+        keepTables As Boolean, newName As String)
         For Each group As GroupEntry In subGroups
-            ' Alter the table name
-            Dim number = group.Table.Substring(baseTableName.Length)
-            Dim newTableName = newBaseTableNAme & number
-
-            Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
-            DBConnection.ExecuteNonQuery(renameCommand)
-
-            ' Update the entry in the table
+            Dim newTableName = group.Table
+            If Not keepTables Then
+                newTableName = NextFreeTableName(newBaseTableName, 1)
+                Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
+                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+            End If
             UpdateGroup(group, newName, group.SubGroup, newTableName)
         Next group
     End Sub
@@ -236,32 +255,44 @@ Public Class GroupsDao
         DBConnection.ExecuteNonQuery(command, Enumerable.Repeat(groupName, 1))
     End Sub
 
+    ''' <summary>
+    ''' Deletes a sub group of a group. If the sub group is not the last one, each later sub group is moved. Thus the
+    ''' freed table is reused.
+    ''' </summary>
+    ''' <remark>
+    ''' This method ensures that the sub group tables maintain the property of consecutive numbering.
+    ''' </remark>
+    ''' <param name="groupName">Group name of the group containing the sub group to delete</param>
+    ''' <param name="subGroupName">Sub group name of the sub group to delete</param>
     Public Sub DeleteGroup(ByVal groupName As String, ByVal subGroupName As String) Implements IGroupsDao.DeleteSubGroup
         ' Retrieve original data
         Dim group = GetGroup(groupName, subGroupName)
         Dim subGroups = GetSubGroups(groupName)
 
-        DropGroupTables(Enumerable.Repeat(group.Table, 1))
-        DeleteGroupEntries(groupName, subGroupName)
-
-        Dim lastTable As String = Nothing
-        Dim started As Boolean = False
-        For Each entry As GroupEntry In subGroups
-            If Not lastTable Is Nothing Then
-                started = True
-            End If
-            If started Then
-                Dim command = CreateRenameTableCommand(entry.Table, lastTable)
-                DBConnection.ExecuteNonQuery(command)
-            End If
-            If entry.Equals(group) Then
-                lastTable = entry.Table
-            End If
-        Next
-
+        DBConnection.InTransaction(
+            Sub()
+                DropGroupTables(Enumerable.Repeat(group.Table, 1))
+                DeleteGroupEntries(groupName, subGroupName)
+                RenameSubGroupTables(groupName, group, subGroups)
+            End Sub)
     End Sub
 
-    Private Sub DropGroupTables(ByRef toDelete As IEnumerable(Of String))
+    Private Sub RenameSubGroupTables(ByVal groupName As String, ByVal group As GroupEntry,
+        ByVal subGroups As ICollection(Of GroupEntry))
+        Dim freeTable As String = Nothing
+        For Each entry As GroupEntry In subGroups
+            If freeTable IsNot Nothing Then
+                Dim renameCommand = CreateRenameTableCommand(entry.Table, freeTable)
+                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                UpdateGroup(entry, groupName, entry.SubGroup, freeTable)
+                freeTable = entry.Table
+            ElseIf entry.Equals(group) Then
+                freeTable = entry.Table
+            End If
+        Next
+    End Sub
+
+    Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
         For Each table As String In toDelete
             Dim command = "DROP TABLE " & table
             DBConnection.ExecuteNonQuery(command)

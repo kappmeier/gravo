@@ -9,7 +9,8 @@ Public Module DataBaseExtension
     ''' <param name="value">value for a single parameter</param>
     ''' <returns>The cursor to the reader with the results of the query.</returns>
     <Extension()>
-    Function ExecuteReader(ByRef aDataBaseOperation As IDataBaseOperation, ByVal commandText As String, ByRef value As String) As DbDataReader
+    Function ExecuteReader(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String,
+        ByVal value As String) As DbDataReader
         Return aDataBaseOperation.ExecuteReader(commandText, Enumerable.Repeat(value, 1))
     End Function
 
@@ -21,7 +22,7 @@ Public Module DataBaseExtension
     ''' <param name="aDataBaseOperation">the database access</param>
     ''' <param name="createError">the exception factory</param>
     <Extension()>
-    Sub FailIfEmpty(Of T As Exception)(ByRef aDataBaseOperation As IDataBaseOperation, ByRef createError As Func(Of T))
+    Sub FailIfEmpty(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = False Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -29,7 +30,7 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Sub FailIfExists(Of T As Exception)(ByRef aDataBaseOperation As IDataBaseOperation, ByRef createError As Func(Of T))
+    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = True Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -37,7 +38,7 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Function IsEmpty(ByRef dataBaseOperation As IDataBaseOperation) As Boolean
+    Function IsEmpty(ByVal dataBaseOperation As IDataBaseOperation) As Boolean
         Dim command As String = "SELECT count(*) FROM sqlite_master"
         dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
         dataBaseOperation.DBCursor.Read()
@@ -46,11 +47,43 @@ Public Module DataBaseExtension
         IsEmpty = (objects = 0)
     End Function
 
+    ''' <summary>
+    ''' Checks whether a table exists.
+    ''' </summary>
+    ''' <remarks>
+    ''' Table names are compared case-insensitively similar to SQLite.
+    ''' </remarks>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    ''' <param name="tableName">Name of the table</param>
+    ''' <returns>Whether a table with the name exists</returns>
     <Extension()>
-    Public Function ExistsTable(dataBaseOperation As IDataBaseOperation, tableName As String) As Boolean
-        Dim command As String = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+    Public Function TableExists(dataBaseOperation As IDataBaseOperation, tableName As String) As Boolean
+        Dim command As String = "
+            SELECT name
+              FROM sqlite_master
+             WHERE type = 'table'
+               AND name = ? COLLATE NOCASE;
+        "
         dataBaseOperation.ExecuteReader(command, ToDbParameters(New List(Of Object) From {tableName}))
-        ExistsTable = dataBaseOperation.DBCursor.HasRows
+        TableExists = dataBaseOperation.DBCursor.HasRows
         dataBaseOperation.DBCursor.Close()
     End Function
+
+    ''' <summary>
+    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns and
+    ''' rolled back when it throws.
+    ''' </summary>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    ''' <param name="work">The writes to run</param>
+    <Extension()>
+    Public Sub InTransaction(dataBaseOperation As IDataBaseOperation, work As Action)
+        dataBaseOperation.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
+        Try
+            work()
+            dataBaseOperation.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
+        Catch
+            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            Throw
+        End Try
+    End Sub
 End Module

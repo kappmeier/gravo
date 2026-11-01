@@ -6,18 +6,27 @@ Public Class ManagementDao
 
     Private ReadOnly DBConnection As IDataBaseOperation
 
-    Public Shared ReadOnly DB_VERSION_1_0 As DBVersion = New DBVersion(1, 0, New Date(2007, 2, 27), "VokTrain 2k7 DB-Version")
-    Public Shared ReadOnly DB_VERSION_1_1 As DBVersion = New DBVersion(1, 1, New Date(2007, 3, 7), "MainLanguage")
-    Public Shared ReadOnly DB_VERSION_1_2 As DBVersion = New DBVersion(1, 2, New Date(2007, 3, 8), "Irregular")
-    Public Shared ReadOnly DB_VERSION_1_3 As DBVersion = New DBVersion(1, 3, New Date(2007, 4, 12), "Cards test Main-Language Update")
-    Public Shared ReadOnly DB_VERSION_1_4 As DBVersion = New DBVersion(1, 4, New Date(2007, 5, 7), "Important words marker")
-    Public Shared ReadOnly DB_VERSION_1_5 As DBVersion = New DBVersion(1, 5, New Date(2007, 5, 7), "Word-marker for groups")
-    Public Shared ReadOnly DB_VERSION_1_6 As DBVersion = New DBVersion(1, 6, New Date(2007, 5, 28), "Correct max length for entries")
-    Public Shared ReadOnly DB_VERSION_1_7 As DBVersion = New DBVersion(1, 7, New Date(2007, 5, 29), "Group features update and WordTypes")
+    Public Shared ReadOnly DB_VERSION_1_0 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 0, New Date(2007, 2, 27), "VokTrain 2k7 DB-Version")
+    Public Shared ReadOnly DB_VERSION_1_1 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 1, New Date(2007, 3, 7), "MainLanguage")
+    Public Shared ReadOnly DB_VERSION_1_2 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 2, New Date(2007, 3, 8), "Irregular")
+    Public Shared ReadOnly DB_VERSION_1_3 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 3, New Date(2007, 4, 12), "Cards test Main-Language Update")
+    Public Shared ReadOnly DB_VERSION_1_4 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 4, New Date(2007, 5, 7), "Important words marker")
+    Public Shared ReadOnly DB_VERSION_1_5 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 5, New Date(2007, 5, 7), "Word-marker for groups")
+    Public Shared ReadOnly DB_VERSION_1_6 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 6, New Date(2007, 5, 28), "Correct max length for entries")
+    Public Shared ReadOnly DB_VERSION_1_7 As DbSchemaVersion _
+        = New DbSchemaVersion(1, 7, New Date(2007, 5, 29), "Group features update and WordTypes")
 
-    Public ReadOnly ComplexVersionUpdates As HashSet(Of DBVersion) = New HashSet(Of DBVersion) From {DB_VERSION_1_6, DB_VERSION_1_4}
+    Public ReadOnly ComplexVersionUpdates As HashSet(Of DbSchemaVersion) _
+        = New HashSet(Of DbSchemaVersion) From {DB_VERSION_1_6, DB_VERSION_1_4}
 
-    Public ReadOnly supportedVersions() As DBVersion = {
+    Public ReadOnly supportedVersions() As DbSchemaVersion = {
         DB_VERSION_1_0,
         DB_VERSION_1_1,
         DB_VERSION_1_2,
@@ -28,7 +37,7 @@ Public Class ManagementDao
         DB_VERSION_1_7
      }
 
-    Private updateFunctions As New Dictionary(Of DBVersion, Action) From {
+    Private updateFunctions As New Dictionary(Of DbSchemaVersion, Action) From {
         {DB_VERSION_1_0, Sub() UpdateTo1_1()},
         {DB_VERSION_1_1, Sub() UpdateTo1_2()},
         {DB_VERSION_1_2, Sub() UpdateTo1_3()},
@@ -38,7 +47,7 @@ Public Class ManagementDao
         {DB_VERSION_1_6, Sub() UpdateTo1_7()}
     }
 
-    Sub New(ByRef db As IDataBaseOperation)
+    Sub New(ByVal db As IDataBaseOperation)
         DBConnection = db
     End Sub
 
@@ -441,12 +450,6 @@ Public Class ManagementDao
              WHERE [WordType] NOT IN (0,1,2,3,4,5,6)
         ")
 
-        ' instead of ON UPDATE CASCADE we need ON DELETE REJECT
-        SimpleUpdateCommand("
-            PRAGMA foreign_keys = ON
-        ")
-        '"ALTER TABLE  ADD CONSTRAINT TestConstraint FOREIGN KEY ([WordType]) REFERENCES SupportedWordTypes ON UPDATE CASCADE"
-
         ' Update DictionaryWords table
         SimpleUpdateCommand("
             CREATE TABLE [DictionaryWordsCopy] (
@@ -484,44 +487,24 @@ Public Class ManagementDao
 
     ''' <summary>
     ''' Copies the global per-word test statistics of cards from the Cards table into the card columns of every group
-    ''' table.
+    ''' table. A group entry without a card keeps its current card columns.
     ''' </summary>
     Public Sub CopyGlobalCardsToGroups() Implements IManagementDao.CopyGlobalCardsToGroups
         Dim groupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
         Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
         For Each group As GroupEntry In groups
             Dim table As String = StripSpecialCharacters(group.Table)
-
-            Dim command As String = "SELECT [WordIndex] FROM [" & table & "]"
-            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
-            Dim indices As ICollection(Of Integer) = New List(Of Integer)
-            While DBConnection.DBCursor.Read()
-                Dim index = DBConnection.SecureGetInt32(0)
-                ' store the index for later
-                indices.Add(index)
-            End While
-
-            For Each index As Integer In indices
-                command = "SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [Cards] WHERE [Index] = ?"
-                Dim o As Object = index
-                DBConnection.ExecuteReader(command, Enumerable.Repeat(o, 1))
-                DBConnection.DBCursor.Read()
-                Dim testInterval As Integer = DBConnection.SecureGetInt32(0)
-                Dim counter As Integer = DBConnection.SecureGetInt32(1)
-                Dim lastDateTemp As System.DateTime = DBConnection.SecureGetDateTime(2)
-                Dim lastDate As String = SQLiteDataBaseOperation.ToDbDate(lastDateTemp)
-                Dim testIntervalMain As Integer = DBConnection.SecureGetInt32(3)
-                Dim counterMain As Integer = DBConnection.SecureGetInt32(4)
-                DBConnection.DBCursor.Close()
-
-                ' save
-                command = $"
-                    UPDATE [{table}]
-                       SET [TestInterval] = ?, [Counter] = ?, [LastDate] = ?, [TestIntervalMain] = ?, [CounterMain] = ?
-                     WHERE [WordIndex] = ?
-                "
-                DBConnection.ExecuteNonQuery(command, New List(Of Object) From {testInterval, counter, lastDate, testIntervalMain, counterMain, index})
-            Next index
+            ' date() stores the yyyy-MM-dd form that ToDbDate writes
+            SimpleUpdateCommand($"
+                UPDATE [{table}]
+                   SET [TestInterval] = [Cards].[TestInterval],
+                       [Counter] = [Cards].[Counter],
+                       [LastDate] = date([Cards].[LastDate]),
+                       [TestIntervalMain] = [Cards].[TestIntervalMain],
+                       [CounterMain] = [Cards].[CounterMain]
+                  FROM [Cards]
+                 WHERE [Cards].[Index] = [{table}].[WordIndex]
+            ")
         Next group
     End Sub
 
@@ -529,7 +512,7 @@ Public Class ManagementDao
     ''' Adds a certain version information to the Version table.
     ''' </summary>
     ''' <param name="version">The DBVersion for the new version</param>
-    Private Sub UpdateToVersion(version As DBVersion)
+    Private Sub UpdateToVersion(version As DbSchemaVersion)
         Dim command As String = "
             INSERT INTO [DBVersion] ([Version], [Date], [Description])
             VALUES (?, ?, ?)
@@ -547,12 +530,12 @@ Public Class ManagementDao
         DBConnection.ExecuteNonQuery(command, Enumerable.Empty(Of Object))
     End Sub
 
-    Private Function GetLatest() As DBVersion
+    Private Function GetLatest() As DbSchemaVersion
         GetLatest = supportedVersions.Last
     End Function
 
-    Public Function IsVersionUpToDate() As Boolean Implements IManagementDao.IsVersionUpToDate
-        Dim version As DBVersion = GetCurrentVersion()
+    Public Function IsSchemaVersionUpToDate() As Boolean Implements IManagementDao.IsSchemaVersionUpToDate
+        Dim version As DbSchemaVersion = GetCurrentSchemaVersion()
         If version Is Nothing Then
             Return False
         End If
@@ -560,13 +543,14 @@ Public Class ManagementDao
         Return Version.Equals(GetLatest())
     End Function
 
-    Public Function IsUpdateComplex(version As DBVersion) As Boolean Implements IManagementDao.IsUpdateComplex
+    Public Function IsSchemaUpdateComplex(version As DbSchemaVersion) As Boolean _
+        Implements IManagementDao.IsSchemaUpdateComplex
         If Not supportedVersions.Contains(version) Then Throw New IllegalVersionException("Version " & version.ToString & " is not supported.")
         Return ComplexVersionUpdates.Contains(version)
     End Function
 
-    Sub UpdateDatabaseVersion() Implements IManagementDao.UpdateDatabaseVersion
-        Dim nextVersion = GetNextVersion()
+    Sub UpdateDatabaseSchemaVersion() Implements IManagementDao.UpdateDatabaseSchemaVersion
+        Dim nextVersion = GetNextSchemaVersion()
         If nextVersion Is Nothing Then
             Return
         ElseIf nextVersion.Equals(DB_VERSION_1_0) Then
@@ -587,8 +571,8 @@ Public Class ManagementDao
     End Sub
 
     Private Function NeedsUpdate() As Boolean
-        Dim nextVersion As DBVersion = GetNextVersion()
-        If nextVersion Is Nothing OrElse nextVersion.Equals(GetCurrentVersion()) Then
+        Dim nextVersion As DbSchemaVersion = GetNextSchemaVersion()
+        If nextVersion Is Nothing OrElse nextVersion.Equals(GetCurrentSchemaVersion()) Then
             NeedsUpdate = False
         Else
             NeedsUpdate = True
@@ -596,8 +580,7 @@ Public Class ManagementDao
     End Function
 
     Private Sub UpdateToNext()
-        Dim updateFunction As Action = updateFunctions(GetCurrentVersion())
-        updateFunction()
+        DBConnection.InTransaction(updateFunctions(GetCurrentSchemaVersion()))
     End Sub
 
     Function Reorganize() As Integer Implements IManagementDao.Reorganize
@@ -687,15 +670,15 @@ Public Class ManagementDao
         Return ErrorCount
     End Function
 
-    Public ReadOnly Property LatestVersion() As DBVersion Implements IManagementDao.LatestVersion
+    Public ReadOnly Property LatestSchemaVersion() As DbSchemaVersion Implements IManagementDao.LatestSchemaVersion
         Get
             Return supportedVersions.Last
         End Get
     End Property
 
-    Function GetCurrentVersion() As DBVersion Implements IManagementDao.GetCurrentVersion
+    Function GetCurrentSchemaVersion() As DbSchemaVersion Implements IManagementDao.GetCurrentSchemaVersion
         Dim PropertiesDao As New PropertiesDao(DBConnection)
-        Dim versions As ICollection(Of DBVersion) = PropertiesDao.LoadVersions()
+        Dim versions As ICollection(Of DbSchemaVersion) = PropertiesDao.LoadVersions()
         Return versions.LastOrDefault()
     End Function
 
@@ -703,20 +686,20 @@ Public Class ManagementDao
     ''' 
     ''' </summary>
     ''' <returns>The next version, or Nothing.</returns>
-    Function GetNextVersion() As DBVersion Implements IManagementDao.GetNextVersion
-        Dim current As DBVersion = GetCurrentVersion()
+    Function GetNextSchemaVersion() As DbSchemaVersion Implements IManagementDao.GetNextSchemaVersion
+        Dim current As DbSchemaVersion = GetCurrentSchemaVersion()
         If current Is Nothing Then
-            GetNextVersion = DB_VERSION_1_0
-        ElseIf current.Equals(LatestVersion()) Then
-            GetNextVersion = Nothing
+            GetNextSchemaVersion = DB_VERSION_1_0
+        ElseIf current.Equals(LatestSchemaVersion()) Then
+            GetNextSchemaVersion = Nothing
         Else
             Dim nextVersionIndex = GetVersionIndex(current)
             If nextVersionIndex = -1 Then Throw New IllegalVersionException("Current version not supported")
-            GetNextVersion = supportedVersions(nextVersionIndex + 1)
+            GetNextSchemaVersion = supportedVersions(nextVersionIndex + 1)
         End If
     End Function
 
-    Private Function GetVersionIndex(version As DBVersion) As Int16
+    Private Function GetVersionIndex(version As DbSchemaVersion) As Int16
         GetVersionIndex = CShort(Array.IndexOf(supportedVersions, version))
     End Function
 
@@ -729,7 +712,7 @@ Public Class ManagementDao
         db.Open(fileName)
         Dim man = New ManagementDao(db)
         man.Initialize()
-        man.UpdateDatabaseVersion()
+        man.UpdateDatabaseSchemaVersion()
         db.Close()
     End Sub
 End Class

@@ -229,7 +229,7 @@ Public Class localization
     Public Const OPTIONS_COPY_CARDS = 218
     Public Const INFO_TITLE = 219
     Public Const INFO_VERSION = 220
-    Public Const INFO_DB_VERSION = 221
+    Public Const INFO_DB_SCHEMA_VERSION = 221
     Public Const INFO_COPYRIGHT_OLD = 222
     Public Const INFO_DISCLAIMER = 223
     Public Const ERROR_TITLE = TEST_ERROR

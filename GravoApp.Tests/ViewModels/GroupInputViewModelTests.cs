@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Gravo;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -44,6 +45,36 @@ public class GroupInputViewModelTests
         fixture.SelectedLanguage.Should().Be("english");
         fixture.WordsInGroupText.Should().Be("T161");
         fixture.WordsInSubGroupText.Should().Be("T156" + "T157" + NL + "T159");
+        fixture.WordsInLanguageText.Should().Be("T154");
+    }
+
+    [Test]
+    public void TextsRefresh_RecomputesTheCountTexts()
+    {
+        var loc = Fakes.Localization();
+        var fixture = new GroupInputViewModel(_voc.Groups, _voc.Dictionary, _voc.Group, _dialogs.Object,
+            Fakes.Texts(loc), TempVocabulary.MainLanguage);
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
+        fixture.Title.Should().Be("X" + localization.MAIN_MENU_VOCABULARY_INSERT_GROUPS);
+        fixture.WordsInLanguageText.Should().Be("X154");
+        fixture.WordsInSubGroupText.Should().Be("X156" + "X157" + NL + "X159");
+        fixture.WordsInGroupText.Should().Be("X161");
+    }
+
+    [Test]
+    public void OnClosed_StopsListeningToTheTexts()
+    {
+        var loc = Fakes.Localization();
+        var fixture = new GroupInputViewModel(_voc.Groups, _voc.Dictionary, _voc.Group, _dialogs.Object,
+            Fakes.Texts(loc), TempVocabulary.MainLanguage);
+        fixture.OnClosed();
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
         fixture.WordsInLanguageText.Should().Be("T154");
     }
 
@@ -98,7 +129,7 @@ public class GroupInputViewModelTests
         fixture.WordsInGroup.Should().Equal("go");
         fixture.SelectedWordInGroup.Should().Be("go");
         var unit2 = _seed.Unit2;
-        var entry = _voc.Group.Load(ref unit2).Entries.Should().ContainSingle().Which;
+        var entry = _voc.Group.Load(unit2).Entries.Should().ContainSingle().Which;
         entry.Word.Should().Be("go");
         entry.Marked.Should().BeTrue();
     }
@@ -111,7 +142,7 @@ public class GroupInputViewModelTests
         await fixture.SelectCommand.ExecuteAsync(null);
         _dialogs.Verify(d => d.ShowMessageAsync("T148", "T149"), Times.Once);
         var unit1 = _seed.Unit1;
-        _voc.Group.Load(ref unit1).Entries.Select(e => e.Word).Should().Equal("house", "go");
+        _voc.Group.Load(unit1).Entries.Select(e => e.Word).Should().Equal("house", "go");
     }
 
     [Test]
@@ -149,7 +180,7 @@ public class GroupInputViewModelTests
         fixture.SelectedWordInGroup.Should().Be("go");
         fixture.Meanings.Should().ContainSingle().Which.Meaning.Should().Be("gehen");
         var unit1 = _seed.Unit1;
-        _voc.Group.Load(ref unit1).Entries.Should().ContainSingle().Which.Word.Should().Be("go");
+        _voc.Group.Load(unit1).Entries.Should().ContainSingle().Which.Word.Should().Be("go");
     }
 
     [Test]

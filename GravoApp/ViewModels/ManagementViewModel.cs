@@ -157,8 +157,8 @@ public sealed partial class ManagementViewModel : ViewModelBase
         }
         UnitName = value;
         var entry = _active.Groups.GetGroup(SelectedUnitGroup, value);
-        var wordCount = _active.Group.Load(ref entry).WordCount;
-        var languageCount = _active.Group.GetLanguages(ref entry).Count;
+        var wordCount = _active.Group.Load(entry).WordCount;
+        var languageCount = _active.Group.GetLanguages(entry).Count;
         UnitInfo = Entries(wordCount) + Environment.NewLine + Texts.Plural(languageCount,
                 localization.MANAGEMENT_USED_LANGUAGES_ONE, localization.MANAGEMENT_USED_LANGUAGES_MANY);
     }
@@ -327,14 +327,12 @@ public sealed partial class ManagementViewModel : ViewModelBase
 
     private void RefreshVersionText()
     {
-        var next = _management.GetNextVersion();
+        var next = _management.GetNextSchemaVersion();
         CanUpdateVersion = next is not null;
         VersionButtonText = next is null
-            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, Format(_management.GetCurrentVersion()))
-            : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, Format(next));
+            ? Texts.Format(localization.MANAGEMENT_ON_CURRENT_VERSION, _management.GetCurrentSchemaVersion())
+            : Texts.Format(localization.MANAGEMENT_UPDATE_TO_VERSION, next);
     }
-
-    private static string Format(Properties.DBVersion version) => version.Major + "." + version.Minor;
 
     /// <summary>Updates the database to the next version.</summary>
     /// <remarks>
@@ -343,12 +341,12 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task UpdateVersionAsync()
     {
-        if (_management.IsUpdateComplex(_management.GetCurrentVersion()))
+        if (_management.IsSchemaUpdateComplex(_management.GetCurrentSchemaVersion()))
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.HINT_TITLE), Texts.Get(localization.MANAGEMENT_UPDATE_MAY_TAKE_TIME));
         }
-        _management.UpdateDatabaseVersion();
+        _management.UpdateDatabaseSchemaVersion();
         RefreshVersionText();
     }
 
@@ -416,7 +414,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportGroupsAsync()
     {
-        if (!_management.IsVersionUpToDate())
+        if (!_management.IsSchemaVersionUpToDate())
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.ERROR_TITLE), Texts.Get(localization.MANAGEMENT_DATABASE_OUTDATED));
@@ -425,14 +423,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
         await ImportAsync(async db =>
         {
             var sourceManagement = _managementFor(db);
-            if (!sourceManagement.IsVersionUpToDate())
+            if (!sourceManagement.IsSchemaVersionUpToDate())
             {
                 if (!await _dialogs.ConfirmAsync(
                     Texts.Get(localization.WARNING_TITLE), Texts.Get(localization.MANAGEMENT_IMPORT_SOURCE_OUTDATED)))
                 {
                     return null;
                 }
-                sourceManagement.UpdateDatabaseVersion();
+                sourceManagement.UpdateDatabaseSchemaVersion();
             }
             return new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyAllGroups();
         });
@@ -492,7 +490,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportAsync()
     {
-        if (!_management.IsVersionUpToDate())
+        if (!_management.IsSchemaVersionUpToDate())
         {
             await _dialogs.ShowMessageAsync(
                 Texts.Get(localization.ERROR_TITLE), Texts.Get(localization.MANAGEMENT_DATABASE_OUTDATED));

@@ -43,10 +43,23 @@ public sealed class DialogService : IDialogService
         window.Show(_owner());
     }
 
-    /// <summary>Forwards the window's opened and closed events to the view model.</summary>
-    private static void Attach(Window window, ViewModelBase viewModel)
+    /// <summary>
+    /// Forwards the window's opened and closed events to the view model. An error in the opened handler is shown in a
+    /// message box.
+    /// </summary>
+    private void Attach(Window window, ViewModelBase viewModel)
     {
-        window.Opened += async (_, _) => await viewModel.OnOpenedAsync();
+        window.Opened += async (_, _) =>
+        {
+            try
+            {
+                await viewModel.OnOpenedAsync();
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageAsync(_texts.Get(localization.ERROR_TITLE), ex.Message);
+            }
+        };
         window.Closed += (_, _) => viewModel.OnClosed();
     }
 
