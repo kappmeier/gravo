@@ -19,7 +19,7 @@ Public Class DataTools
         Dim subGroups = groupsDao.GetSubGroups(groupName)
         'Dim command As String = "SELECT GroupTable FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & ";"
         'Dim tables As New Collection(Of String)
-        'DBConnection.ExecuteReader(command)
+        'ExecuteReader(DBConnection, command)
         'While DBConnection.DBCursor.Read()
         '    tables.Add(DBConnection.SecureGetString(0))
         'End While

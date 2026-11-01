@@ -51,7 +51,7 @@ Public Class GroupDao
     Function Load(ByVal group As GroupEntry) As GroupDto Implements IGroupDao.Load
         Dim words As New Collection(Of TestWord)
         Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE D.[Index]=G.[WordIndex] ORDER BY G.[Index]"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read()
             Dim wordEntry = Extract(DBConnection)
 
@@ -205,7 +205,7 @@ Public Class GroupDao
         Dim ret As String = ""
         Dim once As Boolean = True
         Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             If ret <> "" Then once = False : Exit Do
             ret = DBConnection.SecureGetString(0)
@@ -218,7 +218,7 @@ Public Class GroupDao
     Public Function GetLanguages(ByVal group As GroupEntry) As ICollection(Of String) Implements IGroupDao.GetLanguages
         Dim languages As Collection(Of String) = New Collection(Of String)
         Dim command As String = "SELECT DISTINCT LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE W.MainIndex = M.[Index] AND W.[Index] = G.WordIndex"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             languages.Add(DBConnection.SecureGetString(0))
         Loop
@@ -231,7 +231,7 @@ Public Class GroupDao
         Dim ret As String = ""
         Dim once As Boolean = True
         Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             If ret <> "" Then once = False : Exit Do
             ret = DBConnection.SecureGetString(0)
@@ -245,7 +245,7 @@ Public Class GroupDao
         ) As ICollection(Of String) Implements IGroupDao.GetMainLanguages
         Dim languages As Collection(Of String) = New Collection(Of String)
         Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             languages.Add(DBConnection.SecureGetString(0))
         Loop

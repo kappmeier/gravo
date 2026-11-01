@@ -2,6 +2,37 @@
 Imports System.Runtime.CompilerServices
 
 Public Module DataBaseExtension
+
+    ''' <summary>
+    ''' Executes a non-query command without parameters.
+    ''' 
+    ''' Non query commands are commands that do not return values, such as INSERT or UPDATE commands.
+    ''' </summary>
+    ''' <remarks>
+    ''' Internally forwards to the parameterized version with an empty parameter set.
+    ''' </remarks>
+    ''' <param name="aDataBaseOperation">the database access</param>
+    ''' <param name="commandText">the command text</param>
+    ''' <returns>whether the command was executed successful.</returns>
+    <Extension()>
+    Function ExecuteNonQuery(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String) As Boolean
+        Return aDataBaseOperation.ExecuteNonQuery(commandText, Array.Empty(Of Object))
+    End Function
+
+    ''' <summary>
+    ''' Executes an SQL command and returns the database cursor with the results.
+    ''' </summary>
+    ''' <remarks>
+    ''' Internally forwards to the parameterized version with an empty parameter set.
+    ''' </remarks>
+    ''' <param name="aDataBaseOperation">the database access</param>
+    ''' <param name="commandText">the command text</param>
+    ''' <returns>The cursor to the reader with the results of the query.</returns>
+    <Extension()>
+    Function ExecuteReader(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String) As DbDataReader
+        return aDataBaseOperation.ExecuteReader(commandText, Array.Empty(Of Object))
+    End Function
+
     ''' <summary>
     ''' Executes an SQL command and returns the database cursor with the results.
     ''' </summary>

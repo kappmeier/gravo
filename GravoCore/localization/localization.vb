@@ -270,7 +270,7 @@ Public Class localization
             SELECT [Text]
               FROM [{Language}]
              WHERE [Field] = {value};"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         If Not DBConnection.DBCursor.Read() Then
             DBConnection.DBCursor.Close()
             Throw New KeyNotFoundException($"No text {value} in the language table {Language}.")
@@ -288,7 +288,7 @@ Public Class localization
         Dim languages As New Collection(Of String)
         Dim command As String = "SELECT [Name] FROM [languages] ORDER BY [Name];"
 
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         While DBConnection.DBCursor.Read
             languages.Add(DBConnection.SecureGetString(0))
         End While
@@ -335,7 +335,7 @@ Public Class localization
 
     Private Function GetFieldFor(LanguageName As String, Field As String) As String
         Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New Exception("Wrong language")

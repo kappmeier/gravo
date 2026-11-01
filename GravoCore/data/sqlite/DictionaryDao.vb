@@ -508,7 +508,7 @@ Public Class DictionaryDao
     Public Function DictionaryMainLanguages() As ICollection(Of String) Implements IDictionaryDao.DictionaryMainLanguages
         Dim mainLanguages As New Collection(Of String)
         Dim command As String = "SELECT DISTINCT MainLanguage FROM DictionaryMain ORDER BY MainLanguage;"
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read()
             mainLanguages.Add(DBConnection.SecureGetString(0))
         Loop
