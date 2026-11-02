@@ -2,7 +2,6 @@
 Imports AwesomeAssertions
 Imports Gravo
 Imports Microsoft.Data.Sqlite
-Imports Moq
 Imports NUnit.Framework
 
 ''' <summary>
@@ -42,8 +41,8 @@ Public Class DatabaseTransferLanguageTests
         _targetDb = New SQLiteDataBaseOperation()
         _targetDb.Open(_targetPath)
 
-        _source = New VocabularyDatabase(_sourceDb)
-        _target = New VocabularyDatabase(_targetDb)
+        _source = VocabularyDatabase.Create(_sourceDb)
+        _target = VocabularyDatabase.Create(_targetDb)
         _transfer = New DatabaseTransfer(_source, _target)
     End Sub
 
@@ -186,7 +185,7 @@ Public Class DatabaseTransferLanguageTests
         thirdDb.Open(thirdPath)
         Try
             _transfer.CopyLanguage("lang", mainLanguage, False)
-            Dim third As New VocabularyDatabase(thirdDb)
+            Dim third As VocabularyDatabase = VocabularyDatabase.Create(thirdDb)
             Dim secondHop As New DatabaseTransfer(_target, third)
             secondHop.CopyLanguage("lang", mainLanguage, False)
 
@@ -226,6 +225,35 @@ Public Class DatabaseTransferLanguageTests
         _transfer.CopyLanguage("lang", mainLanguage, False)
         _target.Dictionary.WordCount("lang", mainLanguage).Should().Be(2)
         _target.Dictionary.WordCountTotal("lang", mainLanguage).Should().Be(5)
+    End Sub
+
+    <Test>
+    Public Sub CopyDictionary_SourceWordWithDoubleQuote_LeavesTheTargetUnchanged()
+        Dim command = "
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            VALUES (1, 'say ""hi""', '', '', 1, 'greet', '', 0)
+        "
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
+
+        Assert.Throws(Of InputException)(Sub() _transfer.CopyDictionary(mainLanguage))
+
+        MainWords("lang").Should().BeEmpty()
+        _target.Dictionary.WordCountTotal("lang", mainLanguage).Should().Be(0)
+    End Sub
+
+    <Test>
+    Public Sub CopyDictionary_SourceWordWithUnknownType_LeavesTheTargetUnchanged()
+        Dim command = "
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            VALUES (1, 'odd', '', '', 9, 'm', '', 0)
+        "
+        _sourceDb.ExecuteNonQuery("PRAGMA foreign_keys = OFF", Array.Empty(Of Object))
+        _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
+        _sourceDb.ExecuteNonQuery("PRAGMA foreign_keys = ON", Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _transfer.CopyDictionary(mainLanguage))
+
+        MainWords("lang").Should().BeEmpty()
     End Sub
 
     Private Function MainWords(language As String) As IEnumerable(Of String)

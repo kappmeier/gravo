@@ -44,7 +44,7 @@ public class MainViewModelTests
     }
 
     private MainViewModel Create() => new(new AppServices(
-        _db.Object, _dbPath, new VocabularyDatabase(_dictionary.Object, _groups.Object, _group.Object),
+        _db.Object, _dbPath, VocabularyDatabase.CreateForTest(_db.Object, _dictionary.Object, _groups.Object, _group.Object),
         _cards.Object, _management.Object, _properties.Object, _settings, _loc.Object,
         new UiTexts(_loc.Object), _dialogs.Object));
 

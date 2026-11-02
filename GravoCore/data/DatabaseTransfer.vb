@@ -41,13 +41,20 @@ Public Class DatabaseTransfer
     ''' <summary>
     ''' Copies every language of a main language including empty main entries.
     ''' </summary>
+    ''' <remarks>
+    ''' The copy runs in one transaction on the target, so a failing source leaves the target unchanged.
+    ''' </remarks>
     Public Function CopyDictionary(mainLanguage As String) As TransferResult
         Dim result As New TransferResult()
+        target.Connection.InTransaction(Sub() CopyLanguages(mainLanguage, result))
+        Return result
+    End Function
+
+    Private Sub CopyLanguages(mainLanguage As String, result As TransferResult)
         For Each language As String In source.Dictionary.DictionaryLanguages(mainLanguage)
             result.Add(CopyLanguage(language, mainLanguage, True))
         Next
-        Return result
-    End Function
+    End Sub
 
     ''' <summary>
     ''' Copies a main group including its subgroups, their words and the words' dictionary entries. Subgroups are
@@ -90,13 +97,20 @@ Public Class DatabaseTransfer
     ''' <summary>
     ''' Copies every main group of the source to the target db.
     ''' </summary>
+    ''' <remarks>
+    ''' The copy runs in one transaction on the target, so a failing source leaves the target unchanged.
+    ''' </remarks>
     Public Function CopyAllGroups() As TransferResult
         Dim result As New TransferResult()
+        target.Connection.InTransaction(Sub() CopyGroups(result))
+        Return result
+    End Function
+
+    Private Sub CopyGroups(result As TransferResult)
         For Each groupName As String In source.Groups.GetGroups()
             result.Add(CopyGroup(groupName))
         Next
-        Return result
-    End Function
+    End Sub
 
     Private Function GetOrAddMain(word As String, language As String, mainLanguage As String, result As TransferResult
             ) As MainEntry

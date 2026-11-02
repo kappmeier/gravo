@@ -432,14 +432,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
                 }
                 sourceManagement.UpdateDatabaseSchemaVersion();
             }
-            return new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyAllGroups();
+            return new DatabaseTransfer(VocabularyDatabase.Create(db), _active).CopyAllGroups();
         });
     }
 
     /// <summary>Copies all languages of the main language from the chosen database into the active database.</summary>
     [RelayCommand]
     private Task ImportDictionaryAsync() => ImportAsync(db => Task.FromResult<TransferResult?>(
-        new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyDictionary(_mainLanguage)));
+        new DatabaseTransfer(VocabularyDatabase.Create(db), _active).CopyDictionary(_mainLanguage)));
 
     /// <summary>Opens the chosen database, runs <paramref name="transfer"/> on it and shows counters.</summary>
     /// <remarks>
@@ -518,7 +518,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
         var db = _openDatabase(target);
         try
         {
-            var export = new DatabaseTransfer(_active, new VocabularyDatabase(db));
+            var export = new DatabaseTransfer(_active, VocabularyDatabase.Create(db));
             foreach (var language in ExportLanguages.Where(l => l.IsChecked))
             {
                 export.CopyLanguage(language.Name, _mainLanguage, !ExportSkipEmptyMains);

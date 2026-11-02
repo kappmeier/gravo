@@ -32,7 +32,7 @@ public sealed record AppServices(
         var texts = new UiTexts(loc);
         var settings = new Settings(new JsonFileSettingsStore(JsonFileSettingsStore.DefaultPath()));
         settings.LoadSettings();
-        return new AppServices(db, dbPath, new VocabularyDatabase(db), DaoFactory.Cards(db),
+        return new AppServices(db, dbPath, VocabularyDatabase.Create(db), DaoFactory.Cards(db),
             DaoFactory.Management(db), DaoFactory.Properties(db), settings, loc, texts, dialogs(texts));
     }
 
