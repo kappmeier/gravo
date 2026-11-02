@@ -54,13 +54,14 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
-    Public Sub GetGroups_ReturnsAlphabeticalOrder()
-        _groupsDao.AddGroup("Aardvark", "Unit 1")
+    Public Sub GetGroups_ReturnsAlphabeticalOrderIgnoringCase()
+        _groupsDao.AddGroup("aardvark", "Unit 1")
+        _groupsDao.AddGroup("zebra", "Unit 1")
         _groupsDao.AddGroup("My favourite Course", "Awesome")
 
         Dim result = _groupsDao.GetGroups()
 
-        result.Should.Equal("Aardvark", "Language Book", "My favourite Course", "Other Group")
+        result.Should.Equal("aardvark", "Language Book", "My favourite Course", "Other Group", "zebra")
     End Sub
 
     <Test>

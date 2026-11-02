@@ -4,7 +4,7 @@ Public Interface IGroupsDao
     ''' <summary>
     ''' Returns the names of all major groups.
     ''' 
-    ''' Ordered alphabetically by the name of the groups.
+    ''' Ordered alphabetically by the name of the groups, ignoring case. Sort order ignores special characters.
     ''' </summary>
     ''' <returns></returns>
     Function GetGroups() As Collection(Of String)

@@ -21,7 +21,7 @@ Public Class GroupsDao
             SELECT [GroupName]
               FROM Groups
              GROUP BY [GroupName]
-             ORDER BY [GroupName] ASC;
+             ORDER BY [GroupName] COLLATE NOCASE ASC;
         "
         ExecuteReader(DBConnection, Command)
         Do While DBConnection.DBCursor.Read
