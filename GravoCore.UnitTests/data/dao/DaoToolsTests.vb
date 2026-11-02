@@ -93,6 +93,11 @@ Public Class DaoToolsTests
     End Sub
 
     <Test>
+    Public Sub StripSpecialCharacters_Nothing_ThrowsArgumentNullException()
+        Assert.Throws(Of ArgumentNullException)(Sub() DaoTools.StripSpecialCharacters(Nothing))
+    End Sub
+
+    <Test>
     Public Sub CheckAllowedText_DoubleQuote_Throws()
         Assert.Throws(Of InputException)(Sub() DaoTools.CheckAllowedText("ok", "x""y"))
     End Sub
