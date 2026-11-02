@@ -272,6 +272,20 @@ public class MainViewModelTests
         Create().RestoreGeometry().Should().Be(new WindowGeometry(10, 20, 900, 700, WindowStateSetting.Maximized));
     }
 
+    [TestCase("-100", "700")]
+    [TestCase("800", "0")]
+    public void RestoreGeometry_NonPositiveSize_IsNull(string width, string height)
+    {
+        _settings = Fakes.DefaultSettings(out _store, new Dictionary<string, string>
+        {
+            ["SaveWindowPosition"] = "1",
+            ["WindowSettingsMainWidth"] = width,
+            ["WindowSettingsMainHeight"] = height,
+        });
+
+        Create().RestoreGeometry().Should().BeNull();
+    }
+
     [Test]
     public void SaveGeometry_Normal_StoresPositionSizeAndState()
     {

@@ -69,14 +69,17 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>
     /// Returns the stored main window geometry.
     /// </summary>
-    /// <returns>The stored geometry, or <c>null</c> when <c>SaveWindowPosition</c> is off.</returns>
+    /// <returns>
+    /// The stored geometry, or <c>null</c> when <c>SaveWindowPosition</c> is off or the stored width or height
+    /// is zero or less.
+    /// </returns>
     public WindowGeometry? RestoreGeometry()
     {
-        if (!_s.Settings.SaveWindowPosition)
+        var w = _s.Settings.MainWindowSettings;
+        if (!_s.Settings.SaveWindowPosition || w.width <= 0 || w.height <= 0)
         {
             return null;
         }
-        var w = _s.Settings.MainWindowSettings;
         return new WindowGeometry(w.posX, w.posY, w.width, w.height, _s.Settings.MainWindowState);
     }
 
