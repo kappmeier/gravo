@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
@@ -27,12 +28,15 @@ public class QuizViewModelTests
     [TearDown]
     public void TearDown() => _voc.Dispose();
 
-    private QuizViewModel Create(QueryLanguage direction, params WordEntry[] words)
+    private QuizViewModel Create(QueryLanguage direction, params WordEntry[] words) =>
+        Create(direction, Fakes.Texts(), words);
+
+    private QuizViewModel Create(QueryLanguage direction, UiTexts texts, params WordEntry[] words)
     {
         var cards = new Mock<ICardsDao>();
         cards.Setup(c => c.Skip(It.IsAny<WordEntry>(), direction)).Returns(false);
         var data = new TestData(cards.Object, words.ToList(), direction);
-        return new QuizViewModel(new TestController(data, direction, _voc.Db), Fakes.Texts(), _dialogs.Object);
+        return new QuizViewModel(new TestController(data, direction, _voc.Db), texts, _dialogs.Object);
     }
 
     [Test]
@@ -188,6 +192,38 @@ public class QuizViewModelTests
         fixture.Input = "house";
         await fixture.AnswerCommand.ExecuteAsync(null);
         focused.Should().Be(0);
+    }
+
+    [Test]
+    public async Task TextsRefresh_RecomputesTheTitleAndTheHint()
+    {
+        var loc = Fakes.Localization();
+        var fixture = Create(QueryLanguage.OriginalLanguage, Fakes.Texts(loc), _house);
+        await fixture.StartAsync();
+        fixture.Input = "tree";
+        await fixture.AnswerCommand.ExecuteAsync(null);
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
+        fixture.Title.Should().Be("X" + localization.TEST_TITLE);
+        fixture.Feedback.Should().Be("X99" + Environment.NewLine + "Haus = house");
+    }
+
+    [Test]
+    public async Task OnClosed_StopsListeningToTheTexts()
+    {
+        var loc = Fakes.Localization();
+        var fixture = Create(QueryLanguage.OriginalLanguage, Fakes.Texts(loc), _house);
+        await fixture.StartAsync();
+        fixture.Input = "tree";
+        await fixture.AnswerCommand.ExecuteAsync(null);
+        fixture.OnClosed();
+
+        loc.Setup(l => l.GetText(It.IsAny<int>())).Returns((int code) => "X" + code);
+        fixture.Texts.Refresh();
+
+        fixture.Feedback.Should().Be("T99" + Environment.NewLine + "Haus = house");
     }
 
     [Test]
