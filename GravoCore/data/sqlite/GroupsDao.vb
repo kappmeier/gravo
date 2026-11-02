@@ -155,6 +155,7 @@ Public Class GroupsDao
 
     ''' <summary>
     ''' Renames a group and moves its sub group tables to free table names of the new name.
+    ''' Throws <c>EntryNotFoundException</c> when the group does not exist.
     ''' </summary>
     ''' <remarks>
     ''' A new name with the same table base, ignoring case, keeps the tables.
@@ -166,6 +167,7 @@ Public Class GroupsDao
         If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
 
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
+        If subGroups.Count = 0 Then Throw New EntryNotFoundException("Group " & groupName & " does not exist")
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
         Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
             StringComparison.OrdinalIgnoreCase)

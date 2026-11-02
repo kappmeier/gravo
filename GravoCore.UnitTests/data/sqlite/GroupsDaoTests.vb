@@ -154,6 +154,14 @@ Public Class GroupsDaoTests
         Assert.Throws(Of EntryExistsException)(Sub() _groupsDao.EditGroup("Language Book", "Other Group"))
     End Sub
 
+    ''' <summary>
+    ''' Tests that renaming a group that does not exist throws.
+    ''' </summary>
+    <Test>
+    Public Sub EditGroup_NonExisting_Throws()
+        Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.EditGroup("Missing Group", "New Name"))
+    End Sub
+
     <Test>
     Public Sub EditGroup_WithFreeName_RenamesAllTables()
         _groupsDao.EditGroup("Language Book", "Crazy Lecture")
