@@ -232,6 +232,14 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub AddSubEntry_WithUnknownWordType_Fails()
+        Dim wordWithUnknownType As New WordEntry("word1 unknown type", "", "", CType(9, WordType), "m", "", False)
+
+        Assert.Throws(Of SqliteException)(
+            Sub() _dictionaryDao.AddSubEntry(wordWithUnknownType, "word1", language, targetLanguage))
+    End Sub
+
+    <Test>
     Public Sub ChangeEntry_NewWordExists_Fails()
         Dim nameUpdate As New IDictionaryDao.UpdateData With {
             .Word = "word1"
@@ -288,13 +296,13 @@ Public Class DictionaryDaoTests
             .Word = "new word",
             .Pre = "new pre",
             .Post = "new post",
-            .WordType = WordType.Adverb,
+            .WordType = WordType.Adjective,
             .Meaning = "new meaning",
             .AdditionalTargetLangInfo = "new info",
             .Irregular = True
         }
         Dim newEntryWord As WordEntry = _dictionaryDao.ChangeEntry(word1entry1, nameUpdate)
-        Dim expectedResult As WordEntry = New GroupDaoTests.MockWordEntry(1, "new word", "new pre", "new post", WordType.Adverb, "new meaning", "new info", True)
+        Dim expectedResult As WordEntry = New GroupDaoTests.MockWordEntry(1, "new word", "new pre", "new post", WordType.Adjective, "new meaning", "new info", True)
         newEntryWord.Should.BeEquivalentTo(expectedResult)
     End Sub
 
@@ -489,7 +497,7 @@ Public Class DictionaryDaoTests
         Dim mainIndex As Integer = SeedApostropheMain()
         Dim command = "
             INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
-            VALUES (?, 'aujourd''hui', '', '', 3, 'heute', '', 0)
+            VALUES (?, 'aujourd''hui', '', '', 1, 'heute', '', 0)
         "
         _db.ExecuteNonQuery(command, Enumerable.Repeat(CObj(mainIndex), 1))
 
@@ -508,13 +516,13 @@ Public Class DictionaryDaoTests
     <Test>
     Public Sub AddSubEntry_ApostropheInAllTextFields_RoundTripsUnchanged()
         _dictionaryDao.AddEntry("po'", language, targetLanguage)
-        Dim apostropheWord As New WordEntry("un po'", "l'", "d'", WordType.Simple, "wie geht's?", "d'Aide", False)
+        Dim apostropheWord As New WordEntry("un po'", "l'", "d'", WordType.Verb, "wie geht's?", "d'Aide", False)
 
         _dictionaryDao.AddSubEntry(apostropheWord, "po'", language, targetLanguage)
 
         Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWordsAndSubWords("po'", language, targetLanguage)
         words.Should.HaveCount(1)
-        words.First().Should.Be(New WordEntry("un po'", "l'", "d'", WordType.Simple, "wie geht's?", "d'Aide", False))
+        words.First().Should.Be(New WordEntry("un po'", "l'", "d'", WordType.Verb, "wie geht's?", "d'Aide", False))
     End Sub
 
     Private Function SeedApostropheMain() As Integer

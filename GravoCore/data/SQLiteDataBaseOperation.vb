@@ -22,7 +22,7 @@ Public Class SQLiteDataBaseOperation
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If connected Then Close()
-        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=False;"
+        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=True;"
         connection.Open()
         connected = True
         Return True

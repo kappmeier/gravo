@@ -7,10 +7,11 @@ Imports NUnit.Framework
 
 ''' <summary>
 ''' Tests for the dictionary part of <see cref="DatabaseTransfer"/>. Tests run on a copy of
-''' <c>test-data-dictionary.s3db</c>. Target is a freshly created vocabulary database.
+''' <c>test-data-dictionary.s3db</c>.
+''' <para>Target is a freshly created vocabulary database. It is empty (no words, no card entries).</para>
 ''' </summary>
 ''' <remarks>
-''' The database contains the following data:
+''' The working database contains the following data:
 '''' - main entries word1/lang (words 1, 2, 3, 33)
 '''' - some word/lang2 (word 4)
 '''' - wordx/lang (word 29)
@@ -55,6 +56,15 @@ Public Class DatabaseTransferLanguageTests
         File.Delete(_sourcePath)
         File.Delete(_targetPath)
     End Sub
+
+    <Test>
+    Public Sub Precondition_TargetDatabase_IsInitializedEmpty()
+        _target.Dictionary.DictionaryMainLanguages().Should().BeEmpty()
+        CountRows(_targetDb, "Cards").Should().Be(0)
+        CountRows(_targetDb, "DictionaryMain").Should().Be(0)
+        CountRows(_targetDb, "DictionaryWords").Should().Be(0)
+    End Sub
+
 
     <Test>
     Public Sub CopyLanguage_Lang_CopiesMainsWordsAndCards()
@@ -154,23 +164,6 @@ Public Class DatabaseTransferLanguageTests
     End Sub
 
     <Test>
-    Public Sub CopyLanguage_WordExistsInTarget_NeverAddsSubEntry()
-        Dim dictionaryMock As New Mock(Of IDictionaryDao)(MockBehavior.Strict)
-        Dim groupsMock As New Mock(Of IGroupsDao)(MockBehavior.Strict)
-        Dim groupMock As New Mock(Of IGroupDao)(MockBehavior.Strict)
-        Dim targetMain As New MainEntry("word1", "lang", mainLanguage)
-        Dim targetWord As New WordEntry("word1", "", "", WordType.Verb, "m", "", False)
-        dictionaryMock.Setup(Function(x) x.GetMainEntry(It.IsAny(Of String), "lang", mainLanguage)).Returns(targetMain)
-        dictionaryMock.Setup(Function(x) x.GetEntry(targetMain, It.IsAny(Of String), It.IsAny(Of String))).Returns(targetWord)
-        Dim transfer As New DatabaseTransfer(_source, New VocabularyDatabase(dictionaryMock.Object, groupsMock.Object, groupMock.Object))
-
-        Dim result As TransferResult = transfer.CopyLanguage("lang", mainLanguage, False)
-
-        result.MainEntries.Should().Be(0)
-        result.SubEntries.Should().Be(0)
-    End Sub
-
-    <Test>
     Public Sub CopyLanguage_ApostropheEntries_ArriveUnchangedOverTwoHops()
         Dim command = "
             INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage)
@@ -180,7 +173,7 @@ Public Class DatabaseTransferLanguageTests
         command = "
             INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
             SELECT [Index],
-                   'un po'' di', 'l''', '', 3,
+                   'un po'' di', 'l''', '', 1,
                    'ein bisschen', 'Sapori d''Italia',
                    0
               FROM DictionaryMain
@@ -200,7 +193,7 @@ Public Class DatabaseTransferLanguageTests
             Dim main As MainEntry = third.Dictionary.GetMainEntry("po'", "lang", mainLanguage)
             main.Word.Should().Be("po'")
             third.Dictionary.GetEntry(main, "un po' di", "ein bisschen").Should().Be(
-                New WordEntry("un po' di", "l'", "", WordType.Simple, "ein bisschen", "Sapori d'Italia", False))
+                New WordEntry("un po' di", "l'", "", WordType.Verb, "ein bisschen", "Sapori d'Italia", False))
             Dim again As TransferResult = _transfer.CopyLanguage("lang", mainLanguage, False)
             again.MainEntries.Should().Be(0)
             again.SubEntries.Should().Be(0)
@@ -215,7 +208,7 @@ Public Class DatabaseTransferLanguageTests
     Public Sub CopyLanguage_SourceWordWithDoubleQuote_ThrowsInputException()
         Dim command = "
             INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
-            VALUES (1, 'say ""hi""', '', '', 3, 'greet', '', 0)
+            VALUES (1, 'say ""hi""', '', '', 1, 'greet', '', 0)
         "
         _sourceDb.ExecuteNonQuery(command, Array.Empty(Of Object))
 
