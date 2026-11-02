@@ -424,6 +424,23 @@ Public Class GroupsDaoTests
         result.Should.Equal("Unit 2", "Unit 1")
     End Sub
 
+    ''' <summary>
+    ''' Tests that swapping groups leaves the database in a consistent state in case of an error.
+    ''' </summary>
+    <Test>
+    Public Sub SwapGroups_TableMissing_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged_TableNotExisting]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2"))
+
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _groupsDao.GetSubGroups("Language Book").Select(Function(g) g.SubGroup).Should.Equal("Unit 1", "Unit 2")
+    End Sub
+
     Private Function TableHasRows(tableName As String) As Boolean
         _db.ExecuteReader("SELECT [Index] FROM [" & tableName & "]", Array.Empty(Of Object))
         TableHasRows = _db.DBCursor.HasRows

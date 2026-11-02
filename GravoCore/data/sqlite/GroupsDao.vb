@@ -311,17 +311,15 @@ Public Class GroupsDao
     ''' <param name="groupSubName1"></param>
     ''' <param name="groupSubName2"></param>
     Public Sub SwapGroups(ByVal groupName As String, ByVal groupSubName1 As String, ByVal groupSubName2 As String) Implements IGroupsDao.SwapGroups
-        Dim command As String = ""
-        Dim group As GroupEntry
+        Dim first = GetGroup(groupName, groupSubName1)
+        Dim second = GetGroup(groupName, groupSubName2)
 
-        ' Holen der Daten
-        group = GetGroup(groupName, groupSubName1)
-        Dim index1 As Integer = group.Index
-        Dim table1 As String = group.Table
+        DBConnection.InTransaction(Sub() SwapTablesAndNames(first, second))
+    End Sub
 
-        group = GetGroup(groupName, groupSubName2)
-        Dim index2 As Integer = group.Index
-        Dim table2 As String = group.Table
+    Private Sub SwapTablesAndNames(first As GroupEntry, second As GroupEntry)
+        Dim table1 As String = first.Table
+        Dim table2 As String = second.Table
 
         ' Swap the tables
         Dim renameFirstToTemp = CreateRenameTableCommand(table1, table1 & "_")
@@ -332,10 +330,14 @@ Public Class GroupsDao
         ExecuteNonQuery(DBConnection, renameTempToSecond)
 
         ' Swap the names
-        command = "UPDATE Groups SET [GroupSubName] = ? WHERE [Index] = ?"
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName2 & "_", CStr(index1)})
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName1, CStr(index2)})
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName2, CStr(index1)})
+        Dim command = "
+            UPDATE Groups
+               SET [GroupSubName] = ?
+             WHERE [Index] = ?
+        "
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {second.SubGroup & "_", CStr(first.Index)})
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {first.SubGroup, CStr(second.Index)})
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {second.SubGroup, CStr(first.Index)})
     End Sub
 
     Private Shared Function CreateRenameTableCommand(existingTable As String, newTableName As String) As String
