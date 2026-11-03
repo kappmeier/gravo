@@ -132,6 +132,17 @@ Public Interface IDictionaryDao
 
     Function GetWordsWithMeaning(ByVal meaning As String, ByVal language As String, ByVal mainLanguage As String) As ICollection(Of WordEntry)
 
+    ''' <summary>
+    ''' Adds a main entry.
+    ''' </summary>
+    ''' <param name="word">The word of the main entry.</param>
+    ''' <param name="language">The language of the word.</param>
+    ''' <param name="mainLanguage">The language of the main entry.</param>
+    ''' <returns>The new main entry.</returns>
+    ''' <exception cref="InputException">
+    ''' When the word is empty after trimming, the language is empty or a text holds a forbidden character.
+    ''' </exception>
+    ''' <exception cref="EntryExistsException">When the language has the main entry already.</exception>
     Function AddEntry(ByVal word As String, ByVal language As String, ByVal mainLanguage As String) As MainEntry
 
     ''' <summary>
@@ -161,6 +172,12 @@ Public Interface IDictionaryDao
     ''' <param name="entry">The word to change.</param>
     ''' <param name="updateData">The new values. A field that is <c>Nothing</c> stays unchanged.</param>
     ''' <returns>The changed word.</returns>
+    ''' <exception cref="InputException">
+    ''' When the word is empty after trimming or a text field holds a forbidden character.
+    ''' </exception>
+    ''' <exception cref="EntryExistsException">
+    ''' When the main entry has a word with the new word and meaning already.
+    ''' </exception>
     Function ChangeEntry(ByVal entry As WordEntry, ByVal updateData As UpdateData) As WordEntry
 
     ''' <summary>
@@ -168,6 +185,7 @@ Public Interface IDictionaryDao
     ''' </summary>
     ''' <param name="entry">The word to move.</param>
     ''' <param name="mainEntry">The new main entry of the word.</param>
+    ''' <exception cref="EntryNotFoundException">When the main entry does not exist.</exception>
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry)
 
     Function GetMainEntry(ByVal word As WordEntry) As MainEntry
@@ -180,6 +198,17 @@ Public Interface IDictionaryDao
     Function GetMainEntries(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String
         ) As ICollection(Of MainEntry)
 
+    ''' <summary>
+    ''' Renames a main entry.
+    ''' </summary>
+    ''' <param name="mainEntry">The main entry to rename.</param>
+    ''' <param name="newWord">The new word of the main entry.</param>
+    ''' <returns>The renamed main entry.</returns>
+    ''' <exception cref="InputException">
+    ''' When the word is empty after trimming or holds a forbidden character.
+    ''' </exception>
+    ''' <exception cref="EntryNotFoundException">When the main entry does not exist.</exception>
+    ''' <exception cref="EntryExistsException">When another main entry has the new word already.</exception>
     Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String) As MainEntry
 
     ''' <summary>

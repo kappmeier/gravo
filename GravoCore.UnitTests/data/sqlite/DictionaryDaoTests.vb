@@ -486,7 +486,7 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub ChangeEntry_NotExisting_Fails()
-        Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.ChangeMainEntry(nonExistingMainEntry, ""))
+        Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.ChangeMainEntry(nonExistingMainEntry, "new"))
     End Sub
 
     <Test>
@@ -636,6 +636,13 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub AddEntry_WithSpacesOnly_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.AddEntry("   ", language, targetLanguage))
+
+        _dictionaryDao.WordCount(language, targetLanguage).Should.Be(2)
+    End Sub
+
+    <Test>
     Public Sub AddSubEntry_WithDoubleQuote_ThrowsInputException()
         Dim quoted As New WordEntry("word1", "", "", WordType.Verb, "say ""hi""", "", False)
 
@@ -656,6 +663,13 @@ Public Class DictionaryDaoTests
     <Test>
     Public Sub ChangeMainEntry_WithDoubleQuote_ThrowsInputException()
         Assert.Throws(Of InputException)(Sub() _dictionaryDao.ChangeMainEntry(word1MainEntry, "word""1"))
+
+        _dictionaryDao.GetMainEntry("word1", language, targetLanguage).Should.Be(word1MainEntry)
+    End Sub
+
+    <Test>
+    Public Sub ChangeMainEntry_WithSpacesOnly_ThrowsInputException()
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.ChangeMainEntry(word1MainEntry, "   "))
 
         _dictionaryDao.GetMainEntry("word1", language, targetLanguage).Should.Be(word1MainEntry)
     End Sub

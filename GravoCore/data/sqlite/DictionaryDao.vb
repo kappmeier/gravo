@@ -122,7 +122,7 @@ Public Class DictionaryDao
 
     Public Function AddEntry(ByVal Word As String, ByVal Language As String, ByVal MainLanguage As String) As MainEntry Implements IDictionaryDao.AddEntry
         CheckAllowedText(Word, Language, MainLanguage)
-        If Word = "" Then Throw New InputException(InputException.ErrorType.NoWord)
+        CheckWordNotEmpty(Word.Trim())
         If Language = "" Then Throw New InputException(InputException.ErrorType.NoLanguage)
         Try
             GetEntryIndex(Word, Language, MainLanguage)
@@ -421,6 +421,7 @@ Public Class DictionaryDao
     Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String
         ) As MainEntry Implements IDictionaryDao.ChangeMainEntry
         CheckAllowedText(newWord)
+        CheckWordNotEmpty(newWord.Trim())
         ' Verify that the original entry exists
         CheckMainEntry(mainEntry)
 
