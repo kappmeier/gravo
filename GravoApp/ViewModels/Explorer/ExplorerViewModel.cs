@@ -379,9 +379,10 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// the whole change.
     /// </para>
     /// <para>
-    /// When marked is enabled on a sub group it is written to the group as well. If one of the words fails a message
-    /// is shown and  the remaining words are still changed. Rows without a word, such as main entries on a language
-    /// node, are skipped.
+    /// When marked is enabled on a sub group it is written to the group as well. Invalid input stops the change at
+    /// the first word with one message, since every word gets the same values. A word whose new text exists already
+    /// is reported and the remaining words are still changed. Rows without a word, such as main entries on a
+    /// language node, are skipped.
     /// </para>
     /// </remarks>
     [RelayCommand]
@@ -434,6 +435,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             catch (InputException ex)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
+                break;
             }
             catch (EntryExistsException)
             {

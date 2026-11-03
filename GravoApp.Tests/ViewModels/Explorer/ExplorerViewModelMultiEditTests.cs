@@ -223,6 +223,20 @@ public class ExplorerViewModelMultiEditTests
     }
 
     [Test]
+    public async Task ChangeSelected_InvalidWord_ShowsOneMessage()
+    {
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+
+        fixture.Multi.EnableWord = true;
+        fixture.Multi.Word = "a\"b";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
+        HouseWords().Select(w => w.Word).Should().BeEquivalentTo("house", "houses");
+    }
+
+    [Test]
     public async Task ChangeSelected_EntryExists_ShowsMessageAndContinues()
     {
         var fixture = Create();
