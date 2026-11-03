@@ -261,6 +261,23 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task AddWord_WhitespaceMainEntry_UsesTheWord()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Dictionary, "german", "english", "H", "house");
+
+        fixture.Editor.MainEntry = "   ";
+        fixture.Editor.Word = "house";
+        fixture.Editor.Meaning = "Gebäude";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        fixture.Editor.MainEntry.Should().Be("house");
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        fixture.Rows.Select(r => r.Meaning).Should().Contain("Gebäude");
+    }
+
+    [Test]
     public async Task AddWord_NewMainEntryWithSpaces_UsesTheTrimmedName()
     {
         var fixture = Create();

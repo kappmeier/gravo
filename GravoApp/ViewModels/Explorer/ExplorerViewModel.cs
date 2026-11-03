@@ -235,6 +235,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// A letter or main entry node gives the languages. On a sub group or one of its words the languages come from
     /// the words in the group, or from the panel when the group is empty. A missing main entry is created after
     /// confirmation. A word that is already in the dictionary is not added twice, but it can still go into the group.
+    /// An empty main entry or one of whitespace only is replaced by the word itself before posing the question.
     /// </para>
     /// <para>
     /// After the dictionary or group is updated, the node is loaded again, so a new main entry or group word shows up
@@ -291,9 +292,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             return;
         }
 
-        if (Editor.MainEntry.Length == 0)
+        if (Editor.MainEntry.Trim().Length == 0)
         {
-            Editor.MainEntry = Editor.Word;
+            Editor.MainEntry = Editor.Word.Trim();
         }
         if (language.Length == 0 || mainLanguage.Length == 0)
         {
