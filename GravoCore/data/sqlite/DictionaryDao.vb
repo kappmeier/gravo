@@ -30,7 +30,8 @@ Public Class DictionaryDao
              WHERE {ParamEquals("W", "MainIndex", "Word", "Meaning")}
         "
 
-        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainEntry.Index, word, meaning}))
+        DBConnection.ExecuteReader(command,
+            ToDbParameters(New List(Of Object) From {mainEntry.Index, word.Trim(), meaning.Trim()}))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("There is no entry for the given word/meaning.")
                                   End Function)
@@ -144,6 +145,7 @@ Public Class DictionaryDao
     Public Sub AddSubEntry(ByVal Entry As WordEntry, ByVal MainEntry As String, ByVal Language As String,
         ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
         CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo)
+        Dim trimmedEntry = Trimmed(Entry)
         Dim mainIndex As Integer
         Try
             mainIndex = GetEntryIndex(MainEntry, Language, MainLanguage)
@@ -155,23 +157,45 @@ Public Class DictionaryDao
 
         ' Check, if there is already the exact same entry (i.e. word and meaning are the same)
         Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE MainIndex = ? AND Word = ? AND Meaning = ?"
-        DBConnection.ExecuteReader(command, New List(Of String) From {CStr(mainIndex), Entry.Word, Entry.Meaning})
+        DBConnection.ExecuteReader(command,
+            New List(Of String) From {CStr(mainIndex), trimmedEntry.Word, trimmedEntry.Meaning})
         FailIfExists(DBConnection, Function() As Exception
                                        Throw New EntryExistsException("The entry exists already with the same meaning for the main entry.")
                                    End Function)
 
         command = "INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular) VALUES(?, ?, ?, ?, ?, ?, ?, ?)"
-        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {mainIndex, Entry.Word, Entry.Pre, Entry.Post, Entry.WordType, Entry.Meaning, Entry.AdditionalTargetLangInfo, If(Entry.Irregular, 1, 0)}))
+        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {
+            mainIndex, trimmedEntry.Word, trimmedEntry.Pre, trimmedEntry.Post, trimmedEntry.WordType,
+            trimmedEntry.Meaning, trimmedEntry.AdditionalTargetLangInfo, If(trimmedEntry.Irregular, 1, 0)}))
 
         ' Card-Status hinzufügen
         Dim card As New CardsDao(DBConnection)
-        Dim subEntryIndex As Integer = GetSubEntryIndex(mainIndex, Entry.Word, Entry.Meaning)
+        Dim subEntryIndex As Integer = GetSubEntryIndex(mainIndex, trimmedEntry.Word, trimmedEntry.Meaning)
         card.AddNewEntry(subEntryIndex)
         Entry.Index = subEntryIndex
     End Sub
 
+    Private Shared Function Trimmed(entry As WordEntry) As WordEntry
+        Return New WordEntry(entry.Word?.Trim(), entry.Pre?.Trim(), entry.Post?.Trim(), entry.WordType,
+                         entry.Meaning?.Trim(), entry.AdditionalTargetLangInfo?.Trim(), entry.Irregular)
+    End Function
+
+    ' The unset WordType and Irregular are filled from the entry: the result is the same update.
+    Private Shared Function Trimmed(data As IDictionaryDao.UpdateData, entry As WordEntry) As IDictionaryDao.UpdateData
+        Return New IDictionaryDao.UpdateData With {
+            .Word = data.Word?.Trim(),
+            .Pre = data.Pre?.Trim(),
+            .Post = data.Post?.Trim(),
+            .WordType = data.WordTypeDefault(entry),
+            .Meaning = data.Meaning?.Trim(),
+            .AdditionalTargetLangInfo = data.AdditionalTargetLangInfo?.Trim(),
+            .Irregular = data.IrregularDefault(entry)
+        }
+    End Function
+
     Function ChangeEntry(ByVal entry As WordEntry, ByVal updateData As IDictionaryDao.UpdateData
         ) As WordEntry Implements IDictionaryDao.ChangeEntry
+        updateData = Trimmed(updateData, entry)
         CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo)
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)

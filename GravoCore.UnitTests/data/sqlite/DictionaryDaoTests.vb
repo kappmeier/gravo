@@ -75,6 +75,16 @@ Public Class DictionaryDaoTests
         Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.GetEntry(word1MainEntry, "non existing", "x"))
     End Sub
 
+    ''' <summary>
+    ''' All words are stored trimmed, lookup follows the rule.
+    ''' </summary>
+    <Test>
+    Public Sub GetEntry_KeyWithSpaces_FindsTheWord()
+        Dim wordEntry As WordEntry = _dictionaryDao.GetEntry(word1MainEntry, " word1 ", " m ")
+
+        wordEntry.Should.BeEquivalentTo(word1entry1)
+    End Sub
+
     <Test>
     Public Sub WordsLoaded_Existing_ListReturned()
         Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWords("word1", "word1", language, targetLanguage)
@@ -210,6 +220,23 @@ Public Class DictionaryDaoTests
         AssertCardCreated()
     End Sub
 
+    ''' <summary>
+    ''' Spaces around the text fields are not stored.
+    ''' </summary>
+    <Test>
+    Public Sub AddSubEntry_FieldsWithSpaces_StoresThemTrimmed()
+        Dim paddedWord As New WordEntry(" word ", " pre ", " post ", WordType.Verb, " meaning ", " info ", False)
+
+        _dictionaryDao.AddSubEntry(paddedWord, "wordx", language, targetLanguage)
+
+        Dim stored = _dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage).Single(Function(w) w.Index = newWordIndex)
+        stored.Word.Should.Be("word")
+        stored.Pre.Should.Be("pre")
+        stored.Post.Should.Be("post")
+        stored.Meaning.Should.Be("meaning")
+        stored.AdditionalTargetLangInfo.Should.Be("info")
+    End Sub
+
     Private Sub AssertCardCreated()
         Dim command As String = "SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain FROM Cards WHERE [Index] = ?"
         _db.ExecuteReader(command, ToDbParameters(New List(Of Object) From {newWordIndex}))
@@ -304,6 +331,31 @@ Public Class DictionaryDaoTests
         Dim newEntryWord As WordEntry = _dictionaryDao.ChangeEntry(word1entry1, nameUpdate)
         Dim expectedResult As WordEntry = New GroupDaoTests.MockWordEntry(1, "new word", "new pre", "new post", WordType.Adjective, "new meaning", "new info", True)
         newEntryWord.Should.BeEquivalentTo(expectedResult)
+    End Sub
+
+    ''' <summary>
+    ''' Spaces around the text fields are not stored.
+    ''' </summary>
+    <Test>
+    Public Sub ChangeEntry_FieldsWithSpaces_StoresThemTrimmed()
+        Dim paddedUpdate As New IDictionaryDao.UpdateData With {
+            .Word = " new word ",
+            .Pre = " pre ",
+            .Post = " post ",
+            .Meaning = " new meaning ",
+            .AdditionalTargetLangInfo = " info "
+        }
+
+        Dim changed As WordEntry = _dictionaryDao.ChangeEntry(word1entry1, paddedUpdate)
+
+        Dim stored = _dictionaryDao.GetWordsAndSubWords(word1MainEntry).Single(Function(w) w.Index = word1entry1.Index)
+        For Each entry In {changed, stored}
+            entry.Word.Should.Be("new word")
+            entry.Pre.Should.Be("pre")
+            entry.Post.Should.Be("post")
+            entry.Meaning.Should.Be("new meaning")
+            entry.AdditionalTargetLangInfo.Should.Be("info")
+        Next
     End Sub
 
     <Test>
