@@ -146,6 +146,7 @@ Public Class DictionaryDao
         ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
         CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo)
         Dim trimmedEntry = Trimmed(Entry)
+        CheckWordNotEmpty(trimmedEntry.Word)
         Dim mainIndex As Integer
         Try
             mainIndex = GetEntryIndex(MainEntry, Language, MainLanguage)
@@ -175,6 +176,13 @@ Public Class DictionaryDao
         Entry.Index = subEntryIndex
     End Sub
 
+    ''' <summary>
+    ''' Rejects an empty word after trimming; <c>Nothing</c> means unchanged and passes.
+    ''' </summary>
+    Private Shared Sub CheckWordNotEmpty(word As String)
+        If word IsNot Nothing AndAlso word.Length = 0 Then Throw New InputException(InputException.ErrorType.NoWord)
+    End Sub
+
     Private Shared Function Trimmed(entry As WordEntry) As WordEntry
         Return New WordEntry(entry.Word?.Trim(), entry.Pre?.Trim(), entry.Post?.Trim(), entry.WordType,
                          entry.Meaning?.Trim(), entry.AdditionalTargetLangInfo?.Trim(), entry.Irregular)
@@ -197,6 +205,7 @@ Public Class DictionaryDao
         ) As WordEntry Implements IDictionaryDao.ChangeEntry
         updateData = Trimmed(updateData, entry)
         CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo)
+        CheckWordNotEmpty(updateData.Word)
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
             Dim newMeaning = updateData.MeaningDefault(entry)

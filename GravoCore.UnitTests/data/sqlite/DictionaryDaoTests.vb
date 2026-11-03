@@ -237,6 +237,17 @@ Public Class DictionaryDaoTests
         stored.AdditionalTargetLangInfo.Should.Be("info")
     End Sub
 
+    ''' <summary>
+    ''' A word of spaces only is empty after trimming and should be rejected.
+    ''' </summary>
+    <Test>
+    Public Sub AddSubEntry_WordWithSpacesOnly_ThrowsInputException()
+        Dim emptyWord As New WordEntry("   ", "", "", WordType.Verb, "meaning", "", False)
+
+        Assert.Throws(Of InputException)(
+            Sub() _dictionaryDao.AddSubEntry(emptyWord, "wordx", language, targetLanguage))
+    End Sub
+
     Private Sub AssertCardCreated()
         Dim command As String = "SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain FROM Cards WHERE [Index] = ?"
         _db.ExecuteReader(command, ToDbParameters(New List(Of Object) From {newWordIndex}))
@@ -356,6 +367,16 @@ Public Class DictionaryDaoTests
             entry.Meaning.Should.Be("new meaning")
             entry.AdditionalTargetLangInfo.Should.Be("info")
         Next
+    End Sub
+
+    ''' <summary>
+    ''' A word of spaces only is empty after trimming and is rejected.
+    ''' </summary>
+    <Test>
+    Public Sub ChangeEntry_WordWithSpacesOnly_ThrowsInputException()
+        Dim emptyUpdate As New IDictionaryDao.UpdateData With {.Word = " "}
+
+        Assert.Throws(Of InputException)(Sub() _dictionaryDao.ChangeEntry(word1entry1, emptyUpdate))
     End Sub
 
     <Test>
