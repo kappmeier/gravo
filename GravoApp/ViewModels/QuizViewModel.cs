@@ -138,7 +138,7 @@ public sealed partial class QuizViewModel : ViewModelBase
         Feedback = text();
     }
 
-    /// <summary>Handles UI langauge switch and builds the title and the feedback again.</summary>
+    /// <summary>Handles UI language switch and builds the title and the feedback again.</summary>
     private void OnTextsChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != UiTexts.IndexerName)

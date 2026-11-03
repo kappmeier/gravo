@@ -64,7 +64,6 @@ Public Class DatabaseTransferLanguageTests
         CountRows(_targetDb, "DictionaryWords").Should().Be(0)
     End Sub
 
-
     <Test>
     Public Sub CopyLanguage_Lang_CopiesMainsWordsAndCards()
         Dim result As TransferResult = _transfer.CopyLanguage("lang", mainLanguage, False)

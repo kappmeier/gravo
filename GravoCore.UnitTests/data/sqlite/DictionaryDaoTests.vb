@@ -86,6 +86,16 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub GetEntry_WordNothing_ThrowsArgumentNullException()
+        Assert.Throws(Of ArgumentNullException)(Sub() _dictionaryDao.GetEntry(word1MainEntry, Nothing, "m"))
+    End Sub
+
+    <Test>
+    Public Sub GetEntry_MeaningNothing_ThrowsArgumentNullException()
+        Assert.Throws(Of ArgumentNullException)(Sub() _dictionaryDao.GetEntry(word1MainEntry, "word1", Nothing))
+    End Sub
+
+    <Test>
     Public Sub WordsLoaded_Existing_ListReturned()
         Dim words As ICollection(Of WordEntry) = _dictionaryDao.GetWords("word1", "word1", language, targetLanguage)
 
@@ -229,7 +239,9 @@ Public Class DictionaryDaoTests
 
         _dictionaryDao.AddSubEntry(paddedWord, "wordx", language, targetLanguage)
 
-        Dim stored = _dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage).Single(Function(w) w.Index = newWordIndex)
+        Dim stored = _dictionaryDao.
+            GetWordsAndSubWords("wordx", language, targetLanguage).
+            Single(Function(w) w.Index = newWordIndex)
         stored.Word.Should.Be("word")
         stored.Pre.Should.Be("pre")
         stored.Post.Should.Be("post")

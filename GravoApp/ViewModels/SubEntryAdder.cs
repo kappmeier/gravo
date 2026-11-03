@@ -34,7 +34,7 @@ public sealed class SubEntryAdder
     /// <param name="mainLanguage">The main language of the word.</param>
     /// <param name="missingMessage">The question shown when the main entry does not exist.</param>
     /// <returns>
-    /// The stored word with its index, or the dictionary's word when it was stored already. It is <c>null</c> after
+    /// The added entry with its index, or the dictionary's word when it was stored already. It is <c>null</c> after
     /// an error or a declined question.
     /// </returns>
     public async Task<WordEntry?> AddAsync(WordEntry entry, string mainEntry, string language, string mainLanguage,

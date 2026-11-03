@@ -233,9 +233,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <remarks>
     /// <para>
     /// A letter or main entry node gives the languages. On a sub group or one of its words the languages come from
-    /// the words in the group, or from the panel when the group is empty. A missing main entry is created after
+    /// the words in the group, or from the panel when the group is empty. An empty main entry or one of whitespace
+    /// only is replaced by the word itself before the question is posed. A missing main entry is created after
     /// confirmation. A word that is already in the dictionary is not added twice, but it can still go into the group.
-    /// An empty main entry or one of whitespace only is replaced by the word itself before posing the question.
     /// </para>
     /// <para>
     /// After the dictionary or group is updated, the node is loaded again, so a new main entry or group word shows up

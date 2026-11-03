@@ -3,7 +3,7 @@
 <Assembly: InternalsVisibleTo("GravoApp.Tests")>
 
 ''' <summary>
-''' Container for the three DAOs of one vocabulary database bundled together.
+''' The DAOs of one vocabulary database together with the connection they work on.
 ''' </summary>
 ''' <remarks>
 ''' Current implementation supports SQLite vocabulary databases (<c>*.s3db</c>).
@@ -15,8 +15,8 @@ Public Class VocabularyDatabase
     Private ReadOnly _connection As IDataBaseOperation
 
     ''' <summary>
-    ''' Initializes a new instance of the vocabulary with a given database connection and DAOs. It is assumed that the
-    ''' DAOs are using the given connection. To make sure only the <see cref="Create"/> factory method is used.
+    ''' Initializes a new instance from a database connection and the DAOs that work on it. The constructor is
+    ''' private so that every instance comes from <see cref="Create"/> or <see cref="CreateForTest"/>.
     ''' </summary>
     Private Sub New(db As IDataBaseOperation, dictionary As IDictionaryDao, groups As IGroupsDao, group As IGroupDao)
         _dictionary = dictionary
@@ -33,8 +33,7 @@ Public Class VocabularyDatabase
     End Function
 
     ''' <summary>
-    ''' Creates a vocabulary database instance for testing with the provided DAOs. Skips the creation of concrete DAOs and
-    ''' therefore not ensures all daos use the same database connection.
+    ''' Creates an instance for tests from the given DAOs. It does not check that they use <paramref name="db"/>.
     ''' </summary>
     Friend Shared Function CreateForTest(db As IDataBaseOperation, dictionary As IDictionaryDao, groups As IGroupsDao,
         group As IGroupDao) As VocabularyDatabase

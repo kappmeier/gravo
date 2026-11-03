@@ -24,6 +24,8 @@ Public Class DictionaryDao
     End Sub
 
     Function GetEntry(mainEntry As MainEntry, word As String, meaning As String) As WordEntry Implements IDictionaryDao.GetEntry
+        ArgumentNullException.ThrowIfNull(word)
+        ArgumentNullException.ThrowIfNull(meaning)
         Dim command As String = $"
             SELECT {_wordEntryColumns}
               FROM {_wordEntryTable}
