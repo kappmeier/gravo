@@ -25,19 +25,25 @@ public sealed class SubEntryAdder
         _texts = texts;
     }
 
-    /// <summary>Adds <paramref name="entry"/> to <paramref name="mainEntry"/>.</summary>
+    /// <summary>
+    /// Adds <paramref name="entry"/> to <paramref name="mainEntry"/>. All text fields will be trimmed.
+    /// </summary>
     /// <param name="entry">The word to add.</param>
     /// <param name="mainEntry">The trimmed main entry.</param>
     /// <param name="language">The language of the word.</param>
     /// <param name="mainLanguage">The main language of the word.</param>
     /// <param name="missingMessage">The question shown when the main entry does not exist.</param>
     /// <returns>
-    /// The stored word. It is the passed <paramref name="entry"/> when it was added, or the dictionary's word when it
-    /// was stored already, and <c>null</c> after an error or a declined question.
+    /// The stored word. It is <paramref name="entry"/> stored trimmed when it was added, or the dictionary's word when
+    /// it was stored already, and <c>null</c> after an error or a declined question.
     /// </returns>
     public async Task<WordEntry?> AddAsync(WordEntry entry, string mainEntry, string language, string mainLanguage,
         string missingMessage)
     {
+        entry = Trimmed(entry);
+        mainEntry = mainEntry.Trim();
+        language = language.Trim();
+        mainLanguage = mainLanguage.Trim();
         try
         {
             _dictionary.AddSubEntry(entry, mainEntry, language, mainLanguage);
@@ -86,6 +92,12 @@ public sealed class SubEntryAdder
                 _texts.Get(localization.WORD_ALREADY_IN_GROUP));
         }
     }
+
+    /// <summary>Returns a copy of <paramref name="entry"/> with trimmed text fields.</summary>
+    /// <param name="entry">The word to copy.</param>
+    private static WordEntry Trimmed(WordEntry entry) =>
+        new(entry.Word.Trim(), entry.Pre.Trim(), entry.Post.Trim(), entry.WordType, entry.Meaning.Trim(),
+            entry.AdditionalTargetLangInfo.Trim(), entry.Irregular);
 
     /// <summary>Creates a missing main entry and adds the sub entry again.</summary>
     /// <remarks>

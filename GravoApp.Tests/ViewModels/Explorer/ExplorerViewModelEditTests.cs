@@ -312,6 +312,23 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task AddWord_PaddedFields_StoresThemTrimmed()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Dictionary, "german", "english", "H", "house");
+
+        fixture.Editor.MainEntry = "house";
+        fixture.Editor.Word = " housing ";
+        fixture.Editor.Pre = " the ";
+        fixture.Editor.Meaning = " Wohnen ";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        var stored = _voc.Dictionary.GetSubWords("house", "english", "german").Single(w => w.Meaning == "Wohnen");
+        stored.Word.Should().Be("housing");
+        stored.Pre.Should().Be("the");
+    }
+
+    [Test]
     public async Task AddWord_OnSubGroupNode_AddsToGroupWhenChecked()
     {
         var fixture = Create();
