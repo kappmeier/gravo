@@ -175,29 +175,6 @@ public class WordInputViewModelTests
     }
 
     [Test]
-    public async Task AddSubEntry_PaddedFields_StoresThemTrimmed()
-    {
-        WordEntry? captured = null;
-        _dictionary.Setup(d => d.AddSubEntry(It.IsAny<WordEntry>(), "Haus", "english", "german"))
-            .Callback<WordEntry, string, string, string>((entry, _, _, _) => captured = entry);
-
-        var fixture = Create();
-        fixture.MainEntry = " Haus ";
-        fixture.Pre = " the ";
-        fixture.Post = " s ";
-        fixture.Meaning = " Haus ";
-        fixture.AdditionalInfo = " n. ";
-        await fixture.AddSubEntryCommand.ExecuteAsync(null);
-
-        captured.Should().NotBeNull();
-        captured!.Word.Should().Be("Haus");
-        captured.Pre.Should().Be("the");
-        captured.Post.Should().Be("s");
-        captured.Meaning.Should().Be("Haus");
-        captured.AdditionalTargetLangInfo.Should().Be("n.");
-    }
-
-    [Test]
     public async Task AddSubEntry_SelectedWordType_IsStored()
     {
         WordEntry? captured = null;

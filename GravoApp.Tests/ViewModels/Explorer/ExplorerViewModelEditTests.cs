@@ -566,6 +566,25 @@ public class ExplorerViewModelEditTests
         _voc.Dictionary.GetMainEntry(_seed.Houses).Word.Should().Be("houses");
     }
 
+    /// <summary>Ensures the dictionary trims words when changing from the explorer.</summary>
+    [Test]
+    public async Task ChangeWord_FieldsWithSpaces_StoresThemTrimmed()
+    {
+        var fixture = Create();
+        var row = SelectRow(fixture, "house", Dictionary, "german", "english", "H");
+        var index = fixture.Rows.IndexOf(row);
+
+        fixture.Editor.Word = " housing ";
+        fixture.Editor.Pre = " the ";
+        fixture.Editor.Meaning = " Wohnen ";
+        await fixture.ChangeWordCommand.ExecuteAsync(null);
+
+        var stored = _voc.Dictionary.GetSubWords("house", "english", "german").Single(w => w.Meaning == "Wohnen");
+        stored.Word.Should().Be("housing");
+        stored.Pre.Should().Be("the");
+        fixture.Rows[index].Meaning.Should().Be("Wohnen");
+    }
+
     [Test]
     public async Task ChangeWord_NewMainEntryOnGroupRow_UsesTheWordsLanguage()
     {
