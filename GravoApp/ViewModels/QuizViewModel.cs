@@ -130,7 +130,7 @@ public sealed partial class QuizViewModel : ViewModelBase
         CountText = _controller.Count().ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <summary>Shows the feedback upon wrong answers and remembers how to build it.</summary>
+    /// <summary>Shows the feedback and stores how to build it after a language switch.</summary>
     /// <param name="text">The function that builds the text.</param>
     private void ShowFeedback(Func<string> text)
     {
