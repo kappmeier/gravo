@@ -157,9 +157,10 @@ Public Class GroupsDaoTests
     ''' <summary>
     ''' Tests that renaming a group that does not exist throws.
     ''' </summary>
-    <Test>
-    Public Sub EditGroup_NonExisting_Throws()
-        Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.EditGroup("Missing Group", "New Name"))
+    <TestCase("Missing Group", "New Name", TestName:="NonExisting_to_NewName")>
+    <TestCase("Missing Group", "Other Group", TestName:="NonExisting_to_Existing")>
+    Public Sub EditGroup_NonExisting_ThrowsEntryNotFound(nonExistingGroupName As String, newName As String)
+        Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.EditGroup(nonExistingGroupName, newName))
     End Sub
 
     <Test>

@@ -164,10 +164,10 @@ Public Class GroupsDao
     ''' <param name="newName">New name of the group</param>
     Public Sub EditGroup(ByVal groupName As String, ByVal newName As String) Implements IGroupsDao.EditGroup
         CheckAllowedText(newName)
-        If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
-
         Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
         If subGroups.Count = 0 Then Throw New EntryNotFoundException("Group " & groupName & " does not exist")
+        If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
+
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
         Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
             StringComparison.OrdinalIgnoreCase)
