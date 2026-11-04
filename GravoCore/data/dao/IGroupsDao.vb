@@ -4,7 +4,7 @@ Public Interface IGroupsDao
     ''' <summary>
     ''' Returns the names of all major groups.
     ''' 
-    ''' Ordered alphabetically by the name of the groups.
+    ''' Ordered alphabetically by the name of the groups, ignoring case. Sort order ignores special characters.
     ''' </summary>
     ''' <returns></returns>
     Function GetGroups() As Collection(Of String)
@@ -33,6 +33,14 @@ Public Interface IGroupsDao
 
     Sub AddGroup(ByVal groupName As String, ByVal subGroupName As String)
 
+    ''' <summary>
+    ''' Renames a group together with its sub groups.
+    ''' </summary>
+    ''' <param name="groupName">The group to rename.</param>
+    ''' <param name="newName">The new name of the group.</param>
+    ''' <exception cref="InputException">When the new name holds a forbidden character.</exception>
+    ''' <exception cref="EntryNotFoundException">When the group does not exist.</exception>
+    ''' <exception cref="EntryExistsException">When a group with the new name exists already.</exception>
     Sub EditGroup(ByVal groupName As String, ByVal newName As String)
 
     Sub EditSubGroup(ByVal groupName As String, ByVal subGroupName As String, ByVal newSubGroupName As String)

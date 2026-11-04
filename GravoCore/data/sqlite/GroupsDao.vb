@@ -21,9 +21,9 @@ Public Class GroupsDao
             SELECT [GroupName]
               FROM Groups
              GROUP BY [GroupName]
-             ORDER BY [GroupName] ASC;
+             ORDER BY [GroupName] COLLATE NOCASE ASC;
         "
-        DBConnection.ExecuteReader(Command)
+        ExecuteReader(DBConnection, Command)
         Do While DBConnection.DBCursor.Read
             GroupNames.Add(DBConnection.SecureGetString(0))
         Loop
@@ -38,7 +38,7 @@ Public Class GroupsDao
               FROM Groups
              ORDER BY [GroupName], [Index];
         "
-        DBConnection.ExecuteReader(Command)
+        ExecuteReader(DBConnection, Command)
         Do While DBConnection.DBCursor.Read()
             Dim Index = DBConnection.SecureGetInt32(0)
             Dim Name = DBConnection.SecureGetString(1)
@@ -58,7 +58,7 @@ Public Class GroupsDao
               FROM Groups
              WHERE GroupName={GetDBEntry(groupName)}
              ORDER BY [Index];"
-        DBConnection.ExecuteReader(Command)
+        ExecuteReader(DBConnection, Command)
         Do While DBConnection.DBCursor.Read
             SubGroups.Add(ExtractGroupEntry())
         Loop
@@ -68,7 +68,7 @@ Public Class GroupsDao
 
     Private Function GetGroup(groupName As String, subGroupName As String) As GroupEntry Implements IGroupsDao.GetGroup
         Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & " AND Groups.GroupSubName=" & GetDBEntry(subGroupName)
-        DBConnection.ExecuteReader(Command)
+        ExecuteReader(DBConnection, Command)
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New EntryNotFoundException("Group " & groupName & " and " & subGroupName & " does not exist")
@@ -122,13 +122,13 @@ Public Class GroupsDao
         CreateNewGroupTable(tableName)
 
         Dim command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES (" & GetDBEntry(groupName) & ", " & GetDBEntry(subGroupName) & ", " & GetDBEntry(tableName) & ")"
-        DBConnection.ExecuteNonQuery(command)
+        ExecuteNonQuery(DBConnection, command)
     End Sub
 
     Private Function CountSubGroups(groupName As String) As Integer
         Dim command = "SELECT COUNT([Index]) FROM Groups WHERE Groups.GroupName=" & GetDBEntry(groupName)
 
-        DBConnection.ExecuteReader(command)
+        ExecuteReader(DBConnection, command)
         DBConnection.DBCursor.Read()
         CountSubGroups = DBConnection.SecureGetInt32(0)
         DBConnection.DBCursor.Close()
@@ -150,7 +150,7 @@ Public Class GroupsDao
     ''' <param name="tableName">The name of the table, not checked for illegal characters</param>
     Private Sub CreateNewGroupTable(tableName As String)
         Dim command = "CREATE TABLE [" & tableName & "] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [WordIndex] LONG NOT NULL, [Marked] BIT, [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL)"
-        DBConnection.ExecuteNonQuery(command)
+        ExecuteNonQuery(DBConnection, command)
     End Sub
 
     ''' <summary>
@@ -163,9 +163,10 @@ Public Class GroupsDao
     ''' <param name="newName">New name of the group</param>
     Public Sub EditGroup(ByVal groupName As String, ByVal newName As String) Implements IGroupsDao.EditGroup
         CheckAllowedText(newName)
+        Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
+        If subGroups.Count = 0 Then Throw New EntryNotFoundException("Group " & groupName & " does not exist")
         If GroupExists(newName) Then Throw New EntryExistsException("A group with name " & newName & " already exists.")
 
-        Dim subGroups As Collection(Of GroupEntry) = CType(GetSubGroups(groupName), Collection(Of GroupEntry))
         Dim newBaseTableName = CreateGroupBaseTableName(newName)
         Dim keepTables = String.Equals(newBaseTableName, CreateGroupBaseTableName(groupName),
             StringComparison.OrdinalIgnoreCase)
@@ -179,7 +180,7 @@ Public Class GroupsDao
             If Not keepTables Then
                 newTableName = NextFreeTableName(newBaseTableName, 1)
                 Dim renameCommand = CreateRenameTableCommand(group.Table, newTableName)
-                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                ExecuteNonQuery(DBConnection, renameCommand)
             End If
             UpdateGroup(group, newName, group.SubGroup, newTableName)
         Next group
@@ -246,7 +247,11 @@ Public Class GroupsDao
             Throw New EntryNotFoundException("Group " & groupName & " does not exist")
         End If
 
-        DropGroupTables(toDelete.Select(Function(entry As GroupEntry) entry.Table))
+        DBConnection.InTransaction(Sub() DropTablesAndEntries(groupName, toDelete))
+    End Sub
+
+    Private Sub DropTablesAndEntries(groupName As String, subGroups As ICollection(Of GroupEntry))
+        DropGroupTables(subGroups.Select(Function(entry As GroupEntry) entry.Table))
         DeleteGroupEntries(groupName)
     End Sub
 
@@ -283,7 +288,7 @@ Public Class GroupsDao
         For Each entry As GroupEntry In subGroups
             If freeTable IsNot Nothing Then
                 Dim renameCommand = CreateRenameTableCommand(entry.Table, freeTable)
-                DBConnection.ExecuteNonQuery(renameCommand, Array.Empty(Of Object))
+                ExecuteNonQuery(DBConnection, renameCommand)
                 UpdateGroup(entry, groupName, entry.SubGroup, freeTable)
                 freeTable = entry.Table
             ElseIf entry.Equals(group) Then
@@ -294,8 +299,8 @@ Public Class GroupsDao
 
     Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
         For Each table As String In toDelete
-            Dim command = "DROP TABLE " & table
-            DBConnection.ExecuteNonQuery(command)
+            Dim command = "DROP TABLE [" & table & "]"
+            ExecuteNonQuery(DBConnection, command)
         Next
     End Sub
 
@@ -311,28 +316,33 @@ Public Class GroupsDao
     ''' <param name="groupSubName1"></param>
     ''' <param name="groupSubName2"></param>
     Public Sub SwapGroups(ByVal groupName As String, ByVal groupSubName1 As String, ByVal groupSubName2 As String) Implements IGroupsDao.SwapGroups
-        Dim command As String = ""
-        Dim group As GroupEntry
+        Dim first = GetGroup(groupName, groupSubName1)
+        Dim second = GetGroup(groupName, groupSubName2)
 
-        ' Holen der Daten
-        group = GetGroup(groupName, groupSubName1)
-        Dim index1 As Integer = group.Index
-        Dim table1 As String = group.Table
+        DBConnection.InTransaction(Sub() SwapTablesAndNames(first, second))
+    End Sub
 
-        group = GetGroup(groupName, groupSubName2)
-        Dim index2 As Integer = group.Index
-        Dim table2 As String = group.Table
+    Private Sub SwapTablesAndNames(first As GroupEntry, second As GroupEntry)
+        Dim table1 As String = first.Table
+        Dim table2 As String = second.Table
 
         ' Swap the tables
-        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table1, table1 & "_"))
-        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table2, table1))
-        DBConnection.ExecuteNonQuery(CreateRenameTableCommand(table1 & "_", table2))
+        Dim renameFirstToTemp = CreateRenameTableCommand(table1, table1 & "_")
+        Dim renameSecondToFirst = CreateRenameTableCommand(table2, table1)
+        Dim renameTempToSecond = CreateRenameTableCommand(table1 & "_", table2)
+        ExecuteNonQuery(DBConnection, renameFirstToTemp)
+        ExecuteNonQuery(DBConnection, renameSecondToFirst)
+        ExecuteNonQuery(DBConnection, renameTempToSecond)
 
         ' Swap the names
-        command = "UPDATE Groups SET [GroupSubName] = ? WHERE [Index] = ?"
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName2 & "_", CStr(index1)})
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName1, CStr(index2)})
-        DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupSubName2, CStr(index1)})
+        Dim command = "
+            UPDATE Groups
+               SET [GroupSubName] = ?
+             WHERE [Index] = ?
+        "
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {second.SubGroup & "_", CStr(first.Index)})
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {first.SubGroup, CStr(second.Index)})
+        DBConnection.ExecuteNonQuery(command, New List(Of String) From {second.SubGroup, CStr(first.Index)})
     End Sub
 
     Private Shared Function CreateRenameTableCommand(existingTable As String, newTableName As String) As String

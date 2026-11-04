@@ -2,6 +2,37 @@
 Imports System.Runtime.CompilerServices
 
 Public Module DataBaseExtension
+
+    ''' <summary>
+    ''' Executes a non-query command without parameters.
+    ''' 
+    ''' Non query commands are commands that do not return values, such as INSERT or UPDATE commands.
+    ''' </summary>
+    ''' <remarks>
+    ''' Internally forwards to the parameterized version with an empty parameter set.
+    ''' </remarks>
+    ''' <param name="aDataBaseOperation">the database access</param>
+    ''' <param name="commandText">the command text</param>
+    ''' <returns>whether the command was executed successful.</returns>
+    <Extension()>
+    Function ExecuteNonQuery(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String) As Boolean
+        Return aDataBaseOperation.ExecuteNonQuery(commandText, Array.Empty(Of Object))
+    End Function
+
+    ''' <summary>
+    ''' Executes an SQL command and returns the database cursor with the results.
+    ''' </summary>
+    ''' <remarks>
+    ''' Internally forwards to the parameterized version with an empty parameter set.
+    ''' </remarks>
+    ''' <param name="aDataBaseOperation">the database access</param>
+    ''' <param name="commandText">the command text</param>
+    ''' <returns>The cursor to the reader with the results of the query.</returns>
+    <Extension()>
+    Function ExecuteReader(ByVal aDataBaseOperation As IDataBaseOperation, ByVal commandText As String) As DbDataReader
+        return aDataBaseOperation.ExecuteReader(commandText, Array.Empty(Of Object))
+    End Function
+
     ''' <summary>
     ''' Executes an SQL command and returns the database cursor with the results.
     ''' </summary>
@@ -30,7 +61,8 @@ Public Module DataBaseExtension
     End Sub
 
     <Extension()>
-    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation, ByVal createError As Func(Of T))
+    Sub FailIfExists(Of T As Exception)(ByVal aDataBaseOperation As IDataBaseOperation,
+        ByVal createError As Func(Of T))
         If aDataBaseOperation.DBCursor.HasRows = True Then
             aDataBaseOperation.DBCursor.Close()
             Throw createError.Invoke
@@ -70,8 +102,8 @@ Public Module DataBaseExtension
     End Function
 
     ''' <summary>
-    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns and
-    ''' rolled back when it throws.
+    ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns
+    ''' and rolled back when it throws.
     ''' </summary>
     ''' <param name="dataBaseOperation">Connection to the database</param>
     ''' <param name="work">The writes to run</param>
@@ -82,8 +114,24 @@ Public Module DataBaseExtension
             work()
             dataBaseOperation.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
         Catch
-            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            RollbackSafely(dataBaseOperation)
             Throw
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Roll the open transaction back.
+    ''' </summary>
+    ''' <remarks>
+    ''' Catches any exceptions and ignores them: SQLite rolls back by itself on some errors (full disk, I/O), so a
+    ''' failing <c>ROLLBACK</c> is expected in these cases. The original error should be reported instead.
+    ''' </remarks>
+    ''' <param name="dataBaseOperation">Connection to the database</param>
+    Private Sub RollbackSafely(dataBaseOperation As IDataBaseOperation)
+        Try
+            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+        Catch
+            ' Nothing left to roll back, the caller rethrows the original error
         End Try
     End Sub
 End Module

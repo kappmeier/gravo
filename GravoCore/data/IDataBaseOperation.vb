@@ -28,28 +28,10 @@ Public Interface IDataBaseOperation
     ''' 
     ''' Non query commands are commands that do not return values, such as INSERT or UPDATE commands.
     ''' </summary>
-    ''' <param name="CommandText">the command text</param>
-    ''' <returns>whether the command was executed successful.</returns>
-    <Obsolete("Deprecated, use parameter version instead.")>
-    Function ExecuteNonQuery(ByVal CommandText As String) As Boolean
-
-    ''' <summary>
-    ''' Executes a non-query command.
-    ''' 
-    ''' Non query commands are commands that do not return values, such as INSERT or UPDATE commands.
-    ''' </summary>
     ''' <param name="commandText">the command text</param>
     ''' <param name="values">values for parameters</param>
     ''' <returns>whether the command was executed successful.</returns>
     Function ExecuteNonQuery(ByVal commandText As String, ByVal values As IEnumerable(Of Object)) As Boolean
-
-    ''' <summary>
-    ''' Executes an SQL command and returns the database cursor with the results.
-    ''' </summary>
-    ''' <param name="CommandText">the command text</param>
-    ''' <returns>The cursor to the reader with the results of the query.</returns>
-    <Obsolete("Deprecated, use parameter version instead.")>
-    Function ExecuteReader(ByVal CommandText As String) As DbDataReader
 
     ''' <summary>
     ''' Executes an SQL command and returns the database cursor with the results.

@@ -244,7 +244,7 @@ Public Class ManagementDao
                 SELECT [WordIndex]
                   FROM [{table}]
             "
-            DBConnection.ExecuteReader(command, Array.Empty(Of Object))
+            ExecuteReader(DBConnection, command)
             Dim indices As New List(Of Integer)
             While DBConnection.DBCursor.Read()
                 Dim index = DBConnection.SecureGetInt32(0)
@@ -349,9 +349,9 @@ Public Class ManagementDao
     ''' </summary>
     Private Sub UpdateTo1_7()
         'command = "ALTER TABLE [Cards] ALTER COLUMN [TestIntervalMain] INT NOT NULL;"
-        'DBConnection.ExecuteNonQuery(command)
+        'ExecuteNonQuery(DBConnection, command)
         'command = "ALTER TABLE [Cards] ALTER COLUMN [CounterMain] INT NOT NULL;"
-        'DBConnection.ExecuteNonQuery(command)
+        'ExecuteNonQuery(DBConnection, command)
 
         SimpleUpdateCommand("
             CREATE TABLE [CardsCopy] (
@@ -588,7 +588,7 @@ Public Class ManagementDao
 
         ' delete cards entries for non-existing words
         Dim command As String = "SELECT [Index] FROM Cards ORDER BY [Index]"
-        DBConnection.ExecuteReader(command, Enumerable.Empty(Of Object))
+        ExecuteReader(DBConnection, command)
         Dim indices As New List(Of Integer)
         Do While DBConnection.DBCursor.Read()
             indices.Add(DBConnection.SecureGetInt32(0))
@@ -620,7 +620,7 @@ Public Class ManagementDao
             SELECT [Index]
               FROM DictionaryWords
              ORDER BY [Index]"
-        DBConnection.ExecuteReader(command, Enumerable.Empty(Of Object))
+        ExecuteReader(DBConnection, command)
         indices = New List(Of Integer)
         Do While DBConnection.DBCursor.Read
             indices.Add(DBConnection.SecureGetInt32(0))

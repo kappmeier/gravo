@@ -428,6 +428,29 @@ Public Class ManagementDaoTests
         testDb.DBCursor.Close()
     End Sub
 
+    <Test>
+    Public Sub UpdateTo1_7_UnsupportedWordType_BecomesSimple()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        Dim fixture = BuildVersion16WithGroupTable(testDb)
+        testDb.ExecuteNonQuery("
+                INSERT INTO [DictionaryWords]
+                       ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular])
+                VALUES (1, 'odd', '', '', 9, 'm', '', 0)
+            ",
+            Array.Empty(Of Object))
+
+        fixture.UpdateDatabaseSingle()
+
+        testDb.ExecuteReader("
+            SELECT [WordType]
+              FROM [DictionaryWords]
+             WHERE [Word] = ?
+        ", New List(Of Object) From {"odd"})
+        testDb.DBCursor.Read()
+        testDb.SecureGetInt32(0).Should.Be(CInt(WordType.Simple))
+        testDb.DBCursor.Close()
+    End Sub
+
     ''' <summary>
     ''' Tests that a failing update properly rolls back to the previous version.
     ''' </summary>

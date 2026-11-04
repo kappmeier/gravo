@@ -233,7 +233,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// <remarks>
     /// <para>
     /// A letter or main entry node gives the languages. On a sub group or one of its words the languages come from
-    /// the words in the group, or from the panel when the group is empty. A missing main entry is created after
+    /// the words in the group, or from the panel when the group is empty. An empty main entry or one of whitespace
+    /// only is replaced by the word itself before the question is posed. A missing main entry is created after
     /// confirmation. A word that is already in the dictionary is not added twice, but it can still go into the group.
     /// </para>
     /// <para>
@@ -291,9 +292,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             return;
         }
 
-        if (Editor.MainEntry.Length == 0)
+        if (Editor.MainEntry.Trim().Length == 0)
         {
-            Editor.MainEntry = Editor.Word;
+            Editor.MainEntry = Editor.Word.Trim();
         }
         if (language.Length == 0 || mainLanguage.Length == 0)
         {
@@ -378,9 +379,10 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// the whole change.
     /// </para>
     /// <para>
-    /// When marked is enabled on a sub group it is written to the group as well. If one of the words fails a message
-    /// is shown and  the remaining words are still changed. Rows without a word, such as main entries on a language
-    /// node, are skipped.
+    /// When marked is enabled on a sub group it is written to the group as well. Invalid input stops the change at
+    /// the first word with one message, since every word gets the same values. A word whose new text exists already
+    /// is reported and the remaining words are still changed. Rows without a word, such as main entries on a
+    /// language node, are skipped.
     /// </para>
     /// </remarks>
     [RelayCommand]
@@ -433,6 +435,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             catch (InputException ex)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
+                break;
             }
             catch (EntryExistsException)
             {
@@ -530,7 +533,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
             return;
         }
-        catch (EntryExistsException ex)
+        catch (Exception ex) when (ex is EntryExistsException or EntryNotFoundException)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
             return;

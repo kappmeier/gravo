@@ -22,7 +22,7 @@ Public Class SQLiteDataBaseOperation
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If connected Then Close()
-        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=False;"
+        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=True;"
         connection.Open()
         connected = True
         Return True
@@ -45,18 +45,6 @@ Public Class SQLiteDataBaseOperation
         GC.SuppressFinalize(Me)
     End Sub
 
-    Public Function ExecuteNonQuery(CommandText As String) As Boolean Implements IDataBaseOperation.ExecuteNonQuery
-        If Not connected Then Return False
-        If Not SQLreader Is Nothing Then SQLreader.Close()
-        DisposePreviousCommand()
-        Dim command As SqliteCommand
-        command = connection.CreateCommand
-        command.CommandText = CommandText
-        command.ExecuteNonQuery()
-        command.Dispose()
-        Return True
-    End Function
-
     ''' <summary>
     ''' Observe that due to the limitations of SQLite it is not possible to use values for parameters in table names for ALTER TABLE
     ''' commands.
@@ -73,17 +61,6 @@ Public Class SQLiteDataBaseOperation
         command.ExecuteNonQuery()
         command.Dispose()
         Return True
-    End Function
-
-    Public Function ExecuteReader(CommandText As String) As DbDataReader Implements IDataBaseOperation.ExecuteReader
-        Dim SQLcommand As SqliteCommand
-        If Not SQLreader Is Nothing Then SQLreader.Close()
-        DisposePreviousCommand()
-        SQLcommand = connection.CreateCommand
-        SQLcommand.CommandText = CommandText
-        SQLreader = SQLcommand.ExecuteReader()
-        currentCommand = SQLcommand
-        Return SQLreader
     End Function
 
     Function ExecuteReader(ByVal commandText As String, ByVal values As IEnumerable(Of Object)

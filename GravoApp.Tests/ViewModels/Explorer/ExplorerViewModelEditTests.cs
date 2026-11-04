@@ -261,6 +261,23 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task AddWord_WhitespaceMainEntry_UsesTheWord()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Dictionary, "german", "english", "H", "house");
+
+        fixture.Editor.MainEntry = "   ";
+        fixture.Editor.Word = "house";
+        fixture.Editor.Meaning = "Gebäude";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        fixture.Editor.MainEntry.Should().Be("house");
+        _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        fixture.Rows.Select(r => r.Meaning).Should().Contain("Gebäude");
+    }
+
+    [Test]
     public async Task AddWord_NewMainEntryWithSpaces_UsesTheTrimmedName()
     {
         var fixture = Create();
@@ -292,6 +309,23 @@ public class ExplorerViewModelEditTests
 
         _dialogs.Verify(d => d.ConfirmAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         _voc.Dictionary.GetSubWords("go", "english", "german").Select(w => w.Word).Should().Contain("went");
+    }
+
+    [Test]
+    public async Task AddWord_PaddedFields_StoresThemTrimmed()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Dictionary, "german", "english", "H", "house");
+
+        fixture.Editor.MainEntry = "house";
+        fixture.Editor.Word = " housing ";
+        fixture.Editor.Pre = " the ";
+        fixture.Editor.Meaning = " Wohnen ";
+        await fixture.AddWordCommand.ExecuteAsync(null);
+
+        var stored = _voc.Dictionary.GetSubWords("house", "english", "german").Single(w => w.Meaning == "Wohnen");
+        stored.Word.Should().Be("housing");
+        stored.Pre.Should().Be("the");
     }
 
     [Test]
@@ -530,6 +564,25 @@ public class ExplorerViewModelEditTests
         await fixture.ChangeWordCommand.ExecuteAsync(null);
 
         _voc.Dictionary.GetMainEntry(_seed.Houses).Word.Should().Be("houses");
+    }
+
+    /// <summary>Ensures the dictionary trims words when changing from the explorer.</summary>
+    [Test]
+    public async Task ChangeWord_FieldsWithSpaces_StoresThemTrimmed()
+    {
+        var fixture = Create();
+        var row = SelectRow(fixture, "house", Dictionary, "german", "english", "H");
+        var index = fixture.Rows.IndexOf(row);
+
+        fixture.Editor.Word = " housing ";
+        fixture.Editor.Pre = " the ";
+        fixture.Editor.Meaning = " Wohnen ";
+        await fixture.ChangeWordCommand.ExecuteAsync(null);
+
+        var stored = _voc.Dictionary.GetSubWords("house", "english", "german").Single(w => w.Meaning == "Wohnen");
+        stored.Word.Should().Be("housing");
+        stored.Pre.Should().Be("the");
+        fixture.Rows[index].Meaning.Should().Be("Wohnen");
     }
 
     [Test]

@@ -54,13 +54,14 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
-    Public Sub GetGroups_ReturnsAlphabeticalOrder()
-        _groupsDao.AddGroup("Aardvark", "Unit 1")
+    Public Sub GetGroups_ReturnsAlphabeticalOrderIgnoringCase()
+        _groupsDao.AddGroup("aardvark", "Unit 1")
+        _groupsDao.AddGroup("zebra", "Unit 1")
         _groupsDao.AddGroup("My favourite Course", "Awesome")
 
         Dim result = _groupsDao.GetGroups()
 
-        result.Should.Equal("Aardvark", "Language Book", "My favourite Course", "Other Group")
+        result.Should.Equal("aardvark", "Language Book", "My favourite Course", "Other Group", "zebra")
     End Sub
 
     <Test>
@@ -151,6 +152,15 @@ Public Class GroupsDaoTests
     <Test>
     Public Sub EditGroup_AlreadyExists_ThrowsException()
         Assert.Throws(Of EntryExistsException)(Sub() _groupsDao.EditGroup("Language Book", "Other Group"))
+    End Sub
+
+    ''' <summary>
+    ''' Tests that renaming a group that does not exist throws.
+    ''' </summary>
+    <TestCase("Missing Group", "New Name", TestName:="NonExisting_to_NewName")>
+    <TestCase("Missing Group", "Other Group", TestName:="NonExisting_to_Existing")>
+    Public Sub EditGroup_NonExisting_ThrowsEntryNotFound(nonExistingGroupName As String, newName As String)
+        Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.EditGroup(nonExistingGroupName, newName))
     End Sub
 
     <Test>
@@ -249,6 +259,38 @@ Public Class GroupsDaoTests
     <Test>
     Public Sub DeleteGroup_NonExisting_ThrowsException()
         Assert.Throws(Of EntryNotFoundException)(Sub() _groupsDao.DeleteGroup("Whatever"))
+    End Sub
+
+    <Test>
+    Public Sub DeleteGroup_NameWithQuestionMark_DropsTheTable()
+        _groupsDao.AddGroup("Wh?t", "Unit 1")
+        Dim table As String = _groupsDao.GetSubGroups("Wh?t").Single().Table
+
+        _groupsDao.DeleteGroup("Wh?t")
+
+        _db.TableExists(table).Should.BeFalse()
+        _groupsDao.GroupExists("Wh?t").Should.BeFalse()
+    End Sub
+
+    ''' <summary>
+    ''' Tests failure branch for an invalid database with a missing table.
+    ''' </summary>
+    ''' <remark>
+    ''' The first table of the group is dropped before the second drop fails. The transaction must restore it.
+    ''' </remark>
+    <Test>
+    Public Sub DeleteGroup_GroupWithMissingTable_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("Damaged").Should.BeTrue()
     End Sub
 
     <Test>
@@ -411,6 +453,25 @@ Public Class GroupsDaoTests
         Dim result = _groupsDao.GetSubGroups("Language Book").Select(Function(g) g.SubGroup)
 
         result.Should.Equal("Unit 2", "Unit 1")
+    End Sub
+
+    ''' <summary>
+    ''' Tests that swapping groups leaves the database in a consistent state in case of an error.
+    ''' </summary>
+    <Test>
+    Public Sub SwapGroups_TableMissing_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged_TableNotExisting]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2"))
+
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("GroupLanguageBook01_").Should.BeFalse()
+        _db.TableExists("Damaged_TableNotExisting").Should.BeTrue()
+        _groupsDao.GetSubGroups("Language Book").Select(Function(g) g.SubGroup).Should.Equal("Unit 1", "Unit 2")
     End Sub
 
     Private Function TableHasRows(tableName As String) As Boolean

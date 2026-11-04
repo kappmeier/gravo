@@ -19,13 +19,13 @@ public sealed class TempVocabulary : IDisposable
         FilePath = Path.GetTempFileName();
         ManagementDao.CreateNewVocabularyDatabase(FilePath);
         Db = SQLiteDataBaseOperation.OpenDatabase(FilePath);
-        Dictionary = DaoFactory.Dictionary(Db);
-        Groups = DaoFactory.Groups(Db);
-        Group = DaoFactory.Group(Db);
+        Vocabulary = VocabularyDatabase.Create(Db);
+        Dictionary = Vocabulary.Dictionary;
+        Groups = Vocabulary.Groups;
+        Group = Vocabulary.Group;
         Cards = DaoFactory.Cards(Db);
         Management = DaoFactory.Management(Db);
         Properties = DaoFactory.Properties(Db);
-        Vocabulary = new VocabularyDatabase(Dictionary, Groups, Group);
     }
 
     public string FilePath { get; }

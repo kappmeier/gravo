@@ -207,7 +207,10 @@ public sealed partial class ManagementViewModel : ViewModelBase
     }
 
     /// <summary>Renames the selected group to <see cref="GroupName"/> and selects it again.</summary>
-    /// <remarks>If a group with the new name exists, the error is shown and nothing changes.</remarks>
+    /// <remarks>
+    /// If a group with the new name exists, an error message is shown and nothing changes. A group that no longer
+    /// exists is reported with the exception's error message.
+    /// </remarks>
     [RelayCommand]
     private async Task EditGroupAsync()
     {
@@ -231,11 +234,18 @@ public sealed partial class ManagementViewModel : ViewModelBase
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
             return;
         }
+        catch (EntryNotFoundException ex)
+        {
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
+            UpdateForm();
+            return;
+        }
         UpdateForm();
         SelectedGroup = GroupNames.Contains(newName) ? newName : null;
     }
 
     /// <summary>Deletes the selected group with all its units. Deletion only starts after confirmation.</summary>
+    /// <remarks>A group that no longer exists is reported with the exception's error message.</remarks>
     [RelayCommand]
     private async Task DeleteGroupAsync()
     {
@@ -246,7 +256,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
         {
             return;
         }
-        _active.Groups.DeleteGroup(group);
+        try
+        {
+            _active.Groups.DeleteGroup(group);
+        }
+        catch (EntryNotFoundException ex)
+        {
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
+        }
         UpdateForm();
     }
 
@@ -268,7 +285,10 @@ public sealed partial class ManagementViewModel : ViewModelBase
     }
 
     /// <summary>Renames the selected unit to <see cref="UnitName"/> and selects it again.</summary>
-    /// <remarks>If the group has a unit with the new name, an error message is shown and nothing changes.</remarks>
+    /// <remarks>
+    /// If the group has a unit with the new name, an error message is shown and nothing changes. A group that no
+    /// longer exists is reported with the exception's error message.
+    /// </remarks>
     [RelayCommand]
     private async Task EditUnitAsync()
     {
@@ -291,6 +311,12 @@ public sealed partial class ManagementViewModel : ViewModelBase
         catch (EntryExistsException ex)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
+            return;
+        }
+        catch (EntryNotFoundException ex)
+        {
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
+            LoadUnits();
             return;
         }
         LoadUnits();
@@ -432,14 +458,14 @@ public sealed partial class ManagementViewModel : ViewModelBase
                 }
                 sourceManagement.UpdateDatabaseSchemaVersion();
             }
-            return new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyAllGroups();
+            return new DatabaseTransfer(VocabularyDatabase.Create(db), _active).CopyAllGroups();
         });
     }
 
     /// <summary>Copies all languages of the main language from the chosen database into the active database.</summary>
     [RelayCommand]
     private Task ImportDictionaryAsync() => ImportAsync(db => Task.FromResult<TransferResult?>(
-        new DatabaseTransfer(new VocabularyDatabase(db), _active).CopyDictionary(_mainLanguage)));
+        new DatabaseTransfer(VocabularyDatabase.Create(db), _active).CopyDictionary(_mainLanguage)));
 
     /// <summary>Opens the chosen database, runs <paramref name="transfer"/> on it and shows counters.</summary>
     /// <remarks>
@@ -518,7 +544,7 @@ public sealed partial class ManagementViewModel : ViewModelBase
         var db = _openDatabase(target);
         try
         {
-            var export = new DatabaseTransfer(_active, new VocabularyDatabase(db));
+            var export = new DatabaseTransfer(_active, VocabularyDatabase.Create(db));
             foreach (var language in ExportLanguages.Where(l => l.IsChecked))
             {
                 export.CopyLanguage(language.Name, _mainLanguage, !ExportSkipEmptyMains);

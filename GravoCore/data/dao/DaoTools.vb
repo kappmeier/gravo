@@ -79,8 +79,10 @@ Public Module DaoTools
     ''' </summary>
     ''' <param name="input">The input string.</param>
     ''' <returns>The original string without the special characters.</returns>
+    ''' <exception cref="ArgumentNullException">Thrown if the input string is <c>Nothing</c>.</exception>
     Public Function StripSpecialCharacters(ByVal input As String) As String
-        Dim specialCharacters As String = " !\[\]"
+        ArgumentNullException.ThrowIfNull(input)
+        Const specialCharacters As String = " !\[\]"
         Return Regex.Replace(input, "["  & specialCharacters  & "]", "")
     End Function
 

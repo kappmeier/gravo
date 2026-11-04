@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using Gravo;
+using GravoApp.Localization;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
 using GravoApp.Views;
@@ -59,18 +60,23 @@ public class DialogWindowsHeadlessTests
         fixture.CancelButton.Content.Should().Be("T94");
     }
 
-    [AvaloniaTest]
-    public async Task Quiz_CreatesQuizWindowWithLocalizedTextsAndTheQuestion()
+    private static QuizWindow CreateQuizWindow(UiTexts texts, out QuizViewModel viewModel)
     {
         var cards = new Mock<ICardsDao>();
         var words = new List<WordEntry> { new("house", "", "", WordType.Substantive, "Haus", "n.", false) };
         var data = new TestData(cards.Object, words, QueryLanguage.OriginalLanguage);
         var controller = new TestController(
             data, QueryLanguage.OriginalLanguage, new Mock<IDataBaseOperation>().Object);
-        var viewModel = new QuizViewModel(controller, Fakes.Texts(), Fakes.Dialogs().Object);
+        viewModel = new QuizViewModel(controller, texts, Fakes.Dialogs().Object);
+        var window = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
+        window.Show();
+        return window;
+    }
 
-        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
-        fixture.Show();
+    [AvaloniaTest]
+    public async Task Quiz_CreatesQuizWindowWithLocalizedTextsAndTheQuestion()
+    {
+        var fixture = CreateQuizWindow(Fakes.Texts(), out var viewModel);
 
         await viewModel.StartAsync();
         Dispatcher.UIThread.RunJobs();
@@ -88,17 +94,9 @@ public class DialogWindowsHeadlessTests
     [AvaloniaTest]
     public void Quiz_TitleFollowsLanguageSwitches()
     {
-        var cards = new Mock<ICardsDao>();
-        var words = new List<WordEntry> { new("house", "", "", WordType.Substantive, "Haus", "n.", false) };
-        var data = new TestData(cards.Object, words, QueryLanguage.OriginalLanguage);
-        var controller = new TestController(
-            data, QueryLanguage.OriginalLanguage, new Mock<IDataBaseOperation>().Object);
         var loc = Fakes.Localization();
         var texts = Fakes.Texts(loc);
-        var viewModel = new QuizViewModel(controller, texts, Fakes.Dialogs().Object);
-
-        var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<QuizWindow>().Which;
-        fixture.Show();
+        var fixture = CreateQuizWindow(texts, out _);
         fixture.Title.Should().Be("T105");
 
         loc.Setup(l => l.GetText(localization.TEST_TITLE)).Returns("Quiz");

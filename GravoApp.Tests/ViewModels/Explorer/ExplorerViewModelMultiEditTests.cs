@@ -88,6 +88,28 @@ public class ExplorerViewModelMultiEditTests
         _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
+    /// <summary>Ensures the dictionary trims when using multi-edit from the explorer.</summary>
+    [Test]
+    public async Task ChangeSelected_FieldsWithSpaces_StoresThemTrimmed()
+    {
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+
+        fixture.Multi.EnablePre = true;
+        fixture.Multi.Pre = " the ";
+        fixture.Multi.EnablePost = true;
+        fixture.Multi.Post = " (n) ";
+        fixture.Multi.EnableMeaning = true;
+        fixture.Multi.Meaning = " Wohnen ";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        var words = HouseWords();
+        words.Select(w => w.Pre).Should().Equal("the", "the");
+        words.Select(w => w.Post).Should().Equal("(n)", "(n)");
+        words.Select(w => w.Meaning).Should().Equal("Wohnen", "Wohnen");
+        fixture.Rows.Select(r => r.Meaning).Should().Equal("Wohnen", "Wohnen");
+    }
+
     [Test]
     public async Task ChangeSelected_WordType_UsesMultiList()
     {
@@ -198,6 +220,20 @@ public class ExplorerViewModelMultiEditTests
         var words = HouseWords();
         words.Should().HaveCount(2);
         words.Select(w => w.Post).Should().Equal("", "");
+    }
+
+    [Test]
+    public async Task ChangeSelected_InvalidWord_ShowsOneMessage()
+    {
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+
+        fixture.Multi.EnableWord = true;
+        fixture.Multi.Word = "a\"b";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T119", It.IsAny<string>()), Times.Once);
+        HouseWords().Select(w => w.Word).Should().BeEquivalentTo("house", "houses");
     }
 
     [Test]

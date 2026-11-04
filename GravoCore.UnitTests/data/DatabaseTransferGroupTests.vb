@@ -60,8 +60,8 @@ Public Class DatabaseTransferGroupTests
         _targetDb = New SQLiteDataBaseOperation()
         _targetDb.Open(_targetPath)
 
-        _source = New VocabularyDatabase(_sourceDb)
-        _target = New VocabularyDatabase(_targetDb)
+        _source = VocabularyDatabase.Create(_sourceDb)
+        _target = VocabularyDatabase.Create(_targetDb)
         _transfer = New DatabaseTransfer(_source, _target)
     End Sub
 
@@ -220,6 +220,24 @@ Public Class DatabaseTransferGroupTests
         result.SubEntries.Should().Be(5)
         _target.Groups.GetGroups().OrderBy(Function(g) g).Should().Equal("Other", "Test")
         _target.Group.Load(TargetGroup("Other", "Some")).Entries.Select(Function(t) t.Word).Should().Equal("some word")
+    End Sub
+
+    <Test>
+    Public Sub CopyAllGroups_SourceWordWithDoubleQuote_LeavesTheTargetUnchanged()
+        _sourceDb.ExecuteNonQuery("
+            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
+            VALUES (1, 'say ""hi""', '', '', 1, 'greet', '', 0)
+        ", Array.Empty(Of Object))
+        _sourceDb.ExecuteNonQuery("
+            INSERT INTO [GroupTest-Example01]
+                (WordIndex, Marked, Example, TestInterval, Counter, LastDate, TestIntervalMain, CounterMain)
+            VALUES (last_insert_rowid(), 0, '', 1, 1, '1900-01-01', 1, 1)
+        ", Array.Empty(Of Object))
+
+        Assert.Throws(Of InputException)(Sub() _transfer.CopyAllGroups())
+
+        _target.Groups.GetGroups().Should().BeEmpty()
+        _target.Dictionary.GetMainEntries("lang", mainLanguage).Should().BeEmpty()
     End Sub
 
     <Test>

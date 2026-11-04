@@ -44,7 +44,8 @@ public class MainViewModelTests
     }
 
     private MainViewModel Create() => new(new AppServices(
-        _db.Object, _dbPath, new VocabularyDatabase(_dictionary.Object, _groups.Object, _group.Object),
+        _db.Object, _dbPath,
+        VocabularyDatabase.CreateForTest(_db.Object, _dictionary.Object, _groups.Object, _group.Object),
         _cards.Object, _management.Object, _properties.Object, _settings, _loc.Object,
         new UiTexts(_loc.Object), _dialogs.Object));
 
@@ -270,6 +271,20 @@ public class MainViewModelTests
             ["MainWindowState"] = "2",
         });
         Create().RestoreGeometry().Should().Be(new WindowGeometry(10, 20, 900, 700, WindowStateSetting.Maximized));
+    }
+
+    [TestCase("-100", "700")]
+    [TestCase("800", "0")]
+    public void RestoreGeometry_NonPositiveSize_IsNull(string width, string height)
+    {
+        _settings = Fakes.DefaultSettings(out _store, new Dictionary<string, string>
+        {
+            ["SaveWindowPosition"] = "1",
+            ["WindowSettingsMainWidth"] = width,
+            ["WindowSettingsMainHeight"] = height,
+        });
+
+        Create().RestoreGeometry().Should().BeNull();
     }
 
     [Test]

@@ -25,15 +25,17 @@ public sealed class SubEntryAdder
         _texts = texts;
     }
 
-    /// <summary>Adds <paramref name="entry"/> to <paramref name="mainEntry"/>.</summary>
+    /// <summary>
+    /// Adds <paramref name="entry"/> to <paramref name="mainEntry"/>. The dictionary stores its text fields trimmed.
+    /// </summary>
     /// <param name="entry">The word to add.</param>
     /// <param name="mainEntry">The trimmed main entry.</param>
     /// <param name="language">The language of the word.</param>
     /// <param name="mainLanguage">The main language of the word.</param>
     /// <param name="missingMessage">The question shown when the main entry does not exist.</param>
     /// <returns>
-    /// The stored word. It is the passed <paramref name="entry"/> when it was added, or the dictionary's word when it
-    /// was stored already, and <c>null</c> after an error or a declined question.
+    /// The added entry with its index, or the dictionary's word when it was stored already. It is <c>null</c> after
+    /// an error or a declined question.
     /// </returns>
     public async Task<WordEntry?> AddAsync(WordEntry entry, string mainEntry, string language, string mainLanguage,
         string missingMessage)

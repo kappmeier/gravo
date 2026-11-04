@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -19,6 +20,7 @@ public sealed partial class QuizViewModel : ViewModelBase
     private readonly TestController _controller;
     private readonly IDialogService _dialogs;
     private Checker? _checker;
+    private Func<string> _feedbackText = () => "";
 
     [ObservableProperty] private string _question = "";
     [ObservableProperty] private string _info = "";
@@ -32,6 +34,8 @@ public sealed partial class QuizViewModel : ViewModelBase
         _dialogs = dialogs;
         Texts = texts;
         _checker = controller.GetTestChecker();
+        Title = texts.Get(localization.TEST_TITLE);
+        texts.PropertyChanged += OnTextsChanged;
     }
 
     public UiTexts Texts { get; }
@@ -69,16 +73,17 @@ public sealed partial class QuizViewModel : ViewModelBase
             switch (result)
             {
                 case TestResult.OtherMeaning:
-                    Feedback = Texts.Get(localization.TEST_ANOTHER_MEANING);
+                    ShowFeedback(() => Texts.Get(localization.TEST_ANOTHER_MEANING));
                     SelectInputRequested?.Invoke();
                     break;
                 case TestResult.Wrong:
-                    Feedback = WrongHint(_checker);
+                    var checker = _checker;
+                    ShowFeedback(() => WrongHint(checker));
                     await ShowWrongMessageAsync();
                     Input = "";
                     break;
                 case TestResult.Misspelled:
-                    Feedback = Texts.Get(localization.TEST_TYPE_ERROR);
+                    ShowFeedback(() => Texts.Get(localization.TEST_TYPE_ERROR));
                     break;
             }
             FocusInputRequested?.Invoke();
@@ -86,7 +91,7 @@ public sealed partial class QuizViewModel : ViewModelBase
         }
         if (result == TestResult.Wrong)
         {
-            Feedback = WrongHint(oldChecker);
+            ShowFeedback(() => WrongHint(oldChecker));
             await ShowWrongMessageAsync();
         }
         if (await CheckForQuitAsync())
@@ -109,7 +114,7 @@ public sealed partial class QuizViewModel : ViewModelBase
             return false;
         }
         Question = "";
-        Feedback = " ";
+        ShowFeedback(() => " ");
         Info = "";
         await _dialogs.ShowMessageAsync(Texts.Get(localization.TEST_WELL_DONE), Texts.Get(localization.TEST_FINISHED));
         RequestClose(true);
@@ -120,10 +125,32 @@ public sealed partial class QuizViewModel : ViewModelBase
     {
         Question = _checker!.Question;
         Info = _checker.Info;
-        Feedback = "";
+        ShowFeedback(() => "");
         Input = "";
         CountText = _controller.Count().ToString(CultureInfo.InvariantCulture);
     }
+
+    /// <summary>Shows the feedback and stores how to build it after a language switch.</summary>
+    /// <param name="text">The function that builds the text.</param>
+    private void ShowFeedback(Func<string> text)
+    {
+        _feedbackText = text;
+        Feedback = text();
+    }
+
+    /// <summary>Handles UI language switch and builds the title and the feedback again.</summary>
+    private void OnTextsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != UiTexts.IndexerName)
+        {
+            return;
+        }
+        Title = Texts.Get(localization.TEST_TITLE);
+        Feedback = _feedbackText();
+    }
+
+    /// <summary>Stops listening to the UI texts when the quiz window closes.</summary>
+    public override void OnClosed() => Texts.PropertyChanged -= OnTextsChanged;
 
     private Task ShowWrongMessageAsync() =>
         _dialogs.ShowMessageAsync(Texts.Get(localization.TEST_ERROR), Texts.Get(localization.TEST_WRONG));
