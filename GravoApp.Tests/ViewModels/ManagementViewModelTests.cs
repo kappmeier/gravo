@@ -185,6 +185,20 @@ public class ManagementViewModelTests
     }
 
     [Test]
+    public async Task EditGroup_VanishedGroup_ShowsErrorAndReloads()
+    {
+        var fixture = Create();
+        fixture.SelectedGroup = "Book";
+        fixture.GroupName = "Buch";
+        _active.Groups.DeleteGroup("Book");
+
+        await fixture.EditGroupCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        fixture.GroupNames.Should().Equal("Other");
+    }
+
+    [Test]
     public async Task DeleteGroup_Confirmed_Removes()
     {
         var fixture = Create();
@@ -205,6 +219,19 @@ public class ManagementViewModelTests
         await fixture.DeleteGroupCommand.ExecuteAsync(null);
         _active.Groups.GetGroups().Should().Equal("Book", "Other");
         fixture.SelectedGroup.Should().Be("Other");
+    }
+
+    [Test]
+    public async Task DeleteGroup_VanishedGroup_ShowsErrorAndReloads()
+    {
+        var fixture = Create();
+        fixture.SelectedGroup = "Other";
+        _active.Groups.DeleteGroup("Other");
+
+        await fixture.DeleteGroupCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        fixture.GroupNames.Should().Equal("Book");
     }
 
     [Test]
@@ -263,6 +290,20 @@ public class ManagementViewModelTests
         fixture.Units.Should().Equal("Unit 1", "Unit 2");
         fixture.SelectedUnit.Should().Be("Unit 2");
         _active.Groups.GetSubGroups("Book").Select(g => g.SubGroup).Should().Equal("Unit 1", "Unit 2");
+    }
+
+    [Test]
+    public async Task EditUnit_VanishedGroup_ShowsErrorAndReloads()
+    {
+        var fixture = Create();
+        fixture.SelectedUnit = "Unit 2";
+        fixture.UnitName = "Unit 3";
+        _active.Groups.DeleteGroup("Book");
+
+        await fixture.EditUnitCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        fixture.Units.Should().BeEmpty();
     }
 
     [Test]

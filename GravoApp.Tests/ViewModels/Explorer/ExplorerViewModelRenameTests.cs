@@ -129,6 +129,20 @@ public class ExplorerViewModelRenameTests
     }
 
     [Test]
+    public async Task RenameGroup_VanishedGroup_ShowsError()
+    {
+        var fixture = Create();
+        var node = Node(fixture, Book);
+        Answer("Buch");
+        _voc.Groups.DeleteGroup("Book");
+
+        await fixture.RenameNodeCommand.ExecuteAsync(node);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        node.Title.Should().Be("Book");
+    }
+
+    [Test]
     public async Task RenameSubGroup_EditsSubGroup()
     {
         var fixture = Create();

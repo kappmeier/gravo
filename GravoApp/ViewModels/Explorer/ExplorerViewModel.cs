@@ -533,7 +533,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
             return;
         }
-        catch (EntryExistsException ex)
+        catch (Exception ex) when (ex is EntryExistsException or EntryNotFoundException)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
             return;
