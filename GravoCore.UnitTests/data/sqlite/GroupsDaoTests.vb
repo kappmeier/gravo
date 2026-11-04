@@ -448,6 +448,8 @@ Public Class GroupsDaoTests
         Assert.Throws(Of SqliteException)(Sub() _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2"))
 
         _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("GroupLanguageBook01_").Should.BeFalse()
+        _db.TableExists("Damaged_TableNotExisting").Should.BeTrue()
         _groupsDao.GetSubGroups("Language Book").Select(Function(g) g.SubGroup).Should.Equal("Unit 1", "Unit 2")
     End Sub
 

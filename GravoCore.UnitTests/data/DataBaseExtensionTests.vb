@@ -38,5 +38,6 @@ Public Class DataBaseExtensionTests
         Dim act As Action = Sub() _dbMock.Object.InTransaction(Sub() Throw failure)
 
         act.Should.Throw(Of InvalidOperationException)().Which.Should.BeSameAs(failure)
+        _dbMock.Verify(Function(d) d.ExecuteNonQuery("ROLLBACK", It.IsAny(Of IEnumerable(Of Object))), Times.Once)
     End Sub
 End Class
