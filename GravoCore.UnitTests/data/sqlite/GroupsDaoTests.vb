@@ -272,6 +272,27 @@ Public Class GroupsDaoTests
         _groupsDao.GroupExists("Wh?t").Should.BeFalse()
     End Sub
 
+    ''' <summary>
+    ''' Tests failure branch for an invalid database with a missing table.
+    ''' </summary>
+    ''' <remark>
+    ''' The first table of the group is dropped before the second drop fails. The transaction must restore it.
+    ''' </remark>
+    <Test>
+    Public Sub DeleteGroup_GroupWithMissingTable_LeavesTheGroupUntouched()
+        _db.ExecuteNonQuery("
+                 ALTER TABLE [GroupLanguageBook02]
+                RENAME TO [Damaged]
+            ",
+            Array.Empty(Of Object))
+
+        Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book"))
+
+        _groupsDao.GetSubGroups("Language Book").Should.HaveCount(2)
+        _db.TableExists("GroupLanguageBook01").Should.BeTrue()
+        _db.TableExists("Damaged").Should.BeTrue()
+    End Sub
+
     <Test>
     Public Sub DeleteGroup_WithExistingSubGroup_DeletesAllData()
         _groupsDao.DeleteGroup("Language Book", "Unit 1")

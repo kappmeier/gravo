@@ -155,7 +155,6 @@ Public Class GroupsDao
 
     ''' <summary>
     ''' Renames a group and moves its sub group tables to free table names of the new name.
-    ''' Throws <c>EntryNotFoundException</c> when the group does not exist.
     ''' </summary>
     ''' <remarks>
     ''' A new name with the same table base, ignoring case, keeps the tables.
@@ -248,7 +247,11 @@ Public Class GroupsDao
             Throw New EntryNotFoundException("Group " & groupName & " does not exist")
         End If
 
-        DropGroupTables(toDelete.Select(Function(entry As GroupEntry) entry.Table))
+        DBConnection.InTransaction(Sub() DropTablesAndEntries(groupName, toDelete))
+    End Sub
+
+    Private Sub DropTablesAndEntries(groupName As String, subGroups As ICollection(Of GroupEntry))
+        DropGroupTables(subGroups.Select(Function(entry As GroupEntry) entry.Table))
         DeleteGroupEntries(groupName)
     End Sub
 
