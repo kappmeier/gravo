@@ -237,6 +237,27 @@ public class ExplorerViewModelMultiEditTests
     }
 
     [Test]
+    public async Task ChangeSelected_MoveConflictOnOneRow_ChangesTheOthers()
+    {
+        _voc.AddWord("go", "english", "houses", "Häuser");
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+
+        fixture.Multi.EnablePre = true;
+        fixture.Multi.Pre = "the";
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "go";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T133"), Times.Once);
+        var houseWords = HouseWords();
+        houseWords.Should().ContainSingle().Which.Word.Should().Be("houses");
+        houseWords.Single().Pre.Should().BeEmpty();
+        var moved = _voc.Dictionary.GetWordsAndSubWords("go", "english", "german").Where(w => w.Word == "house");
+        moved.Should().ContainSingle().Which.Pre.Should().Be("the");
+    }
+
+    [Test]
     public async Task ChangeSelected_EntryExists_ShowsMessageAndContinues()
     {
         var fixture = Create();

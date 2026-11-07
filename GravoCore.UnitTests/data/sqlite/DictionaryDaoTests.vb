@@ -408,6 +408,15 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub ChangeEntryToMainEntry_SameWordAndMeaningThere_ThrowsEntryExistsException()
+        _dictionaryDao.AddSubEntry(New WordEntry("word1", "", "", WordType.Verb, "m", "", False), "wordx", language,
+            targetLanguage)
+        Dim wordx = _dictionaryDao.GetMainEntry("wordx", language, targetLanguage)
+
+        Assert.Throws(Of EntryExistsException)(Sub() _dictionaryDao.ChangeEntry(word1entry1, wordx))
+    End Sub
+
+    <Test>
     Public Sub GetMainEntry_ExistingWordEntryReturns_MainEntry()
         Dim mainEntry = _dictionaryDao.GetMainEntry(word1entry1)
 

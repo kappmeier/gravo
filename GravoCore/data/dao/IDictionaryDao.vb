@@ -186,6 +186,9 @@ Public Interface IDictionaryDao
     ''' <param name="entry">The word to move.</param>
     ''' <param name="mainEntry">The new main entry of the word.</param>
     ''' <exception cref="EntryNotFoundException">When the main entry does not exist.</exception>
+    ''' <exception cref="EntryExistsException">
+    ''' When the main entry already has a word with the same word and meaning.
+    ''' </exception>
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry)
 
     Function GetMainEntry(ByVal word As WordEntry) As MainEntry

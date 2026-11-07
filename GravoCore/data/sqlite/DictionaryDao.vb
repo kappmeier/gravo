@@ -211,7 +211,7 @@ Public Class DictionaryDao
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
             Dim newMeaning = updateData.MeaningDefault(entry)
-            CheckViolation(newWord, newMeaning, GetMainEntry(entry).Index)
+            CheckViolation(newWord, newMeaning, GetMainEntry(entry).Index, entry.Index)
         End If
         Dim baseCommand = "UPDATE DictionaryWords SET "
 
@@ -263,6 +263,7 @@ Public Class DictionaryDao
 
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry) Implements IDictionaryDao.ChangeEntry
         CheckMainEntry(mainEntry)
+        CheckViolation(entry.Word, entry.Meaning, mainEntry.Index, entry.Index)
 
         Dim command = "UPDATE DictionaryWords SET MainIndex = ? WHERE [Index] = ?"
         DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {mainEntry.Index, entry.Index}))
@@ -290,9 +291,22 @@ Public Class DictionaryDao
         End Select
     End Function
 
-    Private Sub CheckViolation(newWord As String, newMeaning As String, mainIndex As Int32)
-        Dim command As String = "SELECT [Index] FROM [DictionaryWords] WHERE [MainIndex] = ? AND [Word] = ? AND [Meaning] = ?"
-        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainIndex, newWord, newMeaning}))
+    ''' <summary>
+    ''' Checks whether another word of the main entry has the given word and meaning. The word itself is ignored.
+    ''' </summary>
+    ''' <exception cref="EntryExistsException">
+    ''' When the check is positive and the word already exists in the main entry.
+    ''' </exception>
+    Private Sub CheckViolation(newWord As String, newMeaning As String, mainIndex As Int32, wordIndex As Int32)
+        Dim command As String = "
+            SELECT [Index]
+              FROM [DictionaryWords]
+             WHERE [MainIndex] = ?
+               AND [Word] = ?
+               AND [Meaning] = ?
+               AND [Index] <> ?"
+        DBConnection.ExecuteReader(command,
+            ToDbParameters(New List(Of Object) From {mainIndex, newWord, newMeaning, wordIndex}))
         If DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New EntryExistsException("Entry for " & newWord & " and " & newMeaning & " exists.")
