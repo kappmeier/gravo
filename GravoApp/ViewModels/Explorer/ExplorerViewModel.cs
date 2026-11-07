@@ -503,8 +503,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var main = _dictionary.GetMainEntry(oldName, node.Language!, node.MainLanguage!);
         try
         {
-            var updated = _dictionary.ChangeMainEntry(main, newName);
-            _dictionary.AdaptSubEntries(updated, oldName);
+            _dictionary.ChangeMainEntry(main, newName);
         }
         catch (Exception ex)
         {
