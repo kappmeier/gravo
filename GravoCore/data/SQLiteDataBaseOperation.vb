@@ -22,7 +22,8 @@ Public Class SQLiteDataBaseOperation
 
     Public Function Open(DBPath As String) As Boolean Implements IDataBaseOperation.Open
         If connected Then Close()
-        connection.ConnectionString = "Data Source=" & DBPath & ";Foreign Keys=True;"
+        ' Don't use pooling: Close releases the file, so it can be deleted and created anew in the same session
+        connection.ConnectionString = $"Data Source={DBPath};Foreign Keys=True;Pooling=False;"
         connection.Open()
         connected = True
         Return True

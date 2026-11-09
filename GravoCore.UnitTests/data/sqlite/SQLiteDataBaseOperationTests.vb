@@ -20,7 +20,6 @@ Public Class SQLiteDataBaseOperationTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub
@@ -109,7 +108,6 @@ Public Class SQLiteDataBaseOperationTests
         ", Array.Empty(Of Object))
 
         _db.Dispose()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
         File.Exists(_tempDb).Should.BeFalse()

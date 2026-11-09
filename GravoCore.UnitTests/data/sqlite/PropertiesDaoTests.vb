@@ -24,7 +24,6 @@ Public Class PropertiesDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

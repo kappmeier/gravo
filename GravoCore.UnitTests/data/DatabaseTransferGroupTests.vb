@@ -69,7 +69,6 @@ Public Class DatabaseTransferGroupTests
     Public Sub CleanUp()
         _sourceDb.Close()
         _targetDb.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_sourcePath)
         File.Delete(_targetPath)
@@ -275,7 +274,6 @@ Public Class DatabaseTransferGroupTests
             DaoFactory.Groups(exportDb).GetGroups().Should().BeEquivalentTo({"Other"})
         Finally
             exportDb.Close()
-            SqliteConnection.ClearAllPools()
             File.Delete(exportPath)
         End Try
     End Sub
@@ -294,7 +292,25 @@ Public Class DatabaseTransferGroupTests
             DaoFactory.Dictionary(exportDb).DictionaryLanguages(mainLanguage).Should().BeEmpty()
         Finally
             exportDb.Close()
-            SqliteConnection.ClearAllPools()
+            File.Delete(exportPath)
+        End Try
+    End Sub
+
+    <Test>
+    Public Sub Export_TwiceOntoTheSamePath_ReplacesTheFirstExport()
+        Dim exportPath As String = Path.GetTempFileName()
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, {"lang"}, False, {"Other"})
+
+        ' Second export should overwrite the first
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, Array.Empty(Of String)(), True,
+                                Array.Empty(Of String)())
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Groups(exportDb).GetGroups().Should().BeEmpty()
+            DaoFactory.Dictionary(exportDb).DictionaryLanguages(mainLanguage).Should().BeEmpty()
+        Finally
+            exportDb.Close()
             File.Delete(exportPath)
         End Try
     End Sub

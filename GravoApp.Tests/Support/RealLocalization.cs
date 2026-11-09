@@ -26,7 +26,6 @@ public sealed class RealLocalization : IDisposable
     public void Dispose()
     {
         _db.Dispose();
-        SqliteConnection.ClearAllPools();
         File.Delete(_path);
     }
 }

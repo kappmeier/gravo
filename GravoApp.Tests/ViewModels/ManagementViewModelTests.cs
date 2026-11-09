@@ -31,7 +31,6 @@ public class ManagementViewModelTests
     public void TearDown()
     {
         _active.Dispose();
-        SqliteConnection.ClearAllPools();
         foreach (var file in _files)
         {
             File.Delete(file);

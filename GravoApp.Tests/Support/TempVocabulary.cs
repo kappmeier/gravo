@@ -108,7 +108,6 @@ public sealed class TempVocabulary : IDisposable
     public void Dispose()
     {
         Db.Dispose();
-        SqliteConnection.ClearAllPools();
         File.Delete(FilePath);
     }
 }
