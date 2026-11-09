@@ -512,6 +512,20 @@ public class ManagementViewModelTests
     }
 
     [Test]
+    public async Task Export_TargetFolderMissing_ShowsError()
+    {
+        var target = Path.Combine(TempPath(), "gone", "export.s3db");
+        _dialogs.Setup(d => d.PickSaveFileAsync("T176", "s3db", null)).ReturnsAsync(target);
+        var fixture = Create();
+        fixture.ExportLanguages.Single(l => l.Name == "english").IsChecked = true;
+
+        await fixture.ExportCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Never);
+    }
+
+    [Test]
     public async Task Export_OutdatedActiveDatabase_ShowsMessageAndStops()
     {
         var fixture = Create(management: Outdated().Object);

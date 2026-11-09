@@ -528,40 +528,21 @@ public sealed partial class ManagementViewModel : ViewModelBase
         {
             return;
         }
-        if (File.Exists(target))
-        {
-            try
-            {
-                File.Delete(target);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
-                return;
-            }
-        }
-        ManagementDao.CreateNewVocabularyDatabase(target);
-        var db = _openDatabase(target);
         try
         {
-            var export = new DatabaseTransfer(_active, VocabularyDatabase.Create(db));
-            foreach (var language in ExportLanguages.Where(l => l.IsChecked))
-            {
-                export.CopyLanguage(language.Name, _mainLanguage, !ExportSkipEmptyMains);
-            }
-            foreach (var group in ExportGroups.Where(g => g.IsChecked))
-            {
-                export.CopyGroup(group.Name);
-            }
+            DatabaseTransfer.Export(_active, target, _mainLanguage,
+            ExportLanguages
+                .Where(language => language.IsChecked)
+                .Select(language => language.Name),
+            !ExportSkipEmptyMains,
+            ExportGroups
+                .Where(group => group.IsChecked)
+                .Select(group => group.Name));
         }
         catch (Exception ex)
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.ERROR_TITLE), ex.Message);
             return;
-        }
-        finally
-        {
-            db.Close();
         }
         await _dialogs.ShowMessageAsync(AppServices.ProductName, Texts.Get(localization.MANAGEMENT_EXPORT_DONE));
     }
