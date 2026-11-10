@@ -465,11 +465,11 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
         If Count > 0 Then Throw New EntryExistsException($"A sub entry '{newWord}' exists already.")
 
-        DBConnection.InTransaction(Sub() RenameMainEntry(mainEntry, newWord, newWord))
+        DBConnection.InTransaction(Sub() RenameMainEntry(mainEntry, newWord))
         Return New MainEntry(mainEntry.Index, newWord, mainEntry.Language, mainEntry.MainLanguage)
     End Function
 
-    Private Sub RenameMainEntry(mainEntry As MainEntry, newWord As String, newWordTrimmed As String)
+    Private Sub RenameMainEntry(mainEntry As MainEntry, newWord As String)
         DBConnection.ExecuteNonQuery("UPDATE DictionaryMain SET WordEntry = ? WHERE [Index] = ?",
             ToDbParameters(New List(Of Object) From {newWord, mainEntry.Index}))
         DBConnection.ExecuteNonQuery("
@@ -477,7 +477,7 @@ Public Class DictionaryDao
                SET Word = ?
              WHERE MainIndex = ?
                AND Word = ?",
-            ToDbParameters(New List(Of Object) From {newWordTrimmed, mainEntry.Index, mainEntry.Word}))
+            ToDbParameters(New List(Of Object) From {newWord, mainEntry.Index, mainEntry.Word}))
     End Sub
 
     Private Sub CheckMainEntry(mainEntry As MainEntry)

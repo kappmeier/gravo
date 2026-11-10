@@ -2,6 +2,7 @@
 Imports AwesomeAssertions
 Imports Gravo
 Imports Microsoft.Data.Sqlite
+Imports Moq
 Imports NUnit.Framework
 
 ''' <summary>
@@ -332,6 +333,24 @@ Public Class DatabaseTransferGroupTests
         Assert.Throws(Of ArgumentException)(
             Sub() DatabaseTransfer.Export(_source, target, mainLanguage, {"lang"}, False,
                                           Array.Empty(Of String)()))
+    End Sub
+
+    <Test>
+    Public Sub Export_SourceWithoutFile_CreatesTheTarget()
+        Dim source As VocabularyDatabase = VocabularyDatabase.Create(New Mock(Of IDataBaseOperation)().Object)
+        source.Connection.Path.Should().BeNull()
+
+        Dim exportPath As String = Path.GetTempFileName()
+        DatabaseTransfer.Export(source, exportPath, mainLanguage, Array.Empty(Of String)(), True,
+                                Array.Empty(Of String)())
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Management(exportDb).IsSchemaVersionUpToDate().Should().BeTrue()
+        Finally
+            exportDb.Close()
+            File.Delete(exportPath)
+        End Try
     End Sub
 
     Private Function TargetGroup(groupName As String, subGroupName As String) As GroupEntry
