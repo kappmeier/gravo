@@ -62,6 +62,12 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(ShowGroupsColumns), nameof(ShowWordOnly))]
     private ListStyle _style;
 
+    private IDictionaryDao Dictionary => _vocabulary.Dictionary;
+
+    private IGroupsDao Groups => _vocabulary.Groups;
+
+    private IGroupDao Group => _vocabulary.Group;
+
     /// <summary>
     /// Initializes the view model. Loads the word types, sets up the tree and selects the dictionary root node.
     /// </summary>
@@ -79,7 +85,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         // Throws DataInvalidException for a database without all known word types.
         properties.LoadWordTypes();
         Texts = texts;
-        _adder = new SubEntryAdder(_vocabulary.Dictionary, _vocabulary.Group, dialogs, texts);
+        _adder = new SubEntryAdder(Dictionary, Group, dialogs, texts);
         Editor = new WordEditorViewModel(texts, properties.LoadProperties());
         Multi = new MultiEditViewModel(texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
@@ -214,7 +220,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             ShowInEditor(value);
             return;
         }
-        foreach (var entry in _vocabulary.Dictionary.GetWordsAndSubWords(value!.Word, node!.Title, node.MainLanguage!))
+        foreach (var entry in Dictionary.GetWordsAndSubWords(value!.Word, node!.Title, node.MainLanguage!))
         {
             SubRows.Add(EntryRow(entry, entry));
         }
@@ -256,22 +262,22 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
         else if (IsSubGroupNode(node))
         {
-            var group = _vocabulary.Groups.GetGroup(node.Group!, node.SubGroup!);
+            var group = Groups.GetGroup(node.Group!, node.SubGroup!);
             groupEntry = group;
-            if (_vocabulary.Group.GetLanguages(group).Count > 1)
+            if (Group.GetLanguages(group).Count > 1)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
                     Texts.Get(localization.EXPLORER_TOO_MANY_LANGUAGES));
                 return;
             }
-            if (_vocabulary.Group.GetMainLanguages(group).Count > 1)
+            if (Group.GetMainLanguages(group).Count > 1)
             {
                 await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
                     Texts.Get(localization.EXPLORER_TOO_MANY_MAIN_LANGUAGES));
                 return;
             }
-            language = _vocabulary.Group.GetUniqueLanguage(group);
-            mainLanguage = _vocabulary.Group.GetUniqueMainLanguage(group);
+            language = Group.GetUniqueLanguage(group);
+            mainLanguage = Group.GetUniqueMainLanguage(group);
             if (language.Length == 0)
             {
                 language = Editor.Language;
@@ -340,9 +346,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         try
         {
             var groupChanged = IsSubGroupNode(node);
-            var group = groupChanged ? _vocabulary.Groups.GetGroup(node.Group!, node.SubGroup!) : null;
+            var group = groupChanged ? Groups.GetGroup(node.Group!, node.SubGroup!) : null;
             var updated = _vocabulary.ChangeWord(entry, Editor.ToUpdateData(), Editor.MainEntry.Trim(),
-                node.Language ?? _vocabulary.Dictionary.GetMainEntry(entry).Language, _mainLanguage, group, Editor.Marked);
+                node.Language ?? Dictionary.GetMainEntry(entry).Language, _mainLanguage, group, Editor.Marked);
             ReplaceRow(row, ChangedRow(row, updated, groupChanged ? Editor.Marked : null));
         }
         catch (InputException ex)
@@ -387,8 +393,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             try
             {
-                var language = node.Language ?? _vocabulary.Dictionary.GetMainEntry(first).Language;
-                newMain = DataTools.GetOrCreateMainEntry(_vocabulary.Dictionary, Multi.MainEntry.Trim(), language, _mainLanguage);
+                var language = node.Language ?? Dictionary.GetMainEntry(first).Language;
+                newMain = DataTools.GetOrCreateMainEntry(Dictionary, Multi.MainEntry.Trim(), language, _mainLanguage);
             }
             catch (InputException ex)
             {
@@ -398,7 +404,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
 
         var groupChanged = IsSubGroupNode(node) && Multi.EnableMarked;
-        var group = groupChanged ? _vocabulary.Groups.GetGroup(node.Group!, node.SubGroup!) : null;
+        var group = groupChanged ? Groups.GetGroup(node.Group!, node.SubGroup!) : null;
         for (var i = 0; i < selection.Count; i++)
         {
             var row = selection[i];
@@ -481,10 +487,10 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     private async Task RenameMainEntryAsync(ExplorerNode node, string newName)
     {
         var oldName = node.Title;
-        var main = _vocabulary.Dictionary.GetMainEntry(oldName, node.Language!, node.MainLanguage!);
+        var main = Dictionary.GetMainEntry(oldName, node.Language!, node.MainLanguage!);
         try
         {
-            _vocabulary.Dictionary.ChangeMainEntry(main, newName);
+            Dictionary.ChangeMainEntry(main, newName);
         }
         catch (Exception ex)
         {
@@ -501,11 +507,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             if (node.Kind == NodeKind.Group)
             {
-                _vocabulary.Groups.EditGroup(node.Title, newName);
+                Groups.EditGroup(node.Title, newName);
             }
             else
             {
-                _vocabulary.Groups.EditSubGroup(node.Group!, node.Title, newName);
+                Groups.EditSubGroup(node.Group!, node.Title, newName);
             }
         }
         catch (InputException ex)
@@ -531,7 +537,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         WordEntry updated;
         try
         {
-            updated = _vocabulary.Dictionary.ChangeEntry(entry, new IDictionaryDao.UpdateData { Word = newName });
+            updated = Dictionary.ChangeEntry(entry, new IDictionaryDao.UpdateData { Word = newName });
         }
         catch (InputException ex)
         {
@@ -568,23 +574,23 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var dictionary = CreateNode(NodeKind.DictionaryRoot, Texts.Get(localization.TREE_DICTIONARY), null);
         var parent = dictionary;
         var children = new List<ExplorerNode>();
-        foreach (var mainLanguage in _vocabulary.Dictionary.DictionaryMainLanguages())
+        foreach (var mainLanguage in Dictionary.DictionaryMainLanguages())
         {
             var node = CreateNode(NodeKind.MainLanguage, mainLanguage, parent);
             children.Add(node);
             parent.SetChildren(children);
             parent = node;
-            children = _vocabulary.Dictionary.DictionaryLanguages(mainLanguage)
+            children = Dictionary.DictionaryLanguages(mainLanguage)
                 .Select(language => CreateNode(NodeKind.Language, language, node, hasChildren: true)).ToList();
         }
         parent.SetChildren(children);
 
         var groups = CreateNode(NodeKind.GroupsRoot, Texts.Get(localization.TREE_GROUPS), null);
         var groupNodes = new List<ExplorerNode>();
-        foreach (var name in _vocabulary.Groups.GetGroups())
+        foreach (var name in Groups.GetGroups())
         {
             var node = CreateNode(NodeKind.Group, name, groups);
-            node.SetChildren(_vocabulary.Groups.GetSubGroups(name)
+            node.SetChildren(Groups.GetSubGroups(name)
                 .Select(sub => CreateNode(NodeKind.SubGroup, sub.SubGroup, node, Load(sub).WordCount > 0)).ToList());
             groupNodes.Add(node);
         }
@@ -607,10 +613,10 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             case NodeKind.Language:
                 node.SetChildren(Letters.Select(letter => CreateNode(NodeKind.Letter, letter, node,
-                    _vocabulary.Dictionary.WordCount(node.Title, node.MainLanguage!, letter) > 0)).ToList());
+                    Dictionary.WordCount(node.Title, node.MainLanguage!, letter) > 0)).ToList());
                 break;
             case NodeKind.Letter:
-                node.SetChildren(_vocabulary.Dictionary.GetMainEntries(node.Language!, node.MainLanguage!, node.Title)
+                node.SetChildren(Dictionary.GetMainEntries(node.Language!, node.MainLanguage!, node.Title)
                     .Select(entry => entry.Word).Distinct()
                     .Select(word => CreateNode(NodeKind.MainEntry, word, node)).ToList());
                 break;
@@ -639,9 +645,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             case NodeKind.DictionaryRoot:
                 Style = ListStyle.Dictionary;
-                foreach (var mainLanguage in _vocabulary.Dictionary.DictionaryMainLanguages())
+                foreach (var mainLanguage in Dictionary.DictionaryMainLanguages())
                 {
-                    foreach (var language in _vocabulary.Dictionary.DictionaryLanguages(mainLanguage))
+                    foreach (var language in Dictionary.DictionaryLanguages(mainLanguage))
                     {
                         Rows.Add(CountRow(mainLanguage, language));
                     }
@@ -656,36 +662,36 @@ public sealed partial class ExplorerViewModel : ViewModelBase
                 break;
             case NodeKind.Language:
                 Style = ListStyle.Language;
-                foreach (var entry in _vocabulary.Dictionary.GetMainEntries(node.Title, node.MainLanguage!))
+                foreach (var entry in Dictionary.GetMainEntries(node.Title, node.MainLanguage!))
                 {
                     Rows.Add(new ExplorerRow(null) { Word = entry.Word });
                 }
                 break;
             case NodeKind.Letter:
                 Style = ListStyle.WordEntry;
-                AddWordRows(_vocabulary.Dictionary.GetWords(node.Language!, node.MainLanguage!, node.Title));
+                AddWordRows(Dictionary.GetWords(node.Language!, node.MainLanguage!, node.Title));
                 break;
             case NodeKind.MainEntry:
                 Style = ListStyle.WordEntry;
-                AddWordRows(_vocabulary.Dictionary.GetWords(node.Title, node.Title, node.Language!, node.MainLanguage!));
-                AddWordRows(_vocabulary.Dictionary.GetSubWords(node.Title, node.Language!, node.MainLanguage!));
+                AddWordRows(Dictionary.GetWords(node.Title, node.Title, node.Language!, node.MainLanguage!));
+                AddWordRows(Dictionary.GetSubWords(node.Title, node.Language!, node.MainLanguage!));
                 break;
             case NodeKind.GroupsRoot:
                 Style = ListStyle.Groups;
-                foreach (var name in _vocabulary.Groups.GetGroups())
+                foreach (var name in Groups.GetGroups())
                 {
                     Rows.Add(new ExplorerRow(null)
                     {
                         GroupName = name,
-                        SubGroupCount = _vocabulary.Groups.SubGroupCount(name),
-                        Count1 = DataTools.WordCount(_vocabulary.Groups, _vocabulary.Group, name),
-                        LanguageCount = DataTools.UsedLanguagesCount(_vocabulary.Groups, _vocabulary.Group, name),
+                        SubGroupCount = Groups.SubGroupCount(name),
+                        Count1 = DataTools.WordCount(Groups, Group, name),
+                        LanguageCount = DataTools.UsedLanguagesCount(Groups, Group, name),
                     });
                 }
                 break;
             case NodeKind.Group:
                 Style = ListStyle.WordEntryGroup;
-                foreach (var sub in _vocabulary.Groups.GetSubGroups(node.Title))
+                foreach (var sub in Groups.GetSubGroups(node.Title))
                 {
                     AddGroupRows(Load(sub).Entries, sub.SubGroup);
                 }
@@ -721,8 +727,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     {
         MainLanguage = mainLanguage,
         Language = language,
-        Count1 = _vocabulary.Dictionary.WordCount(language, mainLanguage),
-        Count2 = _vocabulary.Dictionary.WordCountTotal(language, mainLanguage),
+        Count1 = Dictionary.WordCount(language, mainLanguage),
+        Count2 = Dictionary.WordCountTotal(language, mainLanguage),
     };
 
     private ExplorerRow EntryRow(WordEntry entry, object payload, string marked = "", string subGroup = "") =>
@@ -768,7 +774,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             return;
         }
-        var main = _vocabulary.Dictionary.GetMainEntry(entry);
+        var main = Dictionary.GetMainEntry(entry);
         if (row.Payload is TestWord word)
         {
             Editor.Show(word, main, IsSubGroupNode(SelectedNode));
@@ -848,9 +854,9 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         return node;
     }
 
-    private GroupDto Load(GroupEntry entry) => _vocabulary.Group.Load(entry);
+    private GroupDto Load(GroupEntry entry) => Group.Load(entry);
 
-    private GroupDto LoadSubGroup(ExplorerNode node) => Load(_vocabulary.Groups.GetGroup(node.Group!, node.SubGroup!));
+    private GroupDto LoadSubGroup(ExplorerNode node) => Load(Groups.GetGroup(node.Group!, node.SubGroup!));
 
     /// <summary>Handles a language switch. Renames the roots and refills the list.</summary>
     /// <remarks>The selected row keeps its position.</remarks>
