@@ -533,7 +533,7 @@ public class ManagementViewModelTests
 
         await fixture.ExportCommand.ExecuteAsync(null);
 
-        // The error is shown and not a sucess message
+        // The error is shown and not a success message
         _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
         _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Never);
         _active.Groups.GetGroups().Should().Equal("Book", "Other");

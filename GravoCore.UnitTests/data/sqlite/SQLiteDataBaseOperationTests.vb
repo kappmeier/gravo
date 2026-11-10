@@ -26,7 +26,7 @@ Public Class SQLiteDataBaseOperationTests
 
     <Test>
     Public Sub DataBase_WhenOpen_ShouldSetPath()
-        dim fixture As SQLiteDataBaseOperation = New SQLiteDataBaseOperation()
+        Dim fixture As SQLiteDataBaseOperation = New SQLiteDataBaseOperation()
         fixture.Path.Should.Be(Nothing)
 
         fixture.Open(_tempDb)

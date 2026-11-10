@@ -16,7 +16,7 @@ Public Class SQLiteDataBaseOperation
 
     Dim connection As New SqliteConnection()
     Dim connected As Boolean
-    dim _path As String
+    Dim _path As String
     Dim SQLreader As SqliteDataReader
     ' The currently active (most recent) SQL command, kept as state to allow reading without disposal.
     Dim currentCommand As SqliteCommand
