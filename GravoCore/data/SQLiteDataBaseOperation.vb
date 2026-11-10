@@ -16,6 +16,7 @@ Public Class SQLiteDataBaseOperation
 
     Dim connection As New SqliteConnection()
     Dim connected As Boolean
+    dim _path As String
     Dim SQLreader As SqliteDataReader
     ' The currently active (most recent) SQL command, kept as state to allow reading without disposal.
     Dim currentCommand As SqliteCommand
@@ -26,6 +27,7 @@ Public Class SQLiteDataBaseOperation
         connection.ConnectionString = $"Data Source={DBPath};Foreign Keys=True;Pooling=False;"
         connection.Open()
         connected = True
+        _path = DBPath
         Return True
     End Function
 
@@ -34,6 +36,7 @@ Public Class SQLiteDataBaseOperation
         connection.Close()
         connection.Dispose()
         connected = False
+        _path = Nothing
         Return True
     End Function
 
@@ -185,5 +188,11 @@ Public Class SQLiteDataBaseOperation
         db.Open(path)
         Return db
     End Function
+
+    Public ReadOnly Property Path As String Implements IDataBaseOperation.Path
+        Get
+            Return _path
+        End Get
+    End Property
 
 End Class

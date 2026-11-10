@@ -124,9 +124,16 @@ Public Class DatabaseTransfer
     ''' </remarks>
     ''' <param name="includeEmptyMains">Whether main entries without any word are copied too.</param>
     ''' <returns>The sum of the rows added by all copies.</returns>
+    ''' <exception cref="ArgumentException">
+    ''' When <paramref name="targetPath"/> is the file of the source. Nothing is deleted then.
+    ''' </exception>
     Public Shared Function Export(source As VocabularyDatabase, targetPath As String, mainLanguage As String,
                                   languages As IEnumerable(Of String), includeEmptyMains As Boolean,
                                   groupNames As IEnumerable(Of String)) As TransferResult
+        Dim comparison = If(OperatingSystem.IsWindows(), StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
+        If String.Equals(Path.GetFullPath(targetPath), Path.GetFullPath(source.Connection.Path), comparison) Then
+            Throw New ArgumentException($"The export target {targetPath} is the open database.")
+        End If
         If File.Exists(targetPath) Then File.Delete(targetPath)
         ManagementDao.CreateNewVocabularyDatabase(targetPath)
         Dim db As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(targetPath)

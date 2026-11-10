@@ -525,6 +525,21 @@ public class ManagementViewModelTests
     }
 
     [Test]
+    public async Task Export_TargetIsTheActiveDatabase_ShowsErrorAndKeepsIt()
+    {
+        _dialogs.Setup(d => d.PickSaveFileAsync("T176", "s3db", null)).ReturnsAsync(_active.FilePath);
+        var fixture = Create();
+        fixture.ExportLanguages.Single(l => l.Name == "english").IsChecked = true;
+
+        await fixture.ExportCommand.ExecuteAsync(null);
+
+        // The error is shown and not a sucess message
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Never);
+        _active.Groups.GetGroups().Should().Equal("Book", "Other");
+    }
+
+    [Test]
     public async Task Export_OutdatedActiveDatabase_ShowsMessageAndStops()
     {
         var fixture = Create(management: Outdated().Object);

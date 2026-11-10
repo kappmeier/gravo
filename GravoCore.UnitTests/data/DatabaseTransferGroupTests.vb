@@ -315,6 +315,25 @@ Public Class DatabaseTransferGroupTests
         End Try
     End Sub
 
+    <Test>
+    Public Sub Export_TargetIsTheSource_ThrowsAndKeepsTheSource()
+        Assert.Throws(Of ArgumentException)(
+            Sub() DatabaseTransfer.Export(_source, _sourcePath, mainLanguage, {"lang"}, False,
+                                          Array.Empty(Of String)()))
+
+        _source.Groups.GetGroups().Should().BeEquivalentTo({"Other", "Test"})
+    End Sub
+
+    <Test>
+    Public Sub Export_TargetIsTheSourceViaRelativePath_Throws()
+        Dim target As String = Path.Combine(Path.GetDirectoryName(_sourcePath), "x", "..",
+                                            Path.GetFileName(_sourcePath))
+
+        Assert.Throws(Of ArgumentException)(
+            Sub() DatabaseTransfer.Export(_source, target, mainLanguage, {"lang"}, False,
+                                          Array.Empty(Of String)()))
+    End Sub
+
     Private Function TargetGroup(groupName As String, subGroupName As String) As GroupEntry
         Return _target.Groups.GetGroup(groupName, subGroupName)
     End Function

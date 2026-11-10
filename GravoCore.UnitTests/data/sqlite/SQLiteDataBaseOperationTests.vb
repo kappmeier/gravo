@@ -25,6 +25,18 @@ Public Class SQLiteDataBaseOperationTests
     End Sub
 
     <Test>
+    Public Sub DataBase_WhenOpen_ShouldSetPath()
+        dim fixture As SQLiteDataBaseOperation = New SQLiteDataBaseOperation()
+        fixture.Path.Should.Be(Nothing)
+
+        fixture.Open(_tempDb)
+        fixture.Path.Should.Be(_tempDb)
+
+        fixture.Dispose()
+        fixture.Path.Should.Be(Nothing)
+    End Sub
+
+    <Test>
     Public Sub ExecuteReader_QuestionMarkInBoundValue_RoundTrips()
         _db.ExecuteNonQuery("CREATE TABLE [Words] ([Name] TEXT NOT NULL);", Array.Empty(Of Object))
         _db.ExecuteNonQuery("INSERT INTO [Words] ([Name]) VALUES (?);", New List(Of Object) From {"x?y"})
