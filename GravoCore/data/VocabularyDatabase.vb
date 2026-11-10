@@ -3,12 +3,12 @@
 <Assembly: InternalsVisibleTo("GravoApp.Tests")>
 
 ''' <summary>
-''' The DAOs of one vocabulary database together with the connection they work on. This class provides method to update
-''' the vocabulary in the dictionary and groups in a consistent way.
+''' The DAOs of one vocabulary database together with the connection they work on. This class provides methods to
+''' update the vocabulary in the dictionary and groups in a consistent way.
 ''' </summary>
 ''' <remarks>
 ''' Current implementation supports SQLite vocabulary databases (<c>*.s3db</c>).
-''' All implementations use transactions to not leave a brokoen state.
+''' Each write method runs in one transaction, so a failure leaves nothing half changed.
 ''' </remarks>
 Public Class VocabularyDatabase
     Private ReadOnly _dictionary As IDictionaryDao
