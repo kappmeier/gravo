@@ -130,8 +130,7 @@ Public Class DatabaseTransfer
     Public Shared Function Export(source As VocabularyDatabase, targetPath As String, mainLanguage As String,
                                   languages As IEnumerable(Of String), includeEmptyMains As Boolean,
                                   groupNames As IEnumerable(Of String)) As TransferResult
-        Dim comparison = If(OperatingSystem.IsWindows(), StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
-        If String.Equals(Path.GetFullPath(targetPath), Path.GetFullPath(source.Connection.Path), comparison) Then
+        If IsDatabaseFile(source, targetPath) Then
             Throw New ArgumentException($"The export target {targetPath} is the open database.")
         End If
         If File.Exists(targetPath) Then File.Delete(targetPath)
@@ -150,6 +149,17 @@ Public Class DatabaseTransfer
         Finally
             db.Close()
         End Try
+    End Function
+
+    ''' <summary>
+    ''' Returns whether <paramref name="filePath"/> is the file the database is opened on.
+    ''' </summary>
+    ''' <remarks>A database without a file, such as one that is not open, has no file to match.</remarks>
+    Private Shared Function IsDatabaseFile(database As VocabularyDatabase, filePath As String) As Boolean
+        Dim databasePath As String = database.Connection.Path
+        If databasePath Is Nothing Then Return False
+        Dim comparison = If(OperatingSystem.IsWindows(), StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
+        Return String.Equals(Path.GetFullPath(filePath), Path.GetFullPath(databasePath), comparison)
     End Function
 
     Private Function GetOrAddMain(word As String, language As String, mainLanguage As String, result As TransferResult
