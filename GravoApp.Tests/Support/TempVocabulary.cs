@@ -1,6 +1,5 @@
 using System.IO;
 using Gravo;
-using Microsoft.Data.Sqlite;
 
 namespace GravoApp.Tests.Support;
 

@@ -1,7 +1,6 @@
 using System.IO;
 using Gravo;
 using GravoApp.Localization;
-using Microsoft.Data.Sqlite;
 
 namespace GravoApp.Tests.Support;
 

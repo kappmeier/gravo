@@ -5,7 +5,6 @@ using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
-using Microsoft.Data.Sqlite;
 using Moq;
 using NUnit.Framework;
 

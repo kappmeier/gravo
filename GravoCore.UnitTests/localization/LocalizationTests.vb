@@ -3,7 +3,6 @@ Imports System.Reflection
 Imports System.Text.RegularExpressions
 Imports AwesomeAssertions
 Imports Gravo
-Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 
 <TestFixture>

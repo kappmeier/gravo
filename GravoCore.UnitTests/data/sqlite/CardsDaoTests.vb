@@ -2,7 +2,6 @@
 Imports AwesomeAssertions
 Imports Gravo
 Imports GravoCore.UnitTests.GroupDaoTests
-Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
