@@ -2,7 +2,6 @@
 Imports AwesomeAssertions
 Imports Gravo
 Imports GravoCore.UnitTests.GroupDaoTests
-Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
@@ -36,7 +35,6 @@ Public Class CardsDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

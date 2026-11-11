@@ -1,4 +1,6 @@
-﻿''' <summary>
+﻿Imports System.IO
+
+''' <summary>
 ''' Copies dictionary entries from a vocabulary database (including groups and group entries, see
 ''' <see cref="VocabularyDatabase"/>). Transfers databases are selected by the constructor.
 ''' </summary>
@@ -111,6 +113,54 @@ Public Class DatabaseTransfer
             result.Add(CopyGroup(groupName))
         Next
     End Sub
+
+    ''' <summary>
+    ''' Writes the specified languages and groups of the source into a new vocabulary database at
+    ''' <paramref name="targetPath"/>.
+    ''' </summary>
+    ''' <remarks>
+    ''' An existing file at <paramref name="targetPath"/> is deleted first. The copy runs without a transaction, so a
+    ''' failure leaves a half-filled file.
+    ''' </remarks>
+    ''' <param name="includeEmptyMains">Whether main entries without any word are copied too.</param>
+    ''' <returns>The sum of the rows added by all copies.</returns>
+    ''' <exception cref="ArgumentException">
+    ''' When <paramref name="targetPath"/> is the file of the source. Nothing is deleted then.
+    ''' </exception>
+    Public Shared Function Export(source As VocabularyDatabase, targetPath As String, mainLanguage As String,
+                                  languages As IEnumerable(Of String), includeEmptyMains As Boolean,
+                                  groupNames As IEnumerable(Of String)) As TransferResult
+        If IsDatabaseFile(source, targetPath) Then
+            Throw New ArgumentException($"The export target {targetPath} is the open database.")
+        End If
+        If File.Exists(targetPath) Then File.Delete(targetPath)
+        ManagementDao.CreateNewVocabularyDatabase(targetPath)
+        Dim db As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(targetPath)
+        Try
+            Dim transfer As New DatabaseTransfer(source, VocabularyDatabase.Create(db))
+            Dim result As New TransferResult()
+            For Each language As String In languages
+                result.Add(transfer.CopyLanguage(language, mainLanguage, includeEmptyMains))
+            Next
+            For Each groupName As String In groupNames
+                result.Add(transfer.CopyGroup(groupName))
+            Next
+            Return result
+        Finally
+            db.Close()
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Returns whether <paramref name="filePath"/> is the file the database is opened on.
+    ''' </summary>
+    ''' <remarks>A database without a file, such as one that is not open, has no file to match.</remarks>
+    Private Shared Function IsDatabaseFile(database As VocabularyDatabase, filePath As String) As Boolean
+        Dim databasePath As String = database.Connection.Path
+        If databasePath Is Nothing Then Return False
+        Dim comparison = If(OperatingSystem.IsWindows(), StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
+        Return String.Equals(Path.GetFullPath(filePath), Path.GetFullPath(databasePath), comparison)
+    End Function
 
     Private Function GetOrAddMain(word As String, language As String, mainLanguage As String, result As TransferResult
             ) As MainEntry

@@ -97,6 +97,25 @@ public class ExplorerViewModelRenameTests
     }
 
     [Test]
+    public async Task RenameMainEntry_SubEntryConflict_ShowsCouldNotRenameAndKeepsName()
+    {
+        // Add the sub entry "home" that will conflict with the new main entry name
+        _voc.AddWord("house", "english", "home", "Haus");
+        var fixture = Create();
+
+        // Try to rename the main entry to "home", which automatically renames the sub entry "home" as well
+        var node = Node(fixture, House);
+        Answer("home");
+
+        await fixture.RenameNodeCommand.ExecuteAsync(node);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T136", It.IsAny<string>()), Times.Once);
+        node.Title.Should().Be("house");
+        _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").Select(w => w.Word).Should()
+            .BeEquivalentTo("house", "houses", "home");
+    }
+
+    [Test]
     public async Task RenameGroup_EditsGroup()
     {
         var fixture = Create();

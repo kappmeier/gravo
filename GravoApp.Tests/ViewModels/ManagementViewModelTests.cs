@@ -5,7 +5,6 @@ using GravoApp.Localization;
 using GravoApp.Services;
 using GravoApp.Tests.Support;
 using GravoApp.ViewModels;
-using Microsoft.Data.Sqlite;
 using Moq;
 using NUnit.Framework;
 
@@ -31,7 +30,6 @@ public class ManagementViewModelTests
     public void TearDown()
     {
         _active.Dispose();
-        SqliteConnection.ClearAllPools();
         foreach (var file in _files)
         {
             File.Delete(file);
@@ -509,6 +507,35 @@ public class ManagementViewModelTests
         using var db = SQLiteDataBaseOperation.OpenDatabase(target);
         DaoFactory.Dictionary(db).DictionaryLanguages("german").Should().Equal("english");
         DaoFactory.Groups(db).GetGroups().Should().Equal("Book");
+    }
+
+    [Test]
+    public async Task Export_TargetFolderMissing_ShowsError()
+    {
+        var target = Path.Combine(TempPath(), "gone", "export.s3db");
+        _dialogs.Setup(d => d.PickSaveFileAsync("T176", "s3db", null)).ReturnsAsync(target);
+        var fixture = Create();
+        fixture.ExportLanguages.Single(l => l.Name == "english").IsChecked = true;
+
+        await fixture.ExportCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Never);
+    }
+
+    [Test]
+    public async Task Export_TargetIsTheActiveDatabase_ShowsErrorAndKeepsIt()
+    {
+        _dialogs.Setup(d => d.PickSaveFileAsync("T176", "s3db", null)).ReturnsAsync(_active.FilePath);
+        var fixture = Create();
+        fixture.ExportLanguages.Single(l => l.Name == "english").IsChecked = true;
+
+        await fixture.ExportCommand.ExecuteAsync(null);
+
+        // The error is shown and not a success message
+        _dialogs.Verify(d => d.ShowMessageAsync("T104", It.IsAny<string>()), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T204"), Times.Never);
+        _active.Groups.GetGroups().Should().Equal("Book", "Other");
     }
 
     [Test]

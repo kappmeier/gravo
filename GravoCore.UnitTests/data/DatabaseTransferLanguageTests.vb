@@ -50,7 +50,6 @@ Public Class DatabaseTransferLanguageTests
     Public Sub CleanUp()
         _sourceDb.Close()
         _targetDb.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_sourcePath)
         File.Delete(_targetPath)
@@ -197,7 +196,6 @@ Public Class DatabaseTransferLanguageTests
             again.SubEntries.Should().Be(0)
         Finally
             thirdDb.Close()
-            SqliteConnection.ClearAllPools()
             File.Delete(thirdPath)
         End Try
     End Sub

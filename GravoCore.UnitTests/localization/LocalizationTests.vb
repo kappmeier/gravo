@@ -3,7 +3,6 @@ Imports System.Reflection
 Imports System.Text.RegularExpressions
 Imports AwesomeAssertions
 Imports Gravo
-Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 
 <TestFixture>
@@ -28,7 +27,6 @@ Public Class LocalizationTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

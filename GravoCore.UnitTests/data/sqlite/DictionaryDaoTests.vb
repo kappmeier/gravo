@@ -59,7 +59,6 @@ Public Class DictionaryDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub
@@ -408,6 +407,15 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
+    Public Sub ChangeEntryToMainEntry_SameWordAndMeaningThere_ThrowsEntryExistsException()
+        _dictionaryDao.AddSubEntry(New WordEntry("word1", "", "", WordType.Verb, "m", "", False), "wordx", language,
+            targetLanguage)
+        Dim wordx = _dictionaryDao.GetMainEntry("wordx", language, targetLanguage)
+
+        Assert.Throws(Of EntryExistsException)(Sub() _dictionaryDao.ChangeEntry(word1entry1, wordx))
+    End Sub
+
+    <Test>
     Public Sub GetMainEntry_ExistingWordEntryReturns_MainEntry()
         Dim mainEntry = _dictionaryDao.GetMainEntry(word1entry1)
 
@@ -496,18 +504,37 @@ Public Class DictionaryDaoTests
     End Sub
 
     <Test>
-    Public Sub AdaptSubEntries_ForMainEntry_ModifiesSubEntries()
-        Dim newMainEntry As MainEntry = New MockMainEntry(1, "word1 update", "lang", "targetLang")
-        _dictionaryDao.AdaptSubEntries(newMainEntry, "word1")
+    Public Sub ChangeMainEntry_RenamesTheEqualSubEntries()
+        _dictionaryDao.ChangeMainEntry(word1MainEntry, "word1 update")
 
         Dim updatedWords = _dictionaryDao.GetWords(language, targetLanguage, "w")
 
-        Dim word1entry1Updated = New GroupDaoTests.MockWordEntry(1, "word1 update", "pre", "post", WordType.Verb, "m", "l", False)
-        Dim word1entry2Updated = New GroupDaoTests.MockWordEntry(3, "word1 update", "", "", WordType.Verb, "with a meaning", "", True)
+        ' word1entry1 (1) and word1entry2 (3) carry the old word, word1Variance and word1a do not
+        updatedWords.Should.BeEquivalentTo(New List(Of WordEntry) From {
+            New GroupDaoTests.MockWordEntry(1, "word1 update", "pre", "post", WordType.Verb, "m", "l", False),
+            word1Variance,
+            New GroupDaoTests.MockWordEntry(3, "word1 update", "", "", WordType.Verb, "with a meaning", "", True),
+            wordWithoutSubwords, word1entry1a})
+    End Sub
 
-        Dim expectedResults As New List(Of WordEntry) From {word1entry1Updated, word1Variance, word1entry2Updated, wordWithoutSubwords, word1entry1a}
+    <Test>
+    Public Sub ChangeMainEntry_CaseOnly_RenamesTheSubEntries()
+        _dictionaryDao.ChangeMainEntry(word1MainEntry, "Word1")
 
-        updatedWords.Should.BeEquivalentTo(expectedResults)
+        Dim renamed = _dictionaryDao.GetMainEntry("Word1", language, targetLanguage)
+        _dictionaryDao.GetEntry(renamed, "Word1", "m").Should.NotBeNull()
+        _dictionaryDao.GetEntry(renamed, "Word1", "with a meaning").Should.NotBeNull()
+    End Sub
+
+    <Test>
+    Public Sub ChangeMainEntry_SubEntryConflict_ThrowsAndChangesNothing()
+        _dictionaryDao.AddSubEntry(New WordEntry("word new", "", "", WordType.Verb, "m", "", False), "word1", language,
+            targetLanguage)
+
+        Assert.Throws(Of EntryExistsException)(Sub() _dictionaryDao.ChangeMainEntry(word1MainEntry, "word new"))
+
+        _dictionaryDao.GetMainEntry("word1", language, targetLanguage).Should.NotBeNull()
+        _dictionaryDao.GetEntry(word1MainEntry, "word1", "m").Should.NotBeNull()
     End Sub
 
     <Test>

@@ -211,7 +211,7 @@ Public Class DictionaryDao
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
             Dim newMeaning = updateData.MeaningDefault(entry)
-            CheckViolation(newWord, newMeaning, GetMainEntry(entry).Index)
+            CheckViolation(newWord, newMeaning, GetMainEntry(entry).Index, entry.Index)
         End If
         Dim baseCommand = "UPDATE DictionaryWords SET "
 
@@ -263,6 +263,7 @@ Public Class DictionaryDao
 
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry) Implements IDictionaryDao.ChangeEntry
         CheckMainEntry(mainEntry)
+        CheckViolation(entry.Word, entry.Meaning, mainEntry.Index, entry.Index)
 
         Dim command = "UPDATE DictionaryWords SET MainIndex = ? WHERE [Index] = ?"
         DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {mainEntry.Index, entry.Index}))
@@ -290,9 +291,22 @@ Public Class DictionaryDao
         End Select
     End Function
 
-    Private Sub CheckViolation(newWord As String, newMeaning As String, mainIndex As Int32)
-        Dim command As String = "SELECT [Index] FROM [DictionaryWords] WHERE [MainIndex] = ? AND [Word] = ? AND [Meaning] = ?"
-        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {mainIndex, newWord, newMeaning}))
+    ''' <summary>
+    ''' Checks whether another word of the main entry has the given word and meaning. The word itself is ignored.
+    ''' </summary>
+    ''' <exception cref="EntryExistsException">
+    ''' When the check is positive and the word already exists in the main entry.
+    ''' </exception>
+    Private Sub CheckViolation(newWord As String, newMeaning As String, mainIndex As Int32, wordIndex As Int32)
+        Dim command As String = "
+            SELECT [Index]
+              FROM [DictionaryWords]
+             WHERE [MainIndex] = ?
+               AND [Word] = ?
+               AND [Meaning] = ?
+               AND [Index] <> ?"
+        DBConnection.ExecuteReader(command,
+            ToDbParameters(New List(Of Object) From {mainIndex, newWord, newMeaning, wordIndex}))
         If DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
             Throw New EntryExistsException("Entry for " & newWord & " and " & newMeaning & " exists.")
@@ -420,8 +434,9 @@ Public Class DictionaryDao
 
     Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String
         ) As MainEntry Implements IDictionaryDao.ChangeMainEntry
+        newWord = newWord.Trim()
         CheckAllowedText(newWord)
-        CheckWordNotEmpty(newWord.Trim())
+        CheckWordNotEmpty(newWord)
         ' Verify that the original entry exists
         CheckMainEntry(mainEntry)
 
@@ -433,37 +448,42 @@ Public Class DictionaryDao
         DBConnection.DBCursor.Close()
         If Count > 0 Then Throw New EntryExistsException("Entry " & newWord & " already exists.")
 
-        command = "UPDATE DictionaryMain SET WordEntry = ? WHERE [Index] = ?"
-        DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {newWord, mainEntry.Index}))
+        ' A renamed sub entry must not equal another word of the main entry in word and meaning
+        command = "
+            SELECT COUNT(*)
+              FROM DictionaryWords AS N, DictionaryWords AS O
+             WHERE N.MainIndex = ?
+               AND O.MainIndex = N.MainIndex
+               AND N.Word = ?
+               AND O.Word = ?
+               AND N.Meaning = O.Meaning
+               AND N.[Index] <> O.[Index]"
+        DBConnection.ExecuteReader(command,
+            ToDbParameters(New List(Of Object) From {mainEntry.Index, newWord, mainEntry.Word}))
+        DBConnection.DBCursor.Read()
+        Count = DBConnection.SecureGetInt32(0)
+        DBConnection.DBCursor.Close()
+        If Count > 0 Then Throw New EntryExistsException($"A sub entry '{newWord}' exists already.")
+
+        DBConnection.InTransaction(Sub() RenameMainEntry(mainEntry, newWord))
         Return New MainEntry(mainEntry.Index, newWord, mainEntry.Language, mainEntry.MainLanguage)
     End Function
+
+    Private Sub RenameMainEntry(mainEntry As MainEntry, newWord As String)
+        DBConnection.ExecuteNonQuery("UPDATE DictionaryMain SET WordEntry = ? WHERE [Index] = ?",
+            ToDbParameters(New List(Of Object) From {newWord, mainEntry.Index}))
+        DBConnection.ExecuteNonQuery("
+            UPDATE DictionaryWords
+               SET Word = ?
+             WHERE MainIndex = ?
+               AND Word = ?",
+            ToDbParameters(New List(Of Object) From {newWord, mainEntry.Index, mainEntry.Word}))
+    End Sub
 
     Private Sub CheckMainEntry(mainEntry As MainEntry)
         Dim dbEntry = GetMainEntry(mainEntry.Index)
         If Not dbEntry.Equals(mainEntry) Then Throw New EntryNotFoundException("Given entry not in database")
     End Sub
-
-    Sub AdaptSubEntries(ByVal mainEntry As MainEntry, ByVal word As String) Implements IDictionaryDao.AdaptSubEntries
-        Dim indices As ICollection(Of Integer) = GetSubEntryIndices(mainEntry.Index, word)
-        Dim command As String
-        For Each index As Integer In indices
-            command = "UPDATE DictionaryWords SET Word = ? WHERE [Index] = ?"
-            DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {mainEntry.Word, index}))
-        Next
-    End Sub
-
-    Private Function GetSubEntryIndices(ByVal mainIndex As Integer, ByVal word As String) As ICollection(Of Integer)
-        GetSubEntryIndices = New Collection(Of Integer)
-        Dim command As String = "SELECT [Index] FROM DictionaryWords WHERE Word= ? AND MainIndex = ?"
-        DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {word, mainIndex}))
-
-        If DBConnection.DBCursor.HasRows = True Then
-            Do While DBConnection.DBCursor.Read()
-                GetSubEntryIndices.Add(DBConnection.SecureGetInt32(0))
-            Loop
-        End If
-        DBConnection.DBCursor.Close()
-    End Function
 
     Function GetEntryIndex(ByVal MainEntry As String, ByVal Language As String, ByVal MainLanguage As String) As Integer
         ' Check language exists at all

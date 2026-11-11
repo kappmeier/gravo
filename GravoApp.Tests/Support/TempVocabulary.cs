@@ -1,6 +1,5 @@
 using System.IO;
 using Gravo;
-using Microsoft.Data.Sqlite;
 
 namespace GravoApp.Tests.Support;
 
@@ -108,7 +107,6 @@ public sealed class TempVocabulary : IDisposable
     public void Dispose()
     {
         Db.Dispose();
-        SqliteConnection.ClearAllPools();
         File.Delete(FilePath);
     }
 }

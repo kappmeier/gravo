@@ -31,13 +31,11 @@ Public Class ManagementDaoTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
 
         If _realDb IsNot Nothing Then
             _realDb.Close()
-            SqliteConnection.ClearAllPools()
             File.Delete(_tempRealDb)
             _realDb = Nothing
         End If
@@ -536,6 +534,5 @@ Public Class ManagementDaoTests
 
     Private Shared Sub CloseIllegalDb(illegalDb As IDataBaseOperation)
         illegalDb.Close()
-        SqliteConnection.ClearAllPools()
     End Sub
 End Class

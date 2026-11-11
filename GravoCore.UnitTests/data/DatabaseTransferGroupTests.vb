@@ -1,7 +1,7 @@
 ﻿Imports System.IO
 Imports AwesomeAssertions
 Imports Gravo
-Imports Microsoft.Data.Sqlite
+Imports Moq
 Imports NUnit.Framework
 
 ''' <summary>
@@ -69,7 +69,6 @@ Public Class DatabaseTransferGroupTests
     Public Sub CleanUp()
         _sourceDb.Close()
         _targetDb.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_sourcePath)
         File.Delete(_targetPath)
@@ -260,6 +259,97 @@ Public Class DatabaseTransferGroupTests
 
         Dim copied As GroupDto = _target.Group.Load(TargetGroup("Test", "Lezione 8 - Sapori d'Italia"))
         copied.Entries.Single(Function(t) t.Word = "word2").Example.Should().Be("Auf geht's!")
+    End Sub
+
+    <Test>
+    Public Sub Export_LanguageAndGroup_ReplacesTheTargetFile()
+        Dim exportPath As String = Path.GetTempFileName()
+        File.WriteAllText(exportPath, "old")
+
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, {"lang"}, False, {"Other"})
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Dictionary(exportDb).DictionaryLanguages(mainLanguage).Should().BeEquivalentTo({"lang"})
+            DaoFactory.Groups(exportDb).GetGroups().Should().BeEquivalentTo({"Other"})
+        Finally
+            exportDb.Close()
+            File.Delete(exportPath)
+        End Try
+    End Sub
+
+    <Test>
+    Public Sub Export_NothingChecked_CreatesAnEmptyCurrentDatabase()
+        Dim exportPath As String = Path.GetTempFileName()
+
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, Array.Empty(Of String)(), True,
+                                Array.Empty(Of String)())
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Management(exportDb).IsSchemaVersionUpToDate().Should().BeTrue()
+            DaoFactory.Groups(exportDb).GetGroups().Should().BeEmpty()
+            DaoFactory.Dictionary(exportDb).DictionaryLanguages(mainLanguage).Should().BeEmpty()
+        Finally
+            exportDb.Close()
+            File.Delete(exportPath)
+        End Try
+    End Sub
+
+    <Test>
+    Public Sub Export_TwiceOntoTheSamePath_ReplacesTheFirstExport()
+        Dim exportPath As String = Path.GetTempFileName()
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, {"lang"}, False, {"Other"})
+
+        ' Second export should overwrite the first
+        DatabaseTransfer.Export(_source, exportPath, mainLanguage, Array.Empty(Of String)(), True,
+                                Array.Empty(Of String)())
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Groups(exportDb).GetGroups().Should().BeEmpty()
+            DaoFactory.Dictionary(exportDb).DictionaryLanguages(mainLanguage).Should().BeEmpty()
+        Finally
+            exportDb.Close()
+            File.Delete(exportPath)
+        End Try
+    End Sub
+
+    <Test>
+    Public Sub Export_TargetIsTheSource_ThrowsAndKeepsTheSource()
+        Assert.Throws(Of ArgumentException)(
+            Sub() DatabaseTransfer.Export(_source, _sourcePath, mainLanguage, {"lang"}, False,
+                                          Array.Empty(Of String)()))
+
+        _source.Groups.GetGroups().Should().BeEquivalentTo({"Other", "Test"})
+    End Sub
+
+    <Test>
+    Public Sub Export_TargetIsTheSourceViaRelativePath_Throws()
+        Dim target As String = Path.Combine(Path.GetDirectoryName(_sourcePath), "x", "..",
+                                            Path.GetFileName(_sourcePath))
+
+        Assert.Throws(Of ArgumentException)(
+            Sub() DatabaseTransfer.Export(_source, target, mainLanguage, {"lang"}, False,
+                                          Array.Empty(Of String)()))
+    End Sub
+
+    <Test>
+    Public Sub Export_SourceWithoutFile_CreatesTheTarget()
+        Dim source As VocabularyDatabase = VocabularyDatabase.Create(New Mock(Of IDataBaseOperation)().Object)
+        source.Connection.Path.Should().BeNull()
+
+        Dim exportPath As String = Path.GetTempFileName()
+        DatabaseTransfer.Export(source, exportPath, mainLanguage, Array.Empty(Of String)(), True,
+                                Array.Empty(Of String)())
+
+        Dim exportDb As IDataBaseOperation = SQLiteDataBaseOperation.OpenDatabase(exportPath)
+        Try
+            DaoFactory.Management(exportDb).IsSchemaVersionUpToDate().Should().BeTrue()
+        Finally
+            exportDb.Close()
+            File.Delete(exportPath)
+        End Try
     End Sub
 
     Private Function TargetGroup(groupName As String, subGroupName As String) As GroupEntry

@@ -186,6 +186,9 @@ Public Interface IDictionaryDao
     ''' <param name="entry">The word to move.</param>
     ''' <param name="mainEntry">The new main entry of the word.</param>
     ''' <exception cref="EntryNotFoundException">When the main entry does not exist.</exception>
+    ''' <exception cref="EntryExistsException">
+    ''' When the main entry already has a word with the same word and meaning.
+    ''' </exception>
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry)
 
     Function GetMainEntry(ByVal word As WordEntry) As MainEntry
@@ -199,24 +202,21 @@ Public Interface IDictionaryDao
         ) As ICollection(Of MainEntry)
 
     ''' <summary>
-    ''' Renames a main entry.
+    ''' Renames a main entry and the sub entries whose word equals the old word of the main entry. The renaming is
+    ''' securely performed in one transaction.
     ''' </summary>
     ''' <param name="mainEntry">The main entry to rename.</param>
-    ''' <param name="newWord">The new word of the main entry.</param>
+    ''' <param name="newWord">The new word of the main entry. Will be trimmed.</param>
     ''' <returns>The renamed main entry.</returns>
     ''' <exception cref="InputException">
     ''' When the word is empty after trimming or holds a forbidden character.
     ''' </exception>
     ''' <exception cref="EntryNotFoundException">When the main entry does not exist.</exception>
-    ''' <exception cref="EntryExistsException">When another main entry has the new word already.</exception>
+    ''' <exception cref="EntryExistsException">
+    ''' When another main entry has the new word already, or when a renamed sub entry would equal another word of the
+    ''' main entry in word and meaning. Nothing is changed then.
+    ''' </exception>
     Function ChangeMainEntry(ByVal mainEntry As MainEntry, ByVal newWord As String) As MainEntry
-
-    ''' <summary>
-    ''' Changes all sub entries of a main entry with a given word to the main entrie's word entry.
-    ''' </summary>
-    ''' <param name="mainEntry">The main entry whose sub entries are adapted.</param>
-    ''' <param name="word">The word that the sub entries must have.</param>
-    Sub AdaptSubEntries(ByVal mainEntry As MainEntry, ByVal word As String)
 
     Function WordCount(ByVal language As String, ByVal mainLanguage As String) As Integer
 

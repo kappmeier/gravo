@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports AwesomeAssertions
 Imports Gravo
-Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 
 Public Class SQLiteDataBaseOperationTests
@@ -20,9 +19,20 @@ Public Class SQLiteDataBaseOperationTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
+    End Sub
+
+    <Test>
+    Public Sub DataBase_WhenOpen_ShouldSetPath()
+        Dim fixture As SQLiteDataBaseOperation = New SQLiteDataBaseOperation()
+        fixture.Path.Should.Be(Nothing)
+
+        fixture.Open(_tempDb)
+        fixture.Path.Should.Be(_tempDb)
+
+        fixture.Dispose()
+        fixture.Path.Should.Be(Nothing)
     End Sub
 
     <Test>
@@ -109,7 +119,6 @@ Public Class SQLiteDataBaseOperationTests
         ", Array.Empty(Of Object))
 
         _db.Dispose()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
         File.Exists(_tempDb).Should.BeFalse()

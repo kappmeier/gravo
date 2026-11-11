@@ -79,4 +79,14 @@ Public Interface IDataBaseOperation
     ''' <param name="Index">The index of the parameter in the reader.</param>
     ''' <returns>The value at the given index.</returns>
     Function SecureGetDateTime(ByVal Index As Integer) As DateTime
+
+    ''' <summary>
+    ''' Returns the path of the database, when it is open.
+    ''' </summary>
+    ''' <remarks>
+    ''' The property returns <c>Nothing</c> when the database is not mapped to a file. This is either because the
+    ''' database is in-memory or currently not opened.
+    ''' </remarks>
+    ''' <returns>The path of the database, or <c>Nothing</c> if it is not open.</returns>
+    ReadOnly Property Path As String
 End Interface

@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports AwesomeAssertions
 Imports Gravo
-Imports Microsoft.Data.Sqlite
 Imports Moq
 Imports NUnit.Framework
 Imports GravoCore.UnitTests.GroupDaoTests
@@ -29,7 +28,6 @@ Public Class TestControllerTests
     <TearDown>
     Public Sub CleanUp()
         _db.Close()
-        SqliteConnection.ClearAllPools()
 
         File.Delete(_tempDb)
     End Sub

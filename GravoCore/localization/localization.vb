@@ -232,6 +232,7 @@ Public Class localization
     Public Const INFO_DB_SCHEMA_VERSION = 221
     Public Const INFO_COPYRIGHT_OLD = 222
     Public Const INFO_DISCLAIMER = 223
+    Public Const EXPLORER_MAIN_ENTRY_ONE_LANGUAGE = 224
     Public Const ERROR_TITLE = TEST_ERROR
     Public Const HINT_TITLE = HINT
 

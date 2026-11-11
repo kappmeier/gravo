@@ -644,6 +644,23 @@ public class ExplorerViewModelEditTests
     }
 
     [Test]
+    public async Task ChangeWord_MoveToMainEntryWithSameWord_ShowsEntryExistsAndKeepsWord()
+    {
+        _voc.AddWord("go", "english", "houses", "Häuser");
+        var fixture = Create();
+        SelectRow(fixture, "houses", Dictionary, "german", "english", "H");
+
+        fixture.Editor.Pre = "the";
+        fixture.Editor.MainEntry = "go";
+        await fixture.ChangeWordCommand.ExecuteAsync(null);
+
+        VerifyMessage("Gravo", "T133");
+        var stored = _voc.Dictionary.GetWordsAndSubWords("house", "english", "german").Single(w => w.Word == "houses");
+        stored.Pre.Should().BeEmpty();
+        _voc.Dictionary.GetWordsAndSubWords("go", "english", "german").Count(w => w.Word == "houses").Should().Be(1);
+    }
+
+    [Test]
     public async Task ChangeWord_InputException_ShowsInvalidInput()
     {
         var fixture = Create();
