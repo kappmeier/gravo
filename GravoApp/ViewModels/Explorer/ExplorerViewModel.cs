@@ -389,7 +389,12 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             return;
         }
         MainEntry? newMain = null;
-        if (Multi.EnableMainEntry)
+        if (Multi.EnableMainEntry && !HasOneLanguage(node, selection))
+        {
+            await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
+                Texts.Get(localization.EXPLORER_MAIN_ENTRY_ONE_LANGUAGE));
+        }
+        else if (Multi.EnableMainEntry)
         {
             try
             {
@@ -746,6 +751,29 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         };
 
     private string YesNo(bool value) => Texts.Get(value ? localization.YES : localization.NO);
+
+    /// <summary>Decides whether the words of the <paramref name="rows"/> all belong to one language.</summary>
+    /// <remarks>
+    /// A dictionary node lists one language. For a group or a sub group the rows are only checked one by one when
+    /// the group has several languages.
+    /// </remarks>
+    private bool HasOneLanguage(ExplorerNode node, IEnumerable<ExplorerRow> rows)
+    {
+        if (node.IsDictionaryBranch || GroupLanguageCount(node) <= 1)
+        {
+            return true;
+        }
+        return rows
+            .Select(row => row.Entry)
+            .OfType<WordEntry>()
+            .Select(entry => Dictionary.GetMainEntry(entry).Language)
+            .Distinct()
+            .Count() <= 1;
+    }
+
+    private int GroupLanguageCount(ExplorerNode node) => node.Kind == NodeKind.Group
+        ? DataTools.UsedLanguagesCount(Groups, Group, node.Title)
+        : Group.GetLanguages(Groups.GetGroup(node.Group!, node.SubGroup!)).Count;
 
     private static bool IsSubGroupNode(ExplorerNode? node) =>
         node?.Kind is NodeKind.SubGroup or NodeKind.GroupWord;

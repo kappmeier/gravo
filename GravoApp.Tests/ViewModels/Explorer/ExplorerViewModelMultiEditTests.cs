@@ -258,6 +258,62 @@ public class ExplorerViewModelMultiEditTests
     }
 
     [Test]
+    public async Task ChangeSelected_MainEntryFromTwoLanguages_WarnsAndChangesOnlyTheFields()
+    {
+        _voc.AddToGroup(_seed.Unit1, _seed.Maison);
+        var fixture = Create();
+
+        SelectAll(fixture, Unit1);
+        fixture.Multi.EnablePre = true;
+        fixture.Multi.Pre = "the";
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "go";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T" + localization.WARNING_TITLE,
+            "T" + localization.EXPLORER_MAIN_ENTRY_ONE_LANGUAGE), Times.Once);
+        Load(_seed.Unit1).Entries.Select(e => e.WordEntry.Pre).Should().Equal("the", "the", "the");
+        HouseWords().Single(w => w.Word == "house").Pre.Should().Be("the");
+        _voc.Dictionary.GetWordsAndSubWords("maison", "french", "german").Should().ContainSingle();
+    }
+
+    [Test]
+    public async Task ChangeSelected_MainEntryFromTwoLanguagesInAGroup_Warns()
+    {
+        _voc.AddToGroup(_seed.Unit2, _seed.Maison);
+        var fixture = Create();
+
+        SelectAll(fixture, Groups, "Book");
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "go";
+
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("T" + localization.WARNING_TITLE,
+            "T" + localization.EXPLORER_MAIN_ENTRY_ONE_LANGUAGE), Times.Once);
+        _voc.Dictionary.GetWordsAndSubWords("maison", "french", "german").Should().ContainSingle();
+        HouseWords().Should().HaveCount(2);
+    }
+
+    [Test]
+    public async Task ChangeSelected_MainEntryFromOneLanguageOfAMixedGroup_MovesTheWords()
+    {
+        _voc.AddToGroup(_seed.Unit1, _seed.Maison);
+
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Unit1);
+        fixture.SelectedRows.Add(fixture.Rows.Single(r => r.Word == "house"));
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "go";
+
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _voc.Dictionary.GetWordsAndSubWords("go", "english", "german").Select(w => w.Word)
+            .Should().Contain("house");
+    }
+
+    [Test]
     public async Task ChangeSelected_EntryExists_ShowsMessageAndContinues()
     {
         var fixture = Create();
