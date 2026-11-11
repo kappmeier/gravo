@@ -531,13 +531,13 @@ public sealed partial class ManagementViewModel : ViewModelBase
         try
         {
             DatabaseTransfer.Export(_active, target, _mainLanguage,
-            ExportLanguages
-                .Where(language => language.IsChecked)
-                .Select(language => language.Name),
-            !ExportSkipEmptyMains,
-            ExportGroups
-                .Where(group => group.IsChecked)
-                .Select(group => group.Name));
+                ExportLanguages
+                    .Where(language => language.IsChecked)
+                    .Select(language => language.Name),
+                !ExportSkipEmptyMains,
+                ExportGroups
+                    .Where(group => group.IsChecked)
+                    .Select(group => group.Name));
         }
         catch (Exception ex)
         {
