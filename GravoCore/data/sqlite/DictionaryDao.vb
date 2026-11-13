@@ -382,9 +382,7 @@ Public Class DictionaryDao
                                       Return New EntryNotFoundException("Data for word not in database.")
                                   End Function)
 
-        DBConnection.DBCursor.Read()
-        GetMainIndex = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        GetMainIndex = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function GetMainEntries(ByVal language As String, ByVal mainLanguage As String) As ICollection(Of MainEntry) Implements IDictionaryDao.GetMainEntries
@@ -443,9 +441,7 @@ Public Class DictionaryDao
         ' Verify that the entry with updated word would not conflict
         Dim command = "SELECT COUNT(*) FROM DictionaryMain WHERE WordEntry = ? AND LanguageName = ? AND MainLanguage = ?"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {newWord, mainEntry.Language, mainEntry.MainLanguage}))
-        DBConnection.DBCursor.Read()
-        Dim Count = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        Dim Count = DBConnection.ReadSingleInt32()
         If Count > 0 Then Throw New EntryExistsException("Entry " & newWord & " already exists.")
 
         ' A renamed sub entry must not equal another word of the main entry in word and meaning
@@ -460,9 +456,7 @@ Public Class DictionaryDao
                AND N.[Index] <> O.[Index]"
         DBConnection.ExecuteReader(command,
             ToDbParameters(New List(Of Object) From {mainEntry.Index, newWord, mainEntry.Word}))
-        DBConnection.DBCursor.Read()
-        Count = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        Count = DBConnection.ReadSingleInt32()
         If Count > 0 Then Throw New EntryExistsException($"A sub entry '{newWord}' exists already.")
 
         DBConnection.InTransaction(Sub() RenameMainEntry(mainEntry, newWord))
@@ -507,9 +501,7 @@ Public Class DictionaryDao
                                       Return New EntryNotFoundException("Main entry " & MainEntry & " not found for language " & Language & ".")
                                   End Function)
 
-        DBConnection.DBCursor.Read()
-        GetEntryIndex = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        GetEntryIndex = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function GetSubEntryIndex(ByVal MainIndex As Integer, ByVal Word As String, ByVal Meaning As String) As Integer
@@ -519,33 +511,25 @@ Public Class DictionaryDao
                                       Return New EntryNotFoundException("There is no entry for the given word/meaning.")
                                   End Function)
 
-        DBConnection.DBCursor.Read()
-        GetSubEntryIndex = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        GetSubEntryIndex = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function WordCount(ByVal language As String, ByVal mainLanguage As String) As Integer Implements IDictionaryDao.WordCount
         Dim command As String = "SELECT COUNT([Index]) FROM DictionaryMain WHERE [LanguageName] = ? AND [MainLanguage] = ?"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {language, mainLanguage}))
-        DBConnection.DBCursor.Read()
-        WordCount = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        WordCount = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function WordCount(ByVal language As String, ByVal mainLanguage As String, ByVal startsWith As String) As Integer Implements IDictionaryDao.WordCount
         Dim command As String = "SELECT COUNT(M.[WordEntry]) FROM DictionaryMain AS M WHERE M.[WordEntry] LIKE ? AND M.[LanguageName] = ? AND M.[MainLanguage] = ?"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {startsWith & "%", language, mainLanguage}))
-        DBConnection.DBCursor.Read()
-        WordCount = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        WordCount = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function WordCountTotal(ByVal language As String, ByVal mainLanguage As String) As Integer Implements IDictionaryDao.WordCountTotal
         Dim command As String = "SELECT COUNT(W.[Index]) FROM DictionaryWords W, DictionaryMain M WHERE W.MainIndex = M.[Index] AND M.LanguageName = ? AND M.MainLanguage = ?"
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {language, mainLanguage}))
-        DBConnection.DBCursor.Read()
-        WordCountTotal = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        WordCountTotal = DBConnection.ReadSingleInt32()
     End Function
 
     Public Function FindSimilar(ByVal wordBeginning As String, ByVal language As String, ByVal mainLanguage As String) As String Implements IDictionaryDao.FindSimilar

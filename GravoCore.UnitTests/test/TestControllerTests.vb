@@ -46,10 +46,7 @@ Public Class TestControllerTests
     Private Function ReadCardColumn(column As String, index As Integer) As Integer
         Dim command = "SELECT [" & column & "] FROM [Cards] WHERE [Index] = ?"
         _db.ExecuteReader(command, Enumerable.Repeat(CObj(index), 1))
-        _db.DBCursor.Read()
-        Dim value As Integer = _db.SecureGetInt32(0)
-        _db.DBCursor.Close()
-        Return value
+        ReadCardColumn = ReadSingleInt32(_db)
     End Function
 
     <Test>

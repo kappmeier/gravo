@@ -161,9 +161,7 @@ Public Class GroupDao
             DBConnection.DBCursor.Close()
             Throw New EntryNotFoundException("No Entry for the given word and meaning in the current group.")
         End If
-        DBConnection.DBCursor.Read()
-        Dim index As Integer = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        Dim index As Integer = DBConnection.ReadSingleInt32()
         Return index
     End Function
 

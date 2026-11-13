@@ -299,9 +299,7 @@ Public Class CardsDaoTests
     Private Sub AssertValue(table As String, column As String, row As Integer, expected As Integer)
         Dim command = "SELECT " & column & " FROM [" & table & "] WHERE [Index] = ?"
         _db.ExecuteReader(command, CStr(row))
-        _db.DBCursor.Read()
-        Dim value As Integer = _db.SecureGetInt32(0)
-        _db.DBCursor.Close()
+        Dim value As Integer = ReadSingleInt32(_db)
         value.Should.Be(expected)
     End Sub
 

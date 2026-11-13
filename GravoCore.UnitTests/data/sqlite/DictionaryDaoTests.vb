@@ -647,10 +647,8 @@ Public Class DictionaryDaoTests
             SELECT [Index] FROM DictionaryMain
             WHERE WordEntry = 'aujourd''hui'
         "
-        _db.ExecuteReader(command, Array.Empty(Of Object))
-        _db.DBCursor.Read()
-        SeedApostropheMain = _db.SecureGetInt32(0)
-        _db.DBCursor.Close()
+        ExecuteReader(_db, command)
+        SeedApostropheMain = ReadSingleInt32(_db)
     End Function
 
     ' Assert that no double quotes are allowed.

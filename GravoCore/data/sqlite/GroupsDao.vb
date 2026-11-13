@@ -94,9 +94,7 @@ Public Class GroupsDao
     Public Function SubGroupCount(ByVal groupName As String) As Integer Implements IGroupsDao.SubGroupCount
         Dim command As String = "SELECT COUNT([Index]) FROM Groups WHERE GroupName = ?"
         DBConnection.ExecuteReader(command, groupName)
-        DBConnection.DBCursor.Read()
-        Dim count As Integer = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        Dim count As Integer = DBConnection.ReadSingleInt32()
         If count = 0 Then
             Throw New EntryNotFoundException("Group " & groupName & " does not exist")
         End If
@@ -129,9 +127,7 @@ Public Class GroupsDao
         Dim command = "SELECT COUNT([Index]) FROM Groups WHERE Groups.GroupName=" & GetDBEntry(groupName)
 
         ExecuteReader(DBConnection, command)
-        DBConnection.DBCursor.Read()
-        CountSubGroups = DBConnection.SecureGetInt32(0)
-        DBConnection.DBCursor.Close()
+        CountSubGroups = DBConnection.ReadSingleInt32()
     End Function
 
     Private Function NextFreeTableName(baseName As String, firstNumber As Integer) As String

@@ -362,8 +362,6 @@ Public Class DatabaseTransferGroupTests
 
     Private Shared Function ReadInt(db As IDataBaseOperation, sql As String, parameter As Integer) As Integer
         db.ExecuteReader(sql, Enumerable.Repeat(CObj(parameter), 1))
-        db.DBCursor.Read()
-        ReadInt = db.SecureGetInt32(0)
-        db.DBCursor.Close()
+        Return ReadSingleInt32(db)
     End Function
 End Class

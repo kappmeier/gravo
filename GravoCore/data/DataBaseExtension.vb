@@ -69,14 +69,24 @@ Public Module DataBaseExtension
         End If
     End Sub
 
+    ''' <summary>
+    ''' Reads a single integer value from the first column of the open database cursor and closes it.
+    ''' </summary>
+    ''' <param name="dataBaseOperation">the database access with an open cursor</param>
+    ''' <returns>The integer value from the first column.</returns>
+    <Extension()>
+    Function ReadSingleInt32(ByVal dataBaseOperation As IDataBaseOperation) As Int32
+        dataBaseOperation.DBCursor.Read()
+        Dim result As Int32 = dataBaseOperation.SecureGetInt32(0)
+        dataBaseOperation.DBCursor.Close()
+        Return result
+    End Function
+
     <Extension()>
     Function IsEmpty(ByVal dataBaseOperation As IDataBaseOperation) As Boolean
         Dim command As String = "SELECT count(*) FROM sqlite_master"
         dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
-        dataBaseOperation.DBCursor.Read()
-        Dim objects As Int32 = dataBaseOperation.SecureGetInt32(0)
-        dataBaseOperation.DBCursor.Close()
-        IsEmpty = (objects = 0)
+        IsEmpty = (dataBaseOperation.ReadSingleInt32() = 0)
     End Function
 
     ''' <summary>
