@@ -260,7 +260,11 @@ Public Class DictionaryDaoTests
     End Sub
 
     Private Sub AssertCardCreated()
-        Dim command As String = "SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain FROM Cards WHERE [Index] = ?"
+        Dim command As String = "
+            SELECT TestInterval, Counter, LastDate, TestIntervalMain, CounterMain
+              FROM Cards
+             WHERE [Index] = ?
+        "
         _db.ExecuteReader(command, ToDbParameters(New List(Of Object) From {newWordIndex}))
         _db.DBCursor.Read()
         Dim testInterval As Integer = _db.SecureGetInt32(0)
@@ -647,10 +651,8 @@ Public Class DictionaryDaoTests
             SELECT [Index] FROM DictionaryMain
             WHERE WordEntry = 'aujourd''hui'
         "
-        _db.ExecuteReader(command, Array.Empty(Of Object))
-        _db.DBCursor.Read()
-        SeedApostropheMain = _db.SecureGetInt32(0)
-        _db.DBCursor.Close()
+        ExecuteReader(_db, command)
+        SeedApostropheMain = ReadSingleInt32(_db)
     End Function
 
     ' Assert that no double quotes are allowed.

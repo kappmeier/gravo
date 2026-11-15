@@ -527,7 +527,7 @@ Public Class ManagementDao
     ''' </summary>
     ''' <param name="command"></param>
     Private Sub SimpleUpdateCommand(command As String)
-        DBConnection.ExecuteNonQuery(command, Enumerable.Empty(Of Object))
+        ExecuteNonQuery(DBConnection, command)
     End Sub
 
     Private Function GetLatest() As DbSchemaVersion
@@ -587,7 +587,11 @@ Public Class ManagementDao
         Dim ErrorCount = 0
 
         ' delete cards entries for non-existing words
-        Dim command As String = "SELECT [Index] FROM Cards ORDER BY [Index]"
+        Dim command As String = "
+            SELECT [Index]
+              FROM Cards
+             ORDER BY [Index]
+        "
         ExecuteReader(DBConnection, command)
         Dim indices As New List(Of Integer)
         Do While DBConnection.DBCursor.Read()

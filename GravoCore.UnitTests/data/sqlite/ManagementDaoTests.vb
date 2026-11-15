@@ -116,7 +116,10 @@ Public Class ManagementDaoTests
         Dim mockedDb = New Mock(Of IDataBaseOperation)(MockBehavior.Strict)
         Dim mockDbDataReader = New Mock(Of DbDataReader)(MockBehavior.Strict)
 
-        mockedDb.Setup(Function(x) x.ExecuteReader("SELECT [Version], [Date], [Description] FROM DBVersion", Array.Empty(Of Object))).Returns(mockDbDataReader.Object)
+        mockedDb.Setup(Function(x) x.ExecuteReader("
+                SELECT [Version], [Date], [Description]
+                  FROM DBVersion
+            ", Array.Empty(Of Object))).Returns(mockDbDataReader.Object)
         mockedDb.Setup(Function(x) x.DBCursor()).Returns(mockDbDataReader.Object)
         mockDbDataReader.SetupSequence(Function(x) x.Read()).Returns(True).Returns(False)
 
@@ -235,19 +238,40 @@ Public Class ManagementDaoTests
         Next updateCount
         fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_4)
 
-        testDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'UpgradeGroup01')", Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("CREATE TABLE [UpgradeGroup01] ([WordIndex] INT NOT NULL)", Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("INSERT INTO [UpgradeGroup01] ([WordIndex]) VALUES (1)", Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("INSERT INTO [UpgradeGroup01] ([WordIndex]) VALUES (2)", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+            VALUES ('G', 'S', 'UpgradeGroup01')
+        ", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            CREATE TABLE [UpgradeGroup01] ([WordIndex] INT NOT NULL)
+        ", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            INSERT INTO [UpgradeGroup01] ([WordIndex])
+            VALUES (1)
+        ", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            INSERT INTO [UpgradeGroup01] ([WordIndex])
+            VALUES (2)
+        ", Array.Empty(Of Object))
 
-        testDb.ExecuteNonQuery("INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked]) VALUES (1, 'word1', NULL, NULL, 0, 'meaning1', NULL, 0, 1)", Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked]) VALUES (1, 'word2', NULL, NULL, 0, 'meaning2', NULL, 0, 0)", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked])
+            VALUES (1, 'word1', NULL, NULL, 0, 'meaning1', NULL, 0, 1)
+        ", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery("
+            INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked])
+            VALUES (1, 'word2', NULL, NULL, 0, 'meaning2', NULL, 0, 0)
+        ", Array.Empty(Of Object))
 
         fixture.UpdateDatabaseSingle()
 
         fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_5)
 
-        Dim command As String = "SELECT [Marked] FROM [UpgradeGroup01] WHERE [WordIndex] = ?"
+        Dim command As String = "
+            SELECT [Marked]
+              FROM [UpgradeGroup01]
+             WHERE [WordIndex] = ?
+        "
 
         testDb.ExecuteReader(command, "1")
         testDb.DBCursor.Read()
@@ -278,10 +302,22 @@ Public Class ManagementDaoTests
     Public Sub CopyGlobalCardsToGroups_CopiesCardColumnsToEveryGroupRow()
         Dim fixture As ManagementDao = OpenRealDataBaseCopy()
 
-        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (29, 2, 1, '2019-06-30', 1, 1)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+            VALUES ('G', 'S', 'GroupTest-Example01')
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (1, 8, 3, '2021-12-24', 5, 2)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (2, 16, 4, '2020-01-02', 6, 3)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (29, 2, 1, '2019-06-30', 1, 1)
+        ", Array.Empty(Of Object))
 
         fixture.CopyGlobalCardsToGroups()
 
@@ -294,10 +330,22 @@ Public Class ManagementDaoTests
     Public Sub CopyGlobalCardsToGroups_LeavesMarkedAndExampleUntouched()
         Dim fixture As ManagementDao = OpenRealDataBaseCopy()
 
-        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (29, 2, 1, '2019-06-30', 1, 1)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+            VALUES ('G', 'S', 'GroupTest-Example01')
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (1, 8, 3, '2021-12-24', 5, 2)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (2, 16, 4, '2020-01-02', 6, 3)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (29, 2, 1, '2019-06-30', 1, 1)
+        ", Array.Empty(Of Object))
 
         fixture.CopyGlobalCardsToGroups()
 
@@ -318,9 +366,18 @@ Public Class ManagementDaoTests
     Public Sub CopyGlobalCardsToGroups_WordWithoutCard_LeavesThatRowUntouched()
         Dim fixture As ManagementDao = OpenRealDataBaseCopy()
 
-        _realDb.ExecuteNonQuery("INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable]) VALUES ('G', 'S', 'GroupTest-Example01')", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (1, 8, 3, '2021-12-24', 5, 2)", Array.Empty(Of Object))
-        _realDb.ExecuteNonQuery("INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES (2, 16, 4, '2020-01-02', 6, 3)", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+            VALUES ('G', 'S', 'GroupTest-Example01')
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (1, 8, 3, '2021-12-24', 5, 2)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (2, 16, 4, '2020-01-02', 6, 3)
+        ", Array.Empty(Of Object))
 
         fixture.CopyGlobalCardsToGroups()
 
@@ -373,7 +430,7 @@ Public Class ManagementDaoTests
 
         fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
 
-        Dim command As String = "
+        Dim command As String = $"
             SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
               FROM [GroupTest01]
              WHERE [WordIndex] = ?
@@ -410,7 +467,7 @@ Public Class ManagementDaoTests
         fixture.UpdateDatabaseSingle()
 
         fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
-        Dim command As String = "
+        Dim command As String = $"
             SELECT [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
               FROM [GroupTest01]
              WHERE [WordIndex] = ?
@@ -486,9 +543,9 @@ Public Class ManagementDaoTests
             Array.Empty(Of Object))
         testDb.ExecuteNonQuery("
                 CREATE TABLE [GroupTest01] (
-                    [Index] INTEGER PRIMARY KEY AUTOINCREMENT,
-                    [WordIndex] LONG NOT NULL,
-                    [Marked] BIT
+                    [Index]     INTEGER PRIMARY KEY AUTOINCREMENT,
+                    [WordIndex] LONG    NOT NULL,
+                    [Marked]    BIT
                 )
             ",
             Array.Empty(Of Object))
@@ -497,7 +554,11 @@ Public Class ManagementDaoTests
     End Function
 
     Private Sub AssertGroupCardColumns(wordIndex As Integer, expectedTestInterval As Integer, expectedCounter As Integer, expectedLastDate As String, expectedTestIntervalMain As Integer, expectedCounterMain As Integer)
-        _realDb.ExecuteReader("SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
+        _realDb.ExecuteReader("
+            SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
+              FROM [GroupTest-Example01]
+             WHERE [WordIndex] = ?
+        ", CStr(wordIndex))
         _realDb.DBCursor.Read()
         Dim testInterval As Integer = _realDb.SecureGetInt32(0)
         Dim counter As Integer = _realDb.SecureGetInt32(1)
@@ -514,7 +575,11 @@ Public Class ManagementDaoTests
     End Sub
 
     Private Sub AssertMarkedAndExample(wordIndex As Integer, expectedMarked As Boolean, expectedExample As String)
-        _realDb.ExecuteReader("SELECT [Marked], [Example] FROM [GroupTest-Example01] WHERE [WordIndex] = ?", CStr(wordIndex))
+        _realDb.ExecuteReader("
+            SELECT [Marked], [Example]
+              FROM [GroupTest-Example01]
+             WHERE [WordIndex] = ?
+        ", CStr(wordIndex))
         _realDb.DBCursor.Read()
         Dim marked As Boolean = _realDb.SecureGetBool(0)
         Dim example As String = _realDb.SecureGetString(1)

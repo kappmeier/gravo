@@ -6,8 +6,7 @@ namespace GravoApp.Tests.Support;
 /// <summary>A fresh vocabulary database in a temp file with the real DAOs and seed helpers.</summary>
 /// <remarks>
 /// The database is created by <c>ManagementDao.CreateNewVocabularyDatabase</c>, the main language is
-/// <see cref="MainLanguage"/>. <see cref="Dispose"/> closes the connection, clears the SQLite pools and deletes the
-/// file. <c>IPropertiesDao.LoadWordTypes</c> throws on such a database, so tests mock it.
+/// <see cref="MainLanguage"/>. <see cref="Dispose"/> closes the connection and deletes the file.
 /// </remarks>
 public sealed class TempVocabulary : IDisposable
 {

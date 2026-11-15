@@ -224,11 +224,10 @@ Public Class GroupsDaoTests
     ''' </summary>
     <Test>
     Public Sub EditGroup_TableMissing_LeavesTheGroupUntouched()
-        _db.ExecuteNonQuery("
+        ExecuteNonQuery(_db, "
                  ALTER TABLE [GroupLanguageBook02]
                 RENAME TO [Damaged]
-            ",
-            Array.Empty(Of Object))
+            ")
 
         Assert.Throws(Of SqliteException)(Sub() _groupsDao.EditGroup("Language Book", "Course"))
 
@@ -279,11 +278,10 @@ Public Class GroupsDaoTests
     ''' </remark>
     <Test>
     Public Sub DeleteGroup_GroupWithMissingTable_LeavesTheGroupUntouched()
-        _db.ExecuteNonQuery("
+        ExecuteNonQuery(_db, "
                  ALTER TABLE [GroupLanguageBook02]
                 RENAME TO [Damaged]
-            ",
-            Array.Empty(Of Object))
+            ")
 
         Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book"))
 
@@ -360,11 +358,10 @@ Public Class GroupsDaoTests
     ''' </remark>
     <Test>
     Public Sub DeleteGroup_TableMissing_LeavesTheGroupUntouched()
-        _db.ExecuteNonQuery("
+        ExecuteNonQuery(_db, "
                  ALTER TABLE [GroupLanguageBook02]
                 RENAME TO [Damaged]
-            ",
-            Array.Empty(Of Object))
+            ")
 
         Assert.Throws(Of SqliteException)(Sub() _groupsDao.DeleteGroup("Language Book", "Unit 1"))
 
@@ -409,8 +406,13 @@ Public Class GroupsDaoTests
     ''' </summary>
     <Test>
     Public Sub GetGroup_DuplicateGroupRows_ThrowsDataInvalidException()
-        _db.ExecuteNonQuery("DROP INDEX [Group]", Array.Empty(Of Object))
-        _db.ExecuteNonQuery("INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES ('Language Book', 'Unit 1', 'GroupLanguageBook01')", Array.Empty(Of Object))
+        ExecuteNonQuery(_db, "
+            DROP INDEX [Group]
+        ")
+        ExecuteNonQuery(_db, "
+            INSERT INTO Groups (GroupName, GroupSubName, GroupTable)
+            VALUES ('Language Book', 'Unit 1', 'GroupLanguageBook01')
+        ")
 
         Assert.Throws(Of DataInvalidException)(Sub() CType(_groupsDao, IGroupsDao).GetGroup("Language Book", "Unit 1"))
     End Sub
@@ -437,7 +439,10 @@ Public Class GroupsDaoTests
     <Test>
     Public Sub SwapGroups_Existing_TableContentsAreSwapped()
         ' The fixture's group tables are empty; insert a marker row to track the physical table across the swap.
-        _db.ExecuteNonQuery("INSERT INTO GroupLanguageBook01 ([Index]) VALUES (7)", Array.Empty(Of Object))
+        ExecuteNonQuery(_db, "
+            INSERT INTO GroupLanguageBook01 ([Index])
+            VALUES (7)
+        ")
 
         _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2")
 
@@ -459,11 +464,10 @@ Public Class GroupsDaoTests
     ''' </summary>
     <Test>
     Public Sub SwapGroups_TableMissing_LeavesTheGroupUntouched()
-        _db.ExecuteNonQuery("
+        ExecuteNonQuery(_db, "
                  ALTER TABLE [GroupLanguageBook02]
                 RENAME TO [Damaged_TableNotExisting]
-            ",
-            Array.Empty(Of Object))
+            ")
 
         Assert.Throws(Of SqliteException)(Sub() _groupsDao.SwapGroups("Language Book", "Unit 1", "Unit 2"))
 
@@ -474,7 +478,10 @@ Public Class GroupsDaoTests
     End Sub
 
     Private Function TableHasRows(tableName As String) As Boolean
-        _db.ExecuteReader("SELECT [Index] FROM [" & tableName & "]", Array.Empty(Of Object))
+        ExecuteReader(_db, $"
+            SELECT [Index]
+              FROM [{tableName}]
+        ")
         TableHasRows = _db.DBCursor.HasRows
         _db.CloseReader()
     End Function

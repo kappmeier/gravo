@@ -260,7 +260,11 @@ Public Class CardsDaoTests
 
         _cardsDao.Load(3).LastDate.Should.Be(New Date(2021, 12, 24))
 
-        Dim command = "SELECT [LastDate] FROM [Cards] WHERE [Index] = ?"
+        Dim command = "
+            SELECT [LastDate]
+              FROM [Cards]
+             WHERE [Index] = ?
+        "
         _db.ExecuteReader(command, CStr(3))
         _db.DBCursor.Read()
         Dim storedValue As String = _db.SecureGetString(0)
@@ -297,16 +301,22 @@ Public Class CardsDaoTests
     End Function
 
     Private Sub AssertValue(table As String, column As String, row As Integer, expected As Integer)
-        Dim command = "SELECT " & column & " FROM [" & table & "] WHERE [Index] = ?"
+        Dim command = $"
+            SELECT {column}
+              FROM [{table}]
+             WHERE [Index] = ?
+        "
         _db.ExecuteReader(command, CStr(row))
-        _db.DBCursor.Read()
-        Dim value As Integer = _db.SecureGetInt32(0)
-        _db.DBCursor.Close()
+        Dim value As Integer = ReadSingleInt32(_db)
         value.Should.Be(expected)
     End Sub
 
     Private Sub AssertValue(table As String, column As String, row As Integer, expected As Date)
-        Dim command = "SELECT " & column & " FROM [" & table & "] WHERE [Index] = ?"
+        Dim command = $"
+            SELECT {column}
+              FROM [{table}]
+             WHERE [Index] = ?
+        "
         _db.ExecuteReader(command, CStr(row))
         _db.DBCursor.Read()
         Dim value As DateTime = _db.SecureGetDateTime(0)
