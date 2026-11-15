@@ -44,10 +44,9 @@ Public Class DatabaseTransferGroupTests
         _sourceDb.Open(_sourcePath)
         _sourceDb.ExecuteNonQuery("
             INSERT INTO Groups (GroupName, GroupSubName, GroupTable)
-            VALUES
-                ('Test', 'Example', 'GroupTest-Example01'),
-                ('Test', 'Multi', 'GroupTest-MultipleLanguages01'),
-                ('Other', 'Some', 'GroupTest-Example02')
+            VALUES ('Test', 'Example', 'GroupTest-Example01'),
+                   ('Test', 'Multi', 'GroupTest-MultipleLanguages01'),
+                   ('Other', 'Some', 'GroupTest-Example02')
         ", Array.Empty(Of Object))
         _sourceDb.ExecuteNonQuery("
             INSERT INTO [GroupTest-Example02]
@@ -150,10 +149,10 @@ Public Class DatabaseTransferGroupTests
         Dim marked As Boolean = False
         Dim example As String = "kept"
         _target.Group.Add(existingGroup, word1, marked, example)
-        _targetDb.ExecuteNonQuery("
-            UPDATE [" & existingGroup.Table & "]
-            SET TestInterval = 7
-            WHERE WordIndex = ?
+        _targetDb.ExecuteNonQuery($"
+            UPDATE [{existingGroup.Table}]
+               SET TestInterval = 7
+             WHERE WordIndex = ?
         ", Enumerable.Repeat(CObj(word1.Index), 1))
 
         Dim result As TransferResult = _transfer.CopyGroup("Test")
@@ -168,10 +167,10 @@ Public Class DatabaseTransferGroupTests
         Dim kept As TestWord = loaded.GetWord(word1.Index)
         kept.Marked.Should().BeFalse()
         kept.Example.Should().Be("kept")
-        ReadInt(_targetDb, "
+        ReadInt(_targetDb, $"
             SELECT TestInterval
-            FROM [" & existingGroup.Table & "]
-            WHERE WordIndex = ?
+              FROM [{existingGroup.Table}]
+             WHERE WordIndex = ?
         ", word1.Index).Should().Be(7)
     End Sub
 
@@ -181,15 +180,15 @@ Public Class DatabaseTransferGroupTests
 
         Dim example As GroupEntry = TargetGroup("Test", "Example")
         Dim word1Index As Integer = _target.Group.Load(example).Entries.Single(Function(t) t.Word = "word1").WordIndex
-        ReadInt(_targetDb, "
+        ReadInt(_targetDb, $"
             SELECT TestInterval
-            FROM [" & example.Table & "]
-            WHERE WordIndex = ?
+              FROM [{example.Table}]
+             WHERE WordIndex = ?
         ", word1Index).Should().Be(1)
-        ReadInt(_targetDb, "
+        ReadInt(_targetDb, $"
             SELECT Counter
-            FROM [" & example.Table & "]
-            WHERE WordIndex = ?
+              FROM [{example.Table}]
+             WHERE WordIndex = ?
         ", word1Index).Should().Be(1)
         Dim card As Card = New CardsDao(_targetDb).Load(word1Index)
         card.TestInterval.Should().Be(1)
@@ -252,8 +251,16 @@ Public Class DatabaseTransferGroupTests
 
     <Test>
     Public Sub CopyGroup_ApostropheSubGroupAndExample_ArriveUnchanged()
-        _sourceDb.ExecuteNonQuery("UPDATE Groups SET GroupSubName = 'Lezione 8 - Sapori d''Italia' WHERE GroupSubName = 'Example'", Array.Empty(Of Object))
-        _sourceDb.ExecuteNonQuery("UPDATE [GroupTest-Example01] SET Example = 'Auf geht''s!' WHERE WordIndex = 2", Array.Empty(Of Object))
+        ExecuteNonQuery(_sourceDb, $"
+            UPDATE Groups
+               SET GroupSubName = 'Lezione 8 - Sapori d''Italia'
+             WHERE GroupSubName = 'Example'
+        ")
+        ExecuteNonQuery(_sourceDb, $"
+            UPDATE [GroupTest-Example01]
+               SET Example = 'Auf geht''s!'
+             WHERE WordIndex = 2
+        ")
 
         _transfer.CopyGroup("Test")
 

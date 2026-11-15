@@ -67,7 +67,12 @@ Public Class GroupsDao
     End Function
 
     Private Function GetGroup(groupName As String, subGroupName As String) As GroupEntry Implements IGroupsDao.GetGroup
-        Dim Command As String = "SELECT [Index], [GroupName], [GroupSubName], [GroupTable] FROM Groups WHERE GroupName=" & GetDBEntry(groupName) & " AND Groups.GroupSubName=" & GetDBEntry(subGroupName)
+        Dim Command As String = $"
+            SELECT [Index], [GroupName], [GroupSubName], [GroupTable]
+              FROM Groups
+             WHERE GroupName={GetDBEntry(groupName)}
+               AND Groups.GroupSubName={GetDBEntry(subGroupName)}
+        "
         ExecuteReader(DBConnection, Command)
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
@@ -92,7 +97,11 @@ Public Class GroupsDao
     End Function
 
     Public Function SubGroupCount(ByVal groupName As String) As Integer Implements IGroupsDao.SubGroupCount
-        Dim command As String = "SELECT COUNT([Index]) FROM Groups WHERE GroupName = ?"
+        Dim command As String = "
+            SELECT COUNT([Index])
+              FROM Groups
+             WHERE GroupName = ?
+        "
         DBConnection.ExecuteReader(command, groupName)
         Dim count As Integer = DBConnection.ReadSingleInt32()
         If count = 0 Then
@@ -119,12 +128,19 @@ Public Class GroupsDao
 
         CreateNewGroupTable(tableName)
 
-        Dim command = "INSERT INTO Groups (GroupName, GroupSubName, GroupTable) VALUES (" & GetDBEntry(groupName) & ", " & GetDBEntry(subGroupName) & ", " & GetDBEntry(tableName) & ")"
+        Dim command = $"
+            INSERT INTO Groups (GroupName, GroupSubName, GroupTable)
+            VALUES ({GetDBEntry(groupName)}, {GetDBEntry(subGroupName)}, {GetDBEntry(tableName)})
+        "
         ExecuteNonQuery(DBConnection, command)
     End Sub
 
     Private Function CountSubGroups(groupName As String) As Integer
-        Dim command = "SELECT COUNT([Index]) FROM Groups WHERE Groups.GroupName=" & GetDBEntry(groupName)
+        Dim command = $"
+            SELECT COUNT([Index])
+              FROM Groups
+             WHERE Groups.GroupName={GetDBEntry(groupName)}
+        "
 
         ExecuteReader(DBConnection, command)
         CountSubGroups = DBConnection.ReadSingleInt32()
@@ -145,7 +161,18 @@ Public Class GroupsDao
     ''' </summary>
     ''' <param name="tableName">The name of the table, not checked for illegal characters</param>
     Private Sub CreateNewGroupTable(tableName As String)
-        Dim command = "CREATE TABLE [" & tableName & "] ([Index] INTEGER PRIMARY KEY AUTOINCREMENT, [WordIndex] LONG NOT NULL, [Marked] BIT, [Example] TEXT(64), [TestInterval] INT NOT NULL, [Counter] INT NOT NULL, [LastDate] DATETIME NOT NULL, [TestIntervalMain] INT NOT NULL, [CounterMain] INT NOT NULL)"
+        Dim command = $"
+            CREATE TABLE [{tableName}] (
+                   [Index]            INTEGER   PRIMARY KEY AUTOINCREMENT,
+                   [WordIndex]        LONG      NOT NULL,
+                   [Marked]           BIT,
+                   [Example]          TEXT(64),
+                   [TestInterval]     INT       NOT NULL,
+                   [Counter]          INT       NOT NULL,
+                   [LastDate]         DATETIME  NOT NULL,
+                   [TestIntervalMain] INT       NOT NULL,
+                   [CounterMain]      INT       NOT NULL)
+        "
         ExecuteNonQuery(DBConnection, command)
     End Sub
 
@@ -206,13 +233,23 @@ Public Class GroupsDao
     ''' <param name="newSubGroup">The updated sub group name, can be the same</param>
     ''' <param name="newTableName">The updated table name, can be the same</param>
     Private Sub UpdateGroup(group As GroupEntry, newGroupName As String, newSubGroup As String, newTableName As String)
-        Dim command As String = "UPDATE Groups SET [GroupName] = ?, [GroupSubName] = ?, [GroupTable] = ? WHERE [Index]= ?"
+        Dim command As String = "
+            UPDATE Groups
+               SET [GroupName] = ?,
+                   [GroupSubName] = ?,
+                   [GroupTable] = ?
+             WHERE [Index]= ?
+        "
         Dim parameters As IEnumerable(Of Object) = New List(Of String) From {newGroupName, newSubGroup, newTableName, CStr(group.Index)}
         DBConnection.ExecuteNonQuery(command, parameters)
     End Sub
 
     Public Function GroupExists(ByVal groupName As String) As Boolean Implements IGroupsDao.GroupExists
-        Dim command As String = "SELECT DISTINCT GroupTable FROM Groups WHERE GroupName = ?"
+        Dim command As String = "
+            SELECT DISTINCT GroupTable
+              FROM Groups
+             WHERE GroupName = ?
+        "
         DBConnection.ExecuteReader(command, groupName)
         Dim ret As Boolean
         If DBConnection.DBCursor.HasRows Then
@@ -231,7 +268,12 @@ Public Class GroupsDao
     ''' <param name="subGroupName">Sub group name</param>
     ''' <returns>Whether a group exists</returns>
     Private Function GroupExists(groupName As String, subGroupName As String) As Boolean Implements IGroupsDao.GroupExists
-        Dim command As String = "SELECT [Index] FROM Groups WHERE Groups.GroupName = ? AND Groups.GroupSubName = ?"
+        Dim command As String = "
+            SELECT [Index]
+              FROM Groups
+             WHERE Groups.GroupName = ?
+               AND Groups.GroupSubName = ?
+        "
         DBConnection.ExecuteReader(command, New List(Of String) From {groupName, subGroupName})
         GroupExists = DBConnection.DBCursor.HasRows
         DBConnection.DBCursor.Close()
@@ -252,7 +294,10 @@ Public Class GroupsDao
     End Sub
 
     Private Sub DeleteGroupEntries(ByVal groupName As String)
-        Dim command = "DELETE FROM Groups WHERE GroupName = ?"
+        Dim command = "
+            DELETE FROM Groups
+             WHERE GroupName = ?
+        "
         DBConnection.ExecuteNonQuery(command, Enumerable.Repeat(groupName, 1))
     End Sub
 
@@ -295,13 +340,19 @@ Public Class GroupsDao
 
     Private Sub DropGroupTables(ByVal toDelete As IEnumerable(Of String))
         For Each table As String In toDelete
-            Dim command = "DROP TABLE [" & table & "]"
+            Dim command = $"
+                DROP TABLE [{table}]
+            "
             ExecuteNonQuery(DBConnection, command)
         Next
     End Sub
 
     Private Sub DeleteGroupEntries(ByVal groupName As String, ByVal subGroupName As String)
-        Dim command = "DELETE FROM Groups WHERE GroupName = ? AND GroupSubName = ?"
+        Dim command = "
+            DELETE FROM Groups
+             WHERE GroupName = ?
+               AND GroupSubName = ?
+        "
         DBConnection.ExecuteNonQuery(command, New List(Of String) From {groupName, subGroupName})
     End Sub
 
@@ -331,7 +382,7 @@ Public Class GroupsDao
         ExecuteNonQuery(DBConnection, renameTempToSecond)
 
         ' Swap the names
-        Dim command = "
+        Dim command = $"
             UPDATE Groups
                SET [GroupSubName] = ?
              WHERE [Index] = ?
@@ -346,8 +397,10 @@ Public Class GroupsDao
             Throw New ArgumentException("Table name not stripped")
         End If
 
-        Const renamePattern = "ALTER TABLE [{0}] RENAME TO [{1}]"
-        CreateRenameTableCommand = String.Format(CultureInfo.InvariantCulture, renamePattern, existingTable, newTableName)
+        CreateRenameTableCommand = $"
+            ALTER TABLE [{existingTable}]
+           RENAME TO [{newTableName}]
+        "
     End Function
 
     Private Shared Function CreateGroupBaseTableName(groupName As String) As String

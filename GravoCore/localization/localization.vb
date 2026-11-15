@@ -287,7 +287,11 @@ Public Class localization
     ''' <returns>The list of unique names of languages.</returns>
     Public Function GetLanguageNames() As Collection(Of String) Implements ILocalization.GetLanguageNames
         Dim languages As New Collection(Of String)
-        Dim command As String = "SELECT [Name] FROM [languages] ORDER BY [Name];"
+        Dim command As String = "
+            SELECT [Name]
+              FROM [languages]
+             ORDER BY [Name];
+        "
 
         ExecuteReader(DBConnection, command)
         While DBConnection.DBCursor.Read
@@ -335,7 +339,11 @@ Public Class localization
     End Function
 
     Private Function GetFieldFor(LanguageName As String, Field As String) As String
-        Dim command As String = "SELECT [" & Field & "] FROM [languages] WHERE [Name] = " & DaoTools.GetDBEntry(LanguageName) & ";"
+        Dim command As String = $"
+            SELECT [{Field}]
+              FROM [languages]
+             WHERE [Name] = {DaoTools.GetDBEntry(LanguageName)};
+        "
         ExecuteReader(DBConnection, command)
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()

@@ -84,7 +84,10 @@ Public Module DataBaseExtension
 
     <Extension()>
     Function IsEmpty(ByVal dataBaseOperation As IDataBaseOperation) As Boolean
-        Dim command As String = "SELECT count(*) FROM sqlite_master"
+        Dim command As String = "
+            SELECT COUNT(*)
+              FROM sqlite_master
+        "
         dataBaseOperation.ExecuteReader(command, Array.Empty(Of Object))
         IsEmpty = (dataBaseOperation.ReadSingleInt32() = 0)
     End Function

@@ -70,7 +70,12 @@ Public Class PropertiesDaoTests
     Public Sub Load_EmptyVersionTable_Throws()
         Dim emptyDb As IDataBaseOperation = CreateEmptyTestDb()
 
-        Dim createValidTAbleCommand = "CREATE TABLE [DBVersion] ([Version] TEXT(5) NOT NULL, [Date] DATETIME NOT NULL, [Description] TEXT(80) NOT NULL);"
+        Dim createValidTAbleCommand = "
+            CREATE TABLE [DBVersion] (
+                [Version]     TEXT(5)  NOT NULL,
+                [Date]        DATETIME NOT NULL,
+                [Description] TEXT(80) NOT NULL
+            )"
         emptyDb.ExecuteNonQuery(createValidTAbleCommand, Array.Empty(Of Object))
 
         Dim fixture As New PropertiesDao(emptyDb)
@@ -87,10 +92,17 @@ Public Class PropertiesDaoTests
     ''' Adds <c>SupportedWordTypes</c> table and rows to the meta fixture.
     ''' </summary>
     Private Sub InsertWordTypes(names As IEnumerable(Of String))
-        _db.ExecuteNonQuery("CREATE TABLE [SupportedWordTypes] ([Type] TEXT(32) NOT NULL, [Index] INT PRIMARY KEY)", Array.Empty(Of Object))
+        _db.ExecuteNonQuery("
+            CREATE TABLE [SupportedWordTypes] (
+                [Type] TEXT(32) NOT NULL,
+                [Index] INT PRIMARY KEY
+            )", Array.Empty(Of Object))
         Dim index As Integer = 10
         For Each name In names
-            _db.ExecuteNonQuery("INSERT INTO [SupportedWordTypes] ([Type], [Index]) VALUES ('" & name & "', " & index & ")", Array.Empty(Of Object))
+            _db.ExecuteNonQuery($"
+                INSERT INTO [SupportedWordTypes] ([Type], [Index])
+                VALUES ('{name}', {index})
+            ", Array.Empty(Of Object))
             index += 1
         Next
     End Sub

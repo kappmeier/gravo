@@ -43,14 +43,22 @@ Public Class GroupDao
         'End If
 
         Dim dateString As String = "1900-01-01"
-        Dim command As String = "INSERT INTO [" & StripSpecialCharacters(group.Table) & "] ([WordIndex], [Marked], [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]) VALUES(?, ?, ?, 1, 1, " & GetDBEntry(dateString) & ", 1, 1)"
+        Dim command As String = $"
+            INSERT INTO [{StripSpecialCharacters(group.Table)}] ([WordIndex], [Marked], [Example], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (?, ?, ?, 1, 1, {GetDBEntry(dateString)}, 1, 1)
+        "
         Dim parameters = ToDbParameters(New List(Of Object) From {word.Index, marked, example})
         DBConnection.ExecuteNonQuery(command, parameters)
     End Sub
 
     Function Load(ByVal group As GroupEntry) As GroupDto Implements IGroupDao.Load
         Dim words As New Collection(Of TestWord)
-        Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE D.[Index]=G.[WordIndex] ORDER BY G.[Index]"
+        Dim command As String = $"
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+              FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE D.[Index]=G.[WordIndex]
+             ORDER BY G.[Index]
+        "
         ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read()
             Dim wordEntry = Extract(DBConnection)
@@ -66,7 +74,13 @@ Public Class GroupDao
     End Function
 
     Function Load(ByVal group As GroupEntry, ByVal word As WordEntry) As TestWord Implements IGroupDao.Load
-        Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE D.[Index]=G.[WordIndex] AND D.[Index] = ? AND G.[WordIndex] = ?"
+        Dim command As String = $"
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+              FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE D.[Index]=G.[WordIndex]
+               AND D.[Index] = ?
+               AND G.[WordIndex] = ?
+        "
         Dim parameters = ToDbParameters(New List(Of Object) From {word.Index, word.Index})
         DBConnection.ExecuteReader(command, parameters)
         FailIfEmpty(DBConnection, Function() As Exception
@@ -111,13 +125,21 @@ Public Class GroupDao
 
     Sub UpdateMarked(ByVal group As GroupEntry, ByVal word As TestWord, ByVal marked As Boolean
         ) Implements IGroupDao.UpdateMarked
-        Dim command As String = "SELECT [Marked] FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
+        Dim command As String = $"
+            SELECT [Marked]
+              FROM [{StripSpecialCharacters(group.Table)}]
+             WHERE [WordIndex] = ?
+        "
         DBConnection.ExecuteReader(command, ToDbParameters(New List(Of Object) From {word.WordIndex}))
         FailIfEmpty(DBConnection, Function() As Exception
                                       Return New EntryNotFoundException("No Entry with this index in the Group.")
                                   End Function)
         DBConnection.DBCursor.Close()
-        command = "UPDATE [" & StripSpecialCharacters(group.Table) & "] SET [Marked] = ? WHERE [WordIndex] = ?"
+        command = $"
+            UPDATE [{StripSpecialCharacters(group.Table)}]
+               SET [Marked] = ?
+             WHERE [WordIndex] = ?
+        "
         DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {marked, word.WordIndex}))
         DBConnection.DBCursor.Close()
     End Sub
@@ -134,13 +156,20 @@ Public Class GroupDao
 
         ' TODO: check consistency regarding marked and comment?
         ' Should also be possible to delete data that is not there actually to re-establish consitency
-        Dim command As String = "DELETE FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
+        Dim command As String = $"
+            DELETE FROM [{StripSpecialCharacters(group.Table)}]
+             WHERE [WordIndex] = ?
+        "
         Dim parameters As IEnumerable(Of Object) = New List(Of String) From {CStr(entry.WordIndex)}
         DBConnection.ExecuteNonQuery(command, parameters)
     End Sub
 
     Private Function Exists(ByVal group As GroupEntry, ByVal data As IWordReference) As Boolean
-        Dim command As String = "SELECT [WordIndex] FROM [" & StripSpecialCharacters(group.Table) & "] WHERE [WordIndex] = ?"
+        Dim command As String = $"
+            SELECT [WordIndex]
+              FROM [{StripSpecialCharacters(group.Table)}]
+             WHERE [WordIndex] = ?
+        "
         DBConnection.ExecuteReader(command, Enumerable.Repeat(CStr(data.WordIndex), 1))
         Exists = DBConnection.DBCursor.HasRows
         DBConnection.DBCursor.Close()
@@ -155,7 +184,13 @@ Public Class GroupDao
     ''' <returns>The index of a word in the group table</returns>
     <Obsolete("This method is deprecated, work on data objects and update.")>
     Public Function GetIndex(ByVal group As GroupEntry, ByVal word As String, ByVal meaning As String) As Integer
-        Dim command As String = "SELECT G.WordIndex FROM DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.Word= ? AND W.Meaning = ?"
+        Dim command As String = $"
+            SELECT G.WordIndex
+              FROM DictionaryWords AS W, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE G.WordIndex = W.[Index]
+               AND W.Word= ?
+               AND W.Meaning = ?
+        "
         DBConnection.ExecuteReader(command, New List(Of String) From {word, meaning})
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
@@ -176,7 +211,13 @@ Public Class GroupDao
     Public Function GetTestWord(ByVal group As GroupEntry, ByVal word As String, ByVal meaning As String
         ) As TestWord Implements IGroupDao.GetTestWord
 
-        Dim command As String = "SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example FROM DictionaryWords AS D, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = D.[Index] AND D.Word= ? AND D.Meaning = ?"
+        Dim command As String = $"
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+              FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE G.WordIndex = D.[Index]
+               AND D.Word= ?
+               AND D.Meaning = ?
+        "
         DBConnection.ExecuteReader(command, New List(Of String) From {word, meaning})
         If Not DBConnection.DBCursor.HasRows Then
             DBConnection.DBCursor.Close()
@@ -202,7 +243,12 @@ Public Class GroupDao
     Public Function GetUniqueLanguage(ByVal group As GroupEntry) As String Implements IGroupDao.GetUniqueLanguage
         Dim ret As String = ""
         Dim once As Boolean = True
-        Dim command As String = "SELECT DISTINCT M.LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
+        Dim command As String = $"
+            SELECT DISTINCT M.LanguageName
+              FROM DictionaryMain AS M, DictionaryWords AS W, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE G.WordIndex = W.[Index]
+               AND W.MainIndex = M.[Index]
+        "
         ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             If ret <> "" Then once = False : Exit Do
@@ -215,7 +261,12 @@ Public Class GroupDao
 
     Public Function GetLanguages(ByVal group As GroupEntry) As ICollection(Of String) Implements IGroupDao.GetLanguages
         Dim languages As Collection(Of String) = New Collection(Of String)
-        Dim command As String = "SELECT DISTINCT LanguageName FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE W.MainIndex = M.[Index] AND W.[Index] = G.WordIndex"
+        Dim command As String = $"
+            SELECT DISTINCT LanguageName
+              FROM DictionaryMain AS M, DictionaryWords AS W, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE W.MainIndex = M.[Index]
+               AND W.[Index] = G.WordIndex
+        "
         ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             languages.Add(DBConnection.SecureGetString(0))
@@ -228,7 +279,12 @@ Public Class GroupDao
         ) As String Implements IGroupDao.GetUniqueMainLanguage
         Dim ret As String = ""
         Dim once As Boolean = True
-        Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
+        Dim command As String = $"
+            SELECT DISTINCT M.MainLanguage
+              FROM DictionaryMain AS M, DictionaryWords AS W, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE G.WordIndex = W.[Index]
+               AND W.MainIndex = M.[Index]
+        "
         ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             If ret <> "" Then once = False : Exit Do
@@ -242,7 +298,12 @@ Public Class GroupDao
     Public Function GetMainLanguages(ByVal group As GroupEntry
         ) As ICollection(Of String) Implements IGroupDao.GetMainLanguages
         Dim languages As Collection(Of String) = New Collection(Of String)
-        Dim command As String = "SELECT DISTINCT M.MainLanguage FROM DictionaryMain AS M, DictionaryWords AS W, [" & StripSpecialCharacters(group.Table) & "] AS G WHERE G.WordIndex = W.[Index] AND W.MainIndex = M.[Index]"
+        Dim command As String = $"
+            SELECT DISTINCT M.MainLanguage
+              FROM DictionaryMain AS M, DictionaryWords AS W, [{StripSpecialCharacters(group.Table)}] AS G
+             WHERE G.WordIndex = W.[Index]
+               AND W.MainIndex = M.[Index]
+        "
         ExecuteReader(DBConnection, command)
         Do While DBConnection.DBCursor.Read
             languages.Add(DBConnection.SecureGetString(0))

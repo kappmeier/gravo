@@ -43,7 +43,10 @@ Public Class PropertiesDao
     ''' <returns></returns>
     Function LoadVersions() As ICollection(Of Properties.DbSchemaVersion)
         Try
-            Dim command As String = "SELECT [Version], [Date], [Description] FROM DBVersion"
+            Dim command As String = "
+                SELECT [Version], [Date], [Description]
+                  FROM DBVersion
+            "
             ExecuteReader(DBConnection, command)
         Catch ex As SqliteException
             If ex.SqliteErrorCode = 1 AndAlso ex.Message.Contains("no such table: DBVersion") AndAlso DBConnection.IsEmpty Then
@@ -105,7 +108,10 @@ Public Class PropertiesDao
         Dim dbVersion As Properties.DbSchemaVersion = LoadVersions().Last
         ' Erst möglich, ab version 1.07 der Datenbank
         If (dbVersion.Major = 1 And dbVersion.Minor >= 7) Or dbVersion.Major > 1 Then
-            Dim command As String = "SELECT [Type], [Index] FROM [SupportedWordTypes]"
+            Dim command As String = "
+                SELECT [Type], [Index]
+                  FROM [SupportedWordTypes]
+            "
             ExecuteReader(DBConnection, command)
             While DBConnection.DBCursor.Read
                 Dim wordTypeInDb As String = DBConnection.SecureGetString(0)

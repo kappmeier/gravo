@@ -258,7 +258,10 @@ Public Class DatabaseTransferLanguageTests
     End Function
 
     Private Shared Function CountRows(db As IDataBaseOperation, table As String) As Integer
-        db.ExecuteReader("SELECT COUNT(*) FROM [" & table & "]", Array.Empty(Of Object))
+        db.ExecuteReader($"
+            SELECT COUNT(*)
+              FROM [{table}]
+        ", Array.Empty(Of Object))
         CountRows = ReadSingleInt32(db)
     End Function
 End Class
