@@ -126,6 +126,10 @@ Public Class GroupsDao
 
         Dim tableName As String = NextFreeTableName(CreateGroupBaseTableName(groupName), CountSubGroups(groupName) + 1)
 
+        DBConnection.InTransaction(Sub() CreateTableAndAddEntry(groupName, subGroupName, tableName))
+    End Sub
+
+    Private Sub CreateTableAndAddEntry(groupName As String, subGroupName As String, tableName As String)
         CreateNewGroupTable(tableName)
 
         Dim command = $"

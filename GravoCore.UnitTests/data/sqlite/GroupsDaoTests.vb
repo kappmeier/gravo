@@ -534,6 +534,33 @@ Public Class GroupsDaoTests
     End Sub
 
     <Test>
+    Public Sub AddGroup_InsertFails_CreatesNoTable()
+        ExecuteNonQuery(_db, "
+            CREATE TRIGGER fail_write
+            BEFORE INSERT ON [Groups]
+             BEGIN
+                   SELECT RAISE(ABORT, 'forced');
+               END
+        ")
+
+        Dim tablesBefore = TableCount()
+
+        Dim act As Action = Sub() _groupsDao.AddGroup("Fresh Group", "Unit 1")
+
+        act.Should.Throw(Of SqliteException)()
+        TableCount().Should.Be(tablesBefore)
+    End Sub
+
+    Private Function TableCount() As Integer
+        ExecuteReader(_db, "
+            SELECT COUNT(*)
+              FROM sqlite_master
+             WHERE type = 'table'
+        ")
+        TableCount = _db.ReadSingleInt32()
+    End Function
+
+    <Test>
     Public Sub EditGroup_WithDoubleQuote_ThrowsInputException()
         Assert.Throws(Of InputException)(Sub() _groupsDao.EditGroup("Language Book", "Language ""Book"""))
 
