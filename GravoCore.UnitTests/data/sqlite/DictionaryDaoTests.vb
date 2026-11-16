@@ -292,6 +292,24 @@ Public Class DictionaryDaoTests
             Sub() _dictionaryDao.AddSubEntry(wordWithUnknownType, "word1", language, targetLanguage))
     End Sub
 
+    ''' <summary>Asserts that adding the word and the cards run together in a transaction, or both fail.</summary>
+    <Test>
+    Public Sub AddSubEntry_CardInsertFails_AddsNoWord()
+        ExecuteNonQuery(_db, "
+            CREATE TRIGGER fail_write
+            BEFORE INSERT ON [Cards]
+             BEGIN
+                   SELECT RAISE(ABORT, 'forced');
+               END
+        ")
+
+        Dim act As Action = Sub() _dictionaryDao.AddSubEntry(newWord, "wordx", language, targetLanguage)
+
+        act.Should.Throw(Of SqliteException)()
+        Assert.Throws(Of EntryNotFoundException)(Sub() _dictionaryDao.GetEntry(
+            _dictionaryDao.GetMainEntry("wordx", language, targetLanguage), newWord.Word, newWord.Meaning))
+    End Sub
+
     <Test>
     Public Sub ChangeEntry_NewWordExists_Fails()
         Dim nameUpdate As New IDictionaryDao.UpdateData With {
