@@ -489,9 +489,16 @@ Public Class ManagementDao
     ''' Copies the global per-word test statistics of cards from the Cards table into the card columns of every group
     ''' table. A group entry without a card keeps its current card columns.
     ''' </summary>
+    ''' <remarks>
+    ''' All operations run in a single transaction.
+    ''' </remarks>
     Public Sub CopyGlobalCardsToGroups() Implements IManagementDao.CopyGlobalCardsToGroups
         Dim groupsDao As IGroupsDao = New GroupsDao(Me.DBConnection)
         Dim groups As ICollection(Of GroupEntry) = groupsDao.GetAllGroups()
+        DBConnection.InTransaction(Sub() CopyCardsToGroups(groups))
+    End Sub
+
+    Private Sub CopyCardsToGroups(groups As ICollection(Of GroupEntry))
         For Each group As GroupEntry In groups
             Dim table As String = StripSpecialCharacters(group.Table)
             ' date() stores the yyyy-MM-dd form that ToDbDate writes
