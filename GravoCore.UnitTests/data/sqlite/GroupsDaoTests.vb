@@ -535,13 +535,7 @@ Public Class GroupsDaoTests
 
     <Test>
     Public Sub AddGroup_InsertFails_CreatesNoTable()
-        ExecuteNonQuery(_db, "
-            CREATE TRIGGER fail_write
-            BEFORE INSERT ON [Groups]
-             BEGIN
-                   SELECT RAISE(ABORT, 'forced');
-               END
-        ")
+        ExecuteNonQuery(_db, DaoUtils.FailWriteInsertTrigger("Groups"))
 
         Dim tablesBefore = TableCount()
 

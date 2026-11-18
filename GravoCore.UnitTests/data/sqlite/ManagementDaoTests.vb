@@ -457,13 +457,7 @@ Public Class ManagementDaoTests
         Dim groupDao As New GroupDao(_realDb)
         groupDao.Add(secondGroup, word4, False, "")
 
-        ExecuteNonQuery(_realDb, $"
-            CREATE TRIGGER fail_write
-            BEFORE UPDATE ON [{secondGroup.Table}]
-             BEGIN
-                   SELECT RAISE(ABORT, 'forced');
-               END
-        ")
+        ExecuteNonQuery(_realDb, DaoUtils.FailWriteUpdateTrigger(secondGroup.Table))
 
         Dim before = ReadGroupCardColumns(1)
 

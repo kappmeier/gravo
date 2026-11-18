@@ -295,13 +295,7 @@ Public Class DictionaryDaoTests
     ''' <summary>Asserts that adding the word and the cards run together in a transaction, or both fail.</summary>
     <Test>
     Public Sub AddSubEntry_CardInsertFails_AddsNoWord()
-        ExecuteNonQuery(_db, "
-            CREATE TRIGGER fail_write
-            BEFORE INSERT ON [Cards]
-             BEGIN
-                   SELECT RAISE(ABORT, 'forced');
-               END
-        ")
+        ExecuteNonQuery(_db, DaoUtils.FailWriteInsertTrigger("Cards"))
 
         Dim act As Action = Sub() _dictionaryDao.AddSubEntry(newWord, "wordx", language, targetLanguage)
 
