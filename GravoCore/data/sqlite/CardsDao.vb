@@ -62,6 +62,10 @@ Public Class CardsDao
     End Sub
 
     Public Sub UpdateSuccess(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) Implements ICardsDao.UpdateSuccess
+        DBConnection.InTransaction(Sub() UpdateSuccessSteps(group, testWord, queryDirection))
+    End Sub
+
+    Private Sub UpdateSuccessSteps(group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage)
         Dim tableNameSafe As String = StripSpecialCharacters(group.Table)
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
             Dim interval = GetValues(tableNameSafe, testWord.WordIndex, "WordIndex", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName).Item2
@@ -74,6 +78,10 @@ Public Class CardsDao
     End Sub
 
     Public Sub UpdateFailure(Group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage) Implements ICardsDao.UpdateFailure
+        DBConnection.InTransaction(Sub() UpdateFailureSteps(Group, testWord, queryDirection))
+    End Sub
+
+    Private Sub UpdateFailureSteps(Group As GroupEntry, testWord As TestWord, queryDirection As QueryLanguage)
         Dim tableNameSafe As String = StripSpecialCharacters(Group.Table)
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
             Dim interval = GetValues(tableNameSafe, testWord.WordIndex, "WordIndex", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName).Item2
@@ -105,6 +113,10 @@ Public Class CardsDao
     End Function
 
     Public Sub UpdateSuccess(entry As WordEntry, queryDirection As QueryLanguage) Implements ICardsDao.UpdateSuccess
+        DBConnection.InTransaction(Sub() UpdateSuccessSteps(entry, queryDirection))
+    End Sub
+
+    Private Sub UpdateSuccessSteps(entry As WordEntry, queryDirection As QueryLanguage)
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
             Dim interval = GetValues("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName).Item2
             Update("Cards", entry.Index, "Index", Success(interval), TargetLanguageIntervalName, TargetLanguageCounterName)
@@ -116,6 +128,10 @@ Public Class CardsDao
     End Sub
 
     Public Sub UpdateFailure(entry As WordEntry, queryDirection As QueryLanguage) Implements ICardsDao.UpdateFailure
+        DBConnection.InTransaction(Sub() UpdateFailureSteps(entry, queryDirection))
+    End Sub
+
+    Private Sub UpdateFailureSteps(entry As WordEntry, queryDirection As QueryLanguage)
         If queryDirection = QueryLanguage.TargetLanguage Or queryDirection = QueryLanguage.Both Then
             Dim interval = GetValues("Cards", entry.Index, "Index", "word entry", TargetLanguageIntervalName, TargetLanguageCounterName).Item2
             Update("Cards", entry.Index, "Index", Failure(interval), TargetLanguageIntervalName, TargetLanguageCounterName)
