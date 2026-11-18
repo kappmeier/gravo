@@ -591,6 +591,12 @@ Public Class ManagementDao
     End Sub
 
     Function Reorganize() As Integer Implements IManagementDao.Reorganize
+        Dim result As Integer
+        DBConnection.InTransaction(Sub() result = ReorganizeSteps())
+        Return result
+    End Function
+
+    Private Function ReorganizeSteps() As Integer
         Dim ErrorCount = 0
 
         ' delete cards entries for non-existing words

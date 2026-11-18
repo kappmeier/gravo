@@ -228,6 +228,34 @@ Public Class ManagementDaoTests
     End Sub
 
     <Test>
+    Public Sub Reorganize_LaterRepairFails_ChangesNothing()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        ' a card without a word, deleted by the first repair
+        ExecuteNonQuery(_realDb, "
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (9999, 8, 3, '2021-12-24', 5, 2)
+        ")
+
+        ' every word in the fixture has no card, so the second repair inserts into Cards
+        ExecuteNonQuery(_realDb, DaoUtils.FailWriteInsertTrigger("Cards"))
+
+        Dim act As Action = Sub() fixture.Reorganize()
+
+        act.Should.Throw(Of SqliteException)()
+        CardCount(9999).Should.Be(1)
+    End Sub
+
+    Private Function CardCount(index As Integer) As Integer
+        _realDb.ExecuteReader("
+            SELECT COUNT(*)
+              FROM Cards
+             WHERE [Index] = ?
+        ", CStr(index))
+        CardCount = _realDb.ReadSingleInt32()
+    End Function
+
+    <Test>
     Public Sub UpdateDatabaseSingle_1_4To1_5_TransfersMarkedFlagToGroupTable()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
         Dim fixture = New ManagementDao(testDb)
