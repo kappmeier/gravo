@@ -407,6 +407,8 @@ Public Class ManagementDaoTests
 
     <Test>
     Public Sub CopyGlobalCardsToGroups_GroupFails_NoChanges()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
         _realDb.ExecuteNonQuery("
             INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
             VALUES ('G', 'S', 'GroupTest-Example01')
@@ -437,7 +439,6 @@ Public Class ManagementDaoTests
 
         Dim before = ReadGroupCardColumns(1)
 
-        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
         Dim act As Action = Sub() fixture.CopyGlobalCardsToGroups()
 
         act.Should.Throw(Of SqliteException)()
