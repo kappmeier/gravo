@@ -1,0 +1,48 @@
+name: AI review
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-review:
+    name: AI review
+    if: >-
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ai-review'))
+      || (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/review'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ensure_label() {
+            name=$1; description=$2; color=$3
+            if gh label list --limit 100 --json name --jq '.[].name' 2>/dev/null | grep -qx "$name"; then
+              echo "Label '$name' already exists."
+            else
+              gh label create "$name" --description "$description" --color "$color" 2>/dev/null \
+                || echo "::warning::Could not create label '$name' with the workflow token (needs issues: write); create it manually."
+            fi
+          }
+          ensure_label ai-review "Opt in to the AI-based pull request review (pilot)" 0E8A16
+          ensure_label skip-ai-review "Opt out of the AI-based pull request review (pilot)" D73A4A
+      - name: Resolve PR head SHA
+        if: github.event_name == 'issue_comment'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: echo "sha=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)" >> "$GITHUB_OUTPUT"
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || steps.pr.outputs.sha }}
+      - name: Run AI review
+        run: echo "ai-review scaffold reached; the review run itself is added in a follow-up issue (#15)"
