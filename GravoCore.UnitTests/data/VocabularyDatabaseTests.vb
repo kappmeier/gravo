@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports AwesomeAssertions
 Imports Gravo
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 
 ''' <summary>
@@ -45,6 +46,68 @@ Public Class VocabularyDatabaseTests
         _db.Close()
 
         File.Delete(_tempDb)
+    End Sub
+
+    <Test>
+    Public Sub AddWord_WithCreateMainEntry_AddsMainEntryWordAndGroupRow()
+        Dim entry As New WordEntry("new word", "", "", WordType.Verb, "new meaning", "", False)
+
+        Dim added As WordEntry = fixture.AddWord(entry, "brand new", language, mainLanguage, True, _group, True)
+
+        added.Index.Should.BeGreaterThan(0)
+        fixture.Dictionary.GetMainEntry("brand new", language, mainLanguage).Word.Should.Be("brand new")
+        Dim inGroup As TestWord = fixture.Group.Load(_group).GetWord(added.Index)
+        inGroup.Word.Should.Be("new word")
+        inGroup.Marked.Should.BeTrue()
+    End Sub
+
+    <Test>
+    Public Sub AddWord_WordExists_AddsItToTheGroup()
+        Dim entry As New WordEntry("some word", "", "", WordType.Verb, "with a meaning", "", False)
+
+        Dim added As WordEntry = fixture.AddWord(entry, "word1", language, mainLanguage, False, _group, False)
+
+        added.Index.Should.Be(3)
+        fixture.Group.Load(_group).GetWord(3).Marked.Should.BeFalse()
+    End Sub
+
+    <Test>
+    Public Sub AddWord_MainEntryMissingAndNotCreated_ThrowsAndWritesNothing()
+        Dim entry As New WordEntry("new word", "", "", WordType.Verb, "new meaning", "", False)
+        Dim wordCountBefore As Integer = fixture.Dictionary.WordCount(language, mainLanguage)
+
+        Dim act As Action = Sub() fixture.AddWord(entry, "no such main", language, mainLanguage, False, _group, False)
+
+        act.Should.Throw(Of EntryNotFoundException)()
+        Assert.Throws(Of EntryNotFoundException)(
+            Sub() fixture.Dictionary.GetMainEntry("no such main", language, mainLanguage))
+        fixture.Dictionary.WordCount(language, mainLanguage).Should.Be(wordCountBefore)
+    End Sub
+
+    ''' <summary>Emulates that when failing during the group add, the whole transaction is rolled back.</summary>
+    <Test>
+    Public Sub AddWord_GroupAddFails_AddsNeitherMainEntryNorWord()
+        ExecuteNonQuery(_db, DaoUtils.FailWriteInsertTrigger(_group.Table))
+        Dim entry As New WordEntry("new word", "", "", WordType.Verb, "new meaning", "", False)
+        Dim wordCountBefore As Integer = fixture.Dictionary.WordCount(language, mainLanguage)
+
+        Dim act As Action = Sub() fixture.AddWord(entry, "fail main", language, mainLanguage, True, _group, False)
+
+        act.Should.Throw(Of SqliteException)()
+        Assert.Throws(Of EntryNotFoundException)(
+            Sub() fixture.Dictionary.GetMainEntry("fail main", language, mainLanguage))
+        fixture.Dictionary.WordCount(language, mainLanguage).Should.Be(wordCountBefore)
+    End Sub
+
+    <Test>
+    Public Sub AddWord_WordExistsInGroup_ThrowsEntryExists()
+        Dim entry As New WordEntry("wordx", "", "", WordType.Verb, "", "", False)
+        Dim wordCountBefore As Integer = fixture.Group.Load(_group).WordCount
+
+        Dim act As Action = Sub() fixture.AddWord(entry, "wordx", language, mainLanguage, False, _group, False)
+
+        act.Should.Throw(Of EntryExistsException)()
+        fixture.Group.Load(_group).WordCount.Should.Be(wordCountBefore)
     End Sub
 
     <Test>
