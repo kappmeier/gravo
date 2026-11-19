@@ -85,7 +85,7 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         // Throws DataInvalidException for a database without all known word types.
         properties.LoadWordTypes();
         Texts = texts;
-        _adder = new SubEntryAdder(Dictionary, Group, dialogs, texts);
+        _adder = new SubEntryAdder(vocabulary, dialogs, texts);
         Editor = new WordEditorViewModel(texts, properties.LoadProperties());
         Multi = new MultiEditViewModel(texts);
         Title = texts.Get(localization.EXPLORER_TITLE);
@@ -309,15 +309,11 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         var entry = new WordEntry(Editor.Word, Editor.Pre, Editor.Post, Editor.SelectedWordType,
             Editor.Meaning, Editor.AdditionalInfo, Editor.Irregular);
         var word = await _adder.AddAsync(entry, mainEntry, language, mainLanguage,
-            Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, mainEntry, mainLanguage, language));
+            Texts.Format(localization.EXPLORER_MAIN_ENTRY_MISSING, mainEntry, mainLanguage, language),
+            groupEntry is not null && Editor.AddToGroup ? groupEntry : null, Editor.Marked);
         if (word is null)
         {
             return;
-        }
-
-        if (groupEntry is not null && Editor.AddToGroup)
-        {
-            await _adder.AddToGroupAsync(groupEntry, word, Editor.Marked);
         }
         ReloadAfterAdd(node, word);
         WordAdded?.Invoke();
