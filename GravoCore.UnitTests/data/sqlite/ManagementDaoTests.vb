@@ -228,6 +228,34 @@ Public Class ManagementDaoTests
     End Sub
 
     <Test>
+    Public Sub Reorganize_LaterRepairFails_ChangesNothing()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        ' a card without a word, deleted by the first repair
+        ExecuteNonQuery(_realDb, "
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (9999, 8, 3, '2021-12-24', 5, 2)
+        ")
+
+        ' every word in the fixture has no card, so the second repair inserts into Cards
+        ExecuteNonQuery(_realDb, DaoUtils.FailWriteInsertTrigger("Cards"))
+
+        Dim act As Action = Sub() fixture.Reorganize()
+
+        act.Should.Throw(Of SqliteException)()
+        CardCount(9999).Should.Be(1)
+    End Sub
+
+    Private Function CardCount(index As Integer) As Integer
+        _realDb.ExecuteReader("
+            SELECT COUNT(*)
+              FROM Cards
+             WHERE [Index] = ?
+        ", CStr(index))
+        CardCount = _realDb.ReadSingleInt32()
+    End Function
+
+    <Test>
     Public Sub UpdateDatabaseSingle_1_4To1_5_TransfersMarkedFlagToGroupTable()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
         Dim fixture = New ManagementDao(testDb)
@@ -404,6 +432,55 @@ Public Class ManagementDaoTests
 
         AssertGroupCardColumns(1, 8, 3, "2021-12-24", 5, 2)
     End Sub
+
+    <Test>
+    Public Sub CopyGlobalCardsToGroups_GroupFails_NoChanges()
+        Dim fixture As ManagementDao = OpenRealDataBaseCopy()
+
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Groups ([GroupName], [GroupSubName], [GroupTable])
+            VALUES ('G', 'S', 'GroupTest-Example01')
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (1, 8, 3, '2021-12-24', 5, 2)
+        ", Array.Empty(Of Object))
+        _realDb.ExecuteNonQuery("
+            INSERT INTO Cards ([Index], [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain])
+            VALUES (4, 16, 4, '2020-01-02', 6, 3)
+        ", Array.Empty(Of Object))
+
+        Dim groupsDao As New GroupsDao(_realDb)
+        groupsDao.AddGroup("H", "Unit 1")
+        Dim secondGroup = groupsDao.GetAllGroups().Last()
+        Dim word4 As New GroupDaoTests.MockWordEntry(4, "word4", "", "", WordType.Verb, "test", "", False)
+        Dim groupDao As New GroupDao(_realDb)
+        groupDao.Add(secondGroup, word4, False, "")
+
+        ExecuteNonQuery(_realDb, DaoUtils.FailWriteUpdateTrigger(secondGroup.Table))
+
+        Dim before = ReadGroupCardColumns(1)
+
+        Dim act As Action = Sub() fixture.CopyGlobalCardsToGroups()
+
+        act.Should.Throw(Of SqliteException)()
+        ReadGroupCardColumns(1).Should.BeEquivalentTo(before)
+    End Sub
+
+    Private Function ReadGroupCardColumns(wordIndex As Integer) As Object()
+        _realDb.ExecuteReader("
+            SELECT [TestInterval], [Counter], [LastDate], [TestIntervalMain], [CounterMain]
+              FROM [GroupTest-Example01]
+             WHERE [WordIndex] = ?
+        ", CStr(wordIndex))
+        _realDb.DBCursor.Read()
+        Dim values = New Object() {
+            _realDb.SecureGetInt32(0), _realDb.SecureGetInt32(1), _realDb.SecureGetString(2),
+            _realDb.SecureGetInt32(3), _realDb.SecureGetInt32(4)}
+        _realDb.DBCursor.Close()
+
+        Return values
+    End Function
 
     ''' <summary>
     ''' Successful update of a 1.6 database with a populated group table to 1.7. The new NOT NULL columns need defaults

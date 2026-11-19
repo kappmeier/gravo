@@ -2,6 +2,7 @@
 Imports AwesomeAssertions
 Imports Gravo
 Imports GravoCore.UnitTests.GroupDaoTests
+Imports Microsoft.Data.Sqlite
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
@@ -64,6 +65,20 @@ Public Class CardsDaoTests
     End Sub
 
     <Test>
+    Public Sub UpdateSuccessBoth_SecondWriteFails_GroupEntry_ChangesNothing()
+        ExecuteNonQuery(_db, DaoUtils.FailWriteUpdateTrigger("GroupTest-Example01", "TestIntervalMain"))
+
+        Dim intervalBefore = ReadValue("GroupTest-Example01", "TestInterval", 1)
+        Dim counterBefore = ReadValue("GroupTest-Example01", "Counter", 1)
+
+        Dim act As Action = Sub() _cardsDao.UpdateSuccess(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both)
+
+        act.Should.Throw(Of SqliteException)()
+        AssertValue("GroupTest-Example01", "TestInterval", 1, intervalBefore)
+        AssertValue("GroupTest-Example01", "Counter", 1, counterBefore)
+    End Sub
+
+    <Test>
     Public Sub UpdateFailureTargetLanguage_GroupEntry_ResetsValues()
         Dim updateAction As Action = (Sub() _cardsDao.UpdateFailure(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.TargetLanguage))
         Test(updateAction, "GroupTest-Example01", "", 4, Failure)
@@ -80,6 +95,20 @@ Public Class CardsDaoTests
         Dim updateAction As Action = (Sub() _cardsDao.UpdateFailure(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both))
         Test(updateAction, "GroupTest-Example01", "", 4, Failure)
         Test(updateAction, "GroupTest-Example01", "Main", 1, FailureKeep)
+    End Sub
+
+    <Test>
+    Public Sub UpdateFailureBoth_SecondWriteFails_GroupEntry_ChangesNothing()
+        ExecuteNonQuery(_db, DaoUtils.FailWriteUpdateTrigger("GroupTest-Example01", "TestIntervalMain"))
+
+        Dim intervalBefore = ReadValue("GroupTest-Example01", "TestInterval", 1)
+        Dim counterBefore = ReadValue("GroupTest-Example01", "Counter", 1)
+
+        Dim act As Action = Sub() _cardsDao.UpdateFailure(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both)
+
+        act.Should.Throw(Of SqliteException)()
+        AssertValue("GroupTest-Example01", "TestInterval", 1, intervalBefore)
+        AssertValue("GroupTest-Example01", "Counter", 1, counterBefore)
     End Sub
 
     <Test>
@@ -115,6 +144,15 @@ Public Class CardsDaoTests
     End Sub
 
     <Test>
+    Public Sub Skip_SecondNotSkippable_KeepsTheFirstAndReturnsFalse()
+        Dim skipPossible As Boolean = _cardsDao.Skip(ExampleGroup, GroupDaoTests.testWord1, QueryLanguage.Both)
+
+        ClassicAssert.IsFalse(skipPossible)
+        AssertValue("GroupTest-Example01", "Counter", 1, 3)
+        AssertValue("GroupTest-Example01", "CounterMain", 1, 1)
+    End Sub
+
+    <Test>
     Public Sub UpdateSuccessTargetLanguage_WordEntry_ResetsValues()
         Dim updateAction As Action = (Sub() _cardsDao.UpdateSuccess(GroupDaoTests.word1, QueryLanguage.TargetLanguage))
         Test(updateAction, "Cards", "", 4, Success)
@@ -139,6 +177,20 @@ Public Class CardsDaoTests
     End Sub
 
     <Test>
+    Public Sub UpdateSuccessBoth_SecondWriteFails_WordEntry_ChangesNothing()
+        ExecuteNonQuery(_db, DaoUtils.FailWriteUpdateTrigger("Cards", "TestIntervalMain"))
+
+        Dim intervalBefore = ReadValue("Cards", "TestInterval", 1)
+        Dim counterBefore = ReadValue("Cards", "Counter", 1)
+
+        Dim act As Action = Sub() _cardsDao.UpdateSuccess(GroupDaoTests.word1, QueryLanguage.Both)
+
+        act.Should.Throw(Of SqliteException)()
+        AssertValue("Cards", "TestInterval", 1, intervalBefore)
+        AssertValue("Cards", "Counter", 1, counterBefore)
+    End Sub
+
+    <Test>
     Public Sub UpdateFailureTargetLanguage_WordEntry_ResetsValues()
         Dim updateAction As Action = (Sub() _cardsDao.UpdateFailure(GroupDaoTests.word1, QueryLanguage.TargetLanguage))
         Test(updateAction, "Cards", "", 4, Failure)
@@ -160,6 +212,20 @@ Public Class CardsDaoTests
     Public Sub UpdateFailureBoth_WordEntry_ResetsValuesOriginalLanguage()
         Dim updateAction As Action = (Sub() _cardsDao.UpdateFailure(GroupDaoTests.word1, QueryLanguage.Both))
         Test(updateAction, "Cards", "Main", 4, Failure)
+    End Sub
+
+    <Test>
+    Public Sub UpdateFailureBoth_SecondWriteFails_WordEntry_ChangesNothing()
+        ExecuteNonQuery(_db, DaoUtils.FailWriteUpdateTrigger("Cards", "TestIntervalMain"))
+
+        Dim intervalBefore = ReadValue("Cards", "TestInterval", 1)
+        Dim counterBefore = ReadValue("Cards", "Counter", 1)
+
+        Dim act As Action = Sub() _cardsDao.UpdateFailure(GroupDaoTests.word1, QueryLanguage.Both)
+
+        act.Should.Throw(Of SqliteException)()
+        AssertValue("Cards", "TestInterval", 1, intervalBefore)
+        AssertValue("Cards", "Counter", 1, counterBefore)
     End Sub
 
     <Test>
@@ -217,6 +283,21 @@ Public Class CardsDaoTests
     <Test>
     Public Sub Skip_WordEntry_Throws()
         Assert.Throws(Of EntryNotFoundException)(Sub() _cardsDao.Skip(GroupDaoTests.word4, QueryLanguage.TargetLanguage))
+    End Sub
+
+    <Test>
+    Public Sub SkipBoth_SecondNotSkippable_KeepsTheFirstAndReturnsFalse()
+        ExecuteNonQuery(_db, "
+            UPDATE [Cards]
+               SET [CounterMain] = 1
+             WHERE [Index] = 1
+        ")
+
+        Dim skipPossible As Boolean = _cardsDao.Skip(GroupDaoTests.word1, QueryLanguage.Both)
+
+        ClassicAssert.IsFalse(skipPossible)
+        AssertValue("Cards", "Counter", 1, 3)
+        AssertValue("Cards", "CounterMain", 1, 1)
     End Sub
 
     <Test>
@@ -300,14 +381,18 @@ Public Class CardsDaoTests
         Return Tuple.Create(endDate, False)
     End Function
 
-    Private Sub AssertValue(table As String, column As String, row As Integer, expected As Integer)
+    Private Function ReadValue(table As String, column As String, row As Integer) As Integer
         Dim command = $"
             SELECT {column}
               FROM [{table}]
              WHERE [Index] = ?
         "
         _db.ExecuteReader(command, CStr(row))
-        Dim value As Integer = ReadSingleInt32(_db)
+        Return ReadSingleInt32(_db)
+    End Function
+
+    Private Sub AssertValue(table As String, column As String, row As Integer, expected As Integer)
+        Dim value As Integer = ReadValue(table, column, row)
         value.Should.Be(expected)
     End Sub
 

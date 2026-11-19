@@ -178,20 +178,26 @@ Public Class DictionaryDao
                                        Throw New EntryExistsException("The entry exists already with the same meaning for the main entry.")
                                    End Function)
 
-        command = "
+        Dim subEntryIndex As Integer
+        DBConnection.InTransaction(Sub() subEntryIndex = InsertWordWithCard(mainIndex, trimmedEntry))
+        Entry.Index = subEntryIndex
+    End Sub
+
+    Private Function InsertWordWithCard(mainIndex As Integer, entry As WordEntry) As Integer
+        Dim command As String = "
             INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         "
         DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {
-            mainIndex, trimmedEntry.Word, trimmedEntry.Pre, trimmedEntry.Post, trimmedEntry.WordType,
-            trimmedEntry.Meaning, trimmedEntry.AdditionalTargetLangInfo, If(trimmedEntry.Irregular, 1, 0)}))
+            mainIndex, entry.Word, entry.Pre, entry.Post, entry.WordType,
+            entry.Meaning, entry.AdditionalTargetLangInfo, If(entry.Irregular, 1, 0)}))
 
         ' Card-Status hinzufügen
         Dim card As New CardsDao(DBConnection)
-        Dim subEntryIndex As Integer = GetSubEntryIndex(mainIndex, trimmedEntry.Word, trimmedEntry.Meaning)
+        Dim subEntryIndex As Integer = GetSubEntryIndex(mainIndex, entry.Word, entry.Meaning)
         card.AddNewEntry(subEntryIndex)
-        Entry.Index = subEntryIndex
-    End Sub
+        Return subEntryIndex
+    End Function
 
     ''' <summary>
     ''' Rejects an empty word after trimming; <c>Nothing</c> means unchanged and passes.

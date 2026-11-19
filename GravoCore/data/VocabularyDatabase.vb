@@ -70,6 +70,48 @@ Public Class VocabularyDatabase
     End Property
 
     ''' <summary>
+    ''' Adds a word to a main entry and to a group in one transaction. Nothing is written when one of the steps fails.
+    ''' </summary>
+    ''' <param name="entry">The word to add.</param>
+    ''' <param name="mainEntry">The main entry the word belongs to.</param>
+    ''' <param name="language">The language of the main entry.</param>
+    ''' <param name="mainLanguage">The main language of the entry.</param>
+    ''' <param name="createMainEntry">When <c>True</c>, a missing main entry is created.</param>
+    ''' <param name="group">The group the word is added to. <c>Nothing</c> adds it to no group.</param>
+    ''' <param name="marked">The marked flag the word gets in <paramref name="group"/>.</param>
+    ''' <returns>The stored word with its index.</returns>
+    ''' <exception cref="InputException">
+    ''' When the word or the main entry is empty after trimming or a text field holds a forbidden character.
+    ''' </exception>
+    ''' <exception cref="EntryNotFoundException">When the main entry does not exist and is not created.</exception>
+    ''' <exception cref="EntryExistsException">When the word is in <paramref name="group"/> already.</exception>
+    Public Function AddWord(entry As WordEntry, mainEntry As String, language As String, mainLanguage As String,
+        createMainEntry As Boolean, group As GroupEntry, marked As Boolean) As WordEntry
+        Dim result As WordEntry = Nothing
+        Connection.InTransaction(
+            Sub() result = AddWordSteps(entry, mainEntry, language, mainLanguage, createMainEntry, group, marked))
+        Return result
+    End Function
+
+    Private Function AddWordSteps(entry As WordEntry, mainEntry As String, language As String, mainLanguage As String,
+        createMainEntry As Boolean, group As GroupEntry, marked As Boolean) As WordEntry
+        If createMainEntry Then
+            DataTools.GetOrCreateMainEntry(Dictionary, mainEntry, language, mainLanguage)
+        End If
+        Dim word As WordEntry = entry
+        Try
+            Dictionary.AddSubEntry(entry, mainEntry, language, mainLanguage)
+        Catch ex As EntryExistsException
+            word = Dictionary.GetEntry(Dictionary.GetMainEntry(mainEntry, language, mainLanguage), entry.Word,
+                entry.Meaning)
+        End Try
+        If group IsNot Nothing Then
+            Me.Group.Add(group, word, marked, "")
+        End If
+        Return word
+    End Function
+
+    ''' <summary>
     ''' Changes the fields of a word, its marked flag in a group and its main entry in one transaction. Nothing is
     ''' changed when one of the steps fails.
     ''' </summary>
