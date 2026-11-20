@@ -363,9 +363,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An enabled main entry is looked up once before any word changes, or created if it did not exist. Its language
-    /// is taken from the node or from the first selected word for group nodes. Invalid input for the language stops
-    /// the whole change.
+    /// An enabled main entry is assigned to every word and created with the first changed one when it does not exist.
+    /// Its language is taken from the node or from the first selected word for group nodes.
     /// </para>
     /// <para>
     /// When marked is enabled on a sub group it is written to the group as well. Invalid input stops the change at
@@ -384,7 +383,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         {
             return;
         }
-        MainEntry? newMain = null;
+        string? newMain = null;
+        string? language = null;
         if (Multi.EnableMainEntry && !HasOneLanguage(node, selection))
         {
             await _dialogs.ShowMessageAsync(Texts.Get(localization.WARNING_TITLE),
@@ -392,16 +392,10 @@ public sealed partial class ExplorerViewModel : ViewModelBase
         }
         else if (Multi.EnableMainEntry)
         {
-            try
-            {
-                var language = node.Language ?? Dictionary.GetMainEntry(first).Language;
-                newMain = DataTools.GetOrCreateMainEntry(Dictionary, Multi.MainEntry.Trim(), language, _mainLanguage);
-            }
-            catch (InputException ex)
-            {
-                await _dialogs.ShowMessageAsync(Texts.Get(localization.INVALID_INPUT_TITLE), ex.Message);
-                return;
-            }
+            language = node.Language ?? Dictionary.GetMainEntry(first).Language;
+            var typed = Multi.MainEntry.Trim();
+            newMain = Dictionary.GetMainEntries(language, _mainLanguage)
+                .FirstOrDefault(m => string.Equals(m.Word, typed, StringComparison.OrdinalIgnoreCase))?.Word ?? typed;
         }
 
         var groupChanged = IsSubGroupNode(node) && Multi.EnableMarked;
@@ -415,8 +409,8 @@ public sealed partial class ExplorerViewModel : ViewModelBase
             }
             try
             {
-                var updated = _vocabulary.ChangeWord(entry, Multi.ToUpdateData(), newMain?.Word, newMain?.Language,
-                    newMain?.MainLanguage, group, Multi.Marked);
+                var updated = _vocabulary.ChangeWord(entry, Multi.ToUpdateData(), newMain, language,
+                    _mainLanguage, group, Multi.Marked);
                 selection[i] = ChangedRow(row, updated, groupChanged ? Multi.Marked : null);
                 Rows[Rows.IndexOf(row)] = selection[i];
             }
