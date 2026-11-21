@@ -46,3 +46,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || steps.pr.outputs.sha }}
       - name: Run AI review
         run: echo "ai-review scaffold reached; the review run itself is added in a follow-up issue (#15)"
+      - name: Post review as PR comments
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || steps.pr.outputs.sha }}
+        run: python3 .github/scripts/post_review.py --pr "$PR_NUMBER" --commit "$HEAD_SHA" --artifact review.json
