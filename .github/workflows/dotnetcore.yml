@@ -16,7 +16,7 @@ jobs:
       TEST_FLOOR: 401
       UI_TEST_FLOOR: 297
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:

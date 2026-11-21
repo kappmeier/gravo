@@ -41,7 +41,7 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number }}
         run: echo "sha=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" >> "$GITHUB_OUTPUT"
       - name: Checkout PR head
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || steps.pr.outputs.sha }}
       - name: Run AI review
