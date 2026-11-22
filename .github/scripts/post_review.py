@@ -1,3 +1,5 @@
+"""Read review.json and post it on the PR: inline comments on changed lines plus one summary comment."""
+
 import argparse
 import json
 import os
@@ -9,6 +11,8 @@ from dataclasses import dataclass
 
 @dataclass
 class ReviewFinding:
+    """One inline finding: file path, line on the new side of the diff, comment body."""
+
     path: str
     line: int
     body: str
@@ -16,11 +20,14 @@ class ReviewFinding:
 
 @dataclass
 class Review:
+    """The parsed review artifact."""
+
     summary: str
     findings: list[ReviewFinding]
 
 
 def parse_arguments():
+    """CLI contract: --pr, --commit, --artifact, --dry-run."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--pr", required=True)
     parser.add_argument("--commit", required=True)
@@ -30,6 +37,7 @@ def parse_arguments():
 
 
 def load_review(artifact_path):
+    """Load and validate the artifact; raises on unreadable file, bad JSON, missing keys, or wrong types."""
     with open(artifact_path, encoding="utf-8") as artifact_file:
         data = json.load(artifact_file)
     if not isinstance(data, dict):
@@ -48,6 +56,7 @@ def load_review(artifact_path):
 
 
 def run_gh(arguments, dry_run):
+    """Run gh and return (returncode, stdout); in dry-run mode print the command instead."""
     if dry_run:
         print("DRY-RUN: gh " + " ".join(arguments))
         return 0, ""
@@ -58,6 +67,7 @@ def run_gh(arguments, dry_run):
 
 
 def parse_diff_lines(diff_text):
+    """Collect the (path, line) pairs that exist on the new side of the diff hunks."""
     diff_lines = set()
     current_path = None
     new_line_number = 0
@@ -84,6 +94,7 @@ def parse_diff_lines(diff_text):
 
 
 def fetch_diff_lines(pr_number):
+    """Fetch the PR diff and return its new-side lines; empty set when the fetch fails."""
     return_code, diff_text = run_gh(["pr", "diff", pr_number], dry_run=False)
     if return_code != 0:
         print("::warning::could not fetch the PR diff; all findings go to the summary")
@@ -92,6 +103,7 @@ def fetch_diff_lines(pr_number):
 
 
 def split_findings(findings, diff_lines):
+    """Partition findings by whether their (path, line) pair is part of the diff."""
     inline_findings = []
     off_diff_findings = []
     for finding in findings:
@@ -103,6 +115,7 @@ def split_findings(findings, diff_lines):
 
 
 def build_summary(summary, off_diff_findings):
+    """Append findings that could not be placed inline to the summary text."""
     if not off_diff_findings:
         return summary
     skipped_lines = "\n".join(
@@ -112,6 +125,7 @@ def build_summary(summary, off_diff_findings):
 
 
 def post_inline_comment(args, repository, finding):
+    """Post one finding as an inline review comment on the PR."""
     return_code, _ = run_gh(
         ["api", f"repos/{repository}/pulls/{args.pr}/comments",
          "-f", f"commit_id={args.commit}",
@@ -126,12 +140,14 @@ def post_inline_comment(args, repository, finding):
 
 
 def post_summary_comment(args, summary):
+    """Post the single summary comment on the PR."""
     return_code, _ = run_gh(["pr", "comment", args.pr, "--body", summary], dry_run=args.dry_run)
     if return_code != 0:
         print("::warning::failed to post the summary comment")
 
 
 def main():
+    """Load the artifact and post it on the PR; always exits 0 so a posting failure never fails CI."""
     args = parse_arguments()
     try:
         review = load_review(args.artifact)
