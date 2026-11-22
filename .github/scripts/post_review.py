@@ -1,4 +1,7 @@
-"""Read review.json and post it on the PR: inline comments on changed lines plus one summary comment."""
+"""Reads a PR review artifact stored as review.json and post it on the PR.
+
+Adds inline comments on changed lines and one single summary comment.
+"""
 
 import argparse
 import json
@@ -11,7 +14,10 @@ from dataclasses import dataclass
 
 @dataclass
 class ReviewFinding:
-    """One inline finding: file path, line on the new side of the diff, comment body."""
+    """One inline finding from the review.
+     
+    Contains a file path, line on the new side of the diff, and the comment body.
+    """
 
     path: str
     line: int
@@ -35,9 +41,24 @@ def parse_arguments():
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
+def _is_str(value):
+    """True when value is a string."""
+    return isinstance(value, str)
+
+
+def _is_int(value):
+    """True when value is an int.
+    
+    Needs additional check as isinstance(True/False, int) returns True.
+    """
+    return isinstance(value, int) and not isinstance(value, bool)
+
 
 def load_review(artifact_path):
-    """Load and validate the artifact; raises on unreadable file, bad JSON, missing keys, or wrong types."""
+    """Load and validate the artifact.
+    
+    Raises on unreadable file, bad JSON, missing keys, or wrong types.
+    """
     with open(artifact_path, encoding="utf-8") as artifact_file:
         data = json.load(artifact_file)
     if not isinstance(data, dict):
@@ -49,25 +70,28 @@ def load_review(artifact_path):
     findings = []
     for item in raw_comments:
         finding = ReviewFinding(path=item["path"], line=item["line"], body=item["body"])
-        if not isinstance(finding.path, str) or type(finding.line) is not int or not isinstance(finding.body, str):
-            raise TypeError("each comment needs string 'path', int 'line', string 'body'")
+        if not _is_str(finding.path) or not _is_int(finding.line) or not _is_str(finding.body):
+            raise TypeError("each comment needs string 'path', int 'line', and string 'body'")
         findings.append(finding)
     return Review(summary=summary, findings=findings)
 
 
 def run_gh(arguments, dry_run):
-    """Run gh and return (returncode, stdout); in dry-run mode print the command instead."""
+    """Run gh and return (returncode, stdout).
+    
+    The return code is always 0. Prints only the command in a dry-run.
+    """
     if dry_run:
         print("DRY-RUN: gh " + " ".join(arguments))
         return 0, ""
-    process = subprocess.run(["gh"] + arguments, capture_output=True, text=True)
+    process = subprocess.run(["gh"] + arguments, capture_output=True, text=True, check=False)
     if process.returncode != 0:
         print(f"::warning::gh {' '.join(arguments[:3])} failed: {process.stderr.strip()}")
     return process.returncode, process.stdout
 
 
 def parse_diff_lines(diff_text):
-    """Collect the (path, line) pairs that exist on the new side of the diff hunks."""
+    """Collect the (path, line) pairs on the new side of the diff hunks."""
     diff_lines = set()
     current_path = None
     new_line_number = 0
@@ -94,7 +118,10 @@ def parse_diff_lines(diff_text):
 
 
 def fetch_diff_lines(pr_number):
-    """Fetch the PR diff and return its new-side lines; empty set when the fetch fails."""
+    """Fetch the PR diff and return its new-side lines.
+    
+    Returns an empty set when the fetch fails.
+    """
     return_code, diff_text = run_gh(["pr", "diff", pr_number], dry_run=False)
     if return_code != 0:
         print("::warning::could not fetch the PR diff; all findings go to the summary")
@@ -147,7 +174,10 @@ def post_summary_comment(args, summary):
 
 
 def main():
-    """Load the artifact and post it on the PR; always exits 0 so a posting failure never fails CI."""
+    """Load the review artifact and post it on the PR.
+    
+    Always exits 0 so a posting failure never fails CI.
+    """
     args = parse_arguments()
     try:
         review = load_review(args.artifact)
