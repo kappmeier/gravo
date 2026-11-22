@@ -101,7 +101,7 @@ def parse_diff_lines(diff_text):
             inside_hunk = False
             current_path = None
             continue
-        if line.startswith("+++ b/"):
+        if line.startswith("+++ b/") and not inside_hunk:
             current_path = line[len("+++ b/"):]
             continue
         hunk_header = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
