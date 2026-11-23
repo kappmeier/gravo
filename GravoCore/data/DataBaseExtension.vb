@@ -3,6 +3,8 @@ Imports System.Runtime.CompilerServices
 
 Public Module DataBaseExtension
 
+    private Const SavePoint As String = "gravo"
+
     ''' <summary>
     ''' Executes a non-query command without parameters.
     ''' 
@@ -118,14 +120,17 @@ Public Module DataBaseExtension
     ''' Execute a database operation as one transaction. The writes are committed when <paramref name="work"/> returns
     ''' and rolled back when it throws.
     ''' </summary>
+    ''' <remarks>
+    ''' The transaction is a savepoint, so a nested call rolls back only its own writes.
+    ''' </remarks>
     ''' <param name="dataBaseOperation">Connection to the database</param>
     ''' <param name="work">The writes to run</param>
     <Extension()>
     Public Sub InTransaction(dataBaseOperation As IDataBaseOperation, work As Action)
-        dataBaseOperation.ExecuteNonQuery("BEGIN", Array.Empty(Of Object))
+        dataBaseOperation.ExecuteNonQuery($"SAVEPOINT {SavePoint}", Array.Empty(Of Object))
         Try
             work()
-            dataBaseOperation.ExecuteNonQuery("COMMIT", Array.Empty(Of Object))
+            dataBaseOperation.ExecuteNonQuery($"RELEASE {SavePoint}", Array.Empty(Of Object))
         Catch
             RollbackSafely(dataBaseOperation)
             Throw
@@ -133,18 +138,24 @@ Public Module DataBaseExtension
     End Sub
 
     ''' <summary>
-    ''' Roll the open transaction back.
+    ''' Roll the open savepoint back and release it.
     ''' </summary>
     ''' <remarks>
-    ''' Catches any exceptions and ignores them: SQLite rolls back by itself on some errors (full disk, I/O), so a
-    ''' failing <c>ROLLBACK</c> is expected in these cases. The original error should be reported instead.
+    ''' Each statement is guarded on its own and any exception is ignored: SQLite rolls back by itself on some errors
+    ''' (full disk, I/O), so a failing <c>ROLLBACK TO</c> is expected in these cases. The original error should be
+    ''' reported instead.
     ''' </remarks>
     ''' <param name="dataBaseOperation">Connection to the database</param>
     Private Sub RollbackSafely(dataBaseOperation As IDataBaseOperation)
         Try
-            dataBaseOperation.ExecuteNonQuery("ROLLBACK", Array.Empty(Of Object))
+            dataBaseOperation.ExecuteNonQuery($"ROLLBACK TO {SavePoint}", Array.Empty(Of Object))
         Catch
             ' Nothing left to roll back, the caller rethrows the original error
+        End Try
+        Try
+            dataBaseOperation.ExecuteNonQuery($"RELEASE {SavePoint}", Array.Empty(Of Object))
+        Catch
+            ' Nothing left to release, the caller rethrows the original error
         End Try
     End Sub
 End Module

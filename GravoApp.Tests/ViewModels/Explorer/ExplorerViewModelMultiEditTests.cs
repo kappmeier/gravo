@@ -205,6 +205,45 @@ public class ExplorerViewModelMultiEditTests
     }
 
     [Test]
+    public async Task ChangeSelected_EveryRowFails_CreatesNoMainEntry()
+    {
+        var fixture = Create();
+        fixture.SelectedNode = Node(fixture, Letter);
+        fixture.SelectedRows.Add(fixture.Rows.Single(r => r.Word == "house"));
+
+        fixture.Multi.EnableWord = true;
+        fixture.Multi.Word = "houses";
+        fixture.Multi.EnableMeaning = true;
+        fixture.Multi.Meaning = "Häuser";
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "fresh";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync("Gravo", "T133"), Times.Once);
+        Action get = () => _voc.Dictionary.GetMainEntry("fresh", "english", TempVocabulary.MainLanguage);
+        get.Should().Throw<EntryNotFoundException>();
+    }
+
+    /// <summary>A main entry given in another case keeps the rows in their main entry.</summary>
+    [Test]
+    public async Task ChangeSelected_MainEntryInOtherCase_KeepsTheMainEntry()
+    {
+        var fixture = Create();
+        SelectAll(fixture, Letter);
+        var mainBefore = _voc.Dictionary.GetMainEntry(_seed.House);
+        var countBefore = _voc.Dictionary.GetMainEntries("english", TempVocabulary.MainLanguage).Count;
+
+        fixture.Multi.EnableMainEntry = true;
+        fixture.Multi.MainEntry = "House";
+        await fixture.ChangeSelectedCommand.ExecuteAsync(null);
+
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        HouseWords().Select(w => _voc.Dictionary.GetMainEntry(w).Word)
+            .Should().Equal(mainBefore.Word, mainBefore.Word);
+        _voc.Dictionary.GetMainEntries("english", TempVocabulary.MainLanguage).Should().HaveCount(countBefore);
+    }
+
+    [Test]
     public async Task ChangeSelected_InputException_ShowsMessageAndStops()
     {
         var fixture = Create();

@@ -25,7 +25,9 @@ public class DialogWindowsHeadlessTests
         dictionary.Setup(d => d.DictionaryMainLanguages()).Returns(new List<string> { "german" });
         var groups = new Mock<IGroupsDao>();
         groups.Setup(g => g.GetGroups()).Returns(new Collection<string>());
-        var viewModel = new WordInputViewModel(dictionary.Object, groups.Object, new Mock<IGroupDao>().Object,
+        var viewModel = new WordInputViewModel(
+            VocabularyDatabase.CreateForTest(new Mock<IDataBaseOperation>().Object, dictionary.Object, groups.Object,
+                new Mock<IGroupDao>().Object),
             Fakes.Properties().Object, Fakes.Texts(), Fakes.Dialogs().Object, AppServices.MainLanguage);
 
         var fixture = ViewLocator.CreateWindow(viewModel).Should().BeOfType<WordInputWindow>().Which;

@@ -17,6 +17,7 @@ namespace GravoApp.ViewModels;
 /// </remarks>
 public sealed partial class WordInputViewModel : ViewModelBase
 {
+    private readonly IDictionaryDao _dictionary;
     private readonly IGroupsDao _groups;
     private readonly IGroupDao _group;
     private readonly IDialogService _dialogs;
@@ -49,25 +50,26 @@ public sealed partial class WordInputViewModel : ViewModelBase
     /// of each.
     /// </summary>
     /// <exception cref="DataInvalidException">If the word types stored in the database are invalid.</exception>
-    public WordInputViewModel(IDictionaryDao dictionary, IGroupsDao groups, IGroupDao group,
-        IPropertiesDao properties, UiTexts texts, IDialogService dialogs, string mainLanguage)
+    public WordInputViewModel(VocabularyDatabase vocabulary, IPropertiesDao properties, UiTexts texts,
+        IDialogService dialogs, string mainLanguage)
     {
-        _groups = groups;
-        _group = group;
+        _dictionary = vocabulary.Dictionary;
+        _groups = vocabulary.Groups;
+        _group = vocabulary.Group;
         _dialogs = dialogs;
         Texts = texts;
-        _adder = new SubEntryAdder(dictionary, group, dialogs, texts);
+        _adder = new SubEntryAdder(vocabulary, dialogs, texts);
         Title = texts.Get(localization.MAIN_MENU_VOCABULARY_ENLARGE_DICTIONARY);
         Limits = properties.LoadProperties();
         // Throws DataInvalidException for a database without all known word types.
         properties.LoadWordTypes();
         WordTypeDisplays = WordTypeValues.Select(texts.DisplayWordType).ToList();
 
-        Languages = new ObservableCollection<string>(dictionary.DictionaryLanguages(mainLanguage));
+        Languages = new ObservableCollection<string>(_dictionary.DictionaryLanguages(mainLanguage));
         SelectedLanguage = Languages.FirstOrDefault();
-        MainLanguages = new ObservableCollection<string>(dictionary.DictionaryMainLanguages());
+        MainLanguages = new ObservableCollection<string>(_dictionary.DictionaryMainLanguages());
         SelectedMainLanguage = MainLanguages.FirstOrDefault();
-        Groups = new ObservableCollection<string>(groups.GetGroups());
+        Groups = new ObservableCollection<string>(_groups.GetGroups());
         SelectedGroup = Groups.FirstOrDefault();
     }
 
@@ -233,12 +235,9 @@ public sealed partial class WordInputViewModel : ViewModelBase
 
         var entry = new WordEntry(Word, Pre, Post, SelectedWordType, Meaning, AdditionalInfo, Irregular);
         var trimmedMainEntry = MainEntry.Trim();
-        var word = await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
-            Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry));
-        if (word is not null && DirectAdd)
-        {
-            await _adder.AddToGroupAsync(SelectedGroupEntry!, word, Marked);
-        }
+        await _adder.AddAsync(entry, trimmedMainEntry, Language, MainLanguage,
+            Texts.Format(localization.WORD_INPUT_MAIN_ENTRY_MISSING, trimmedMainEntry),
+            DirectAdd ? SelectedGroupEntry : null, Marked);
         _wordEdited = false;
         SelectMainEntryRequested?.Invoke();
     }

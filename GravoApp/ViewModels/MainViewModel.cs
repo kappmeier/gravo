@@ -147,8 +147,7 @@ public sealed partial class MainViewModel : ViewModelBase
         WordInputViewModel input;
         try
         {
-            input = new WordInputViewModel(_s.Vocabulary.Dictionary, _s.Vocabulary.Groups, _s.Vocabulary.Group,
-                _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
+            input = new WordInputViewModel(_s.Vocabulary, _s.Properties, Texts, _s.Dialogs, AppServices.MainLanguage);
         }
         catch (DataInvalidException ex)
         {
