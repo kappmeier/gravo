@@ -14,11 +14,13 @@ jobs:
   ai-review:
     name: AI review
     if: >-
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ai-review'))
+      (github.event_name == 'pull_request'
+      && !contains(github.event.pull_request.labels.*.name, 'skip-ai-review'))
       ||
       (github.event_name == 'issue_comment'
       && github.event.issue.pull_request
       && contains(github.event.comment.body, '/review')
+      && !contains(github.event.issue.labels.*.name, 'skip-ai-review')
       && contains(fromJSON('["MEMBER", "OWNER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     steps:
@@ -35,8 +37,8 @@ jobs:
                 || echo "::warning::Could not create label '$name' with the workflow token (needs issues: write); create it manually."
             fi
           }
-          ensure_label ai-review "Opt in to the AI-based pull request review (pilot)" 0E8A16
-          ensure_label skip-ai-review "Opt out of the AI-based pull request review (pilot)" D73A4A
+          ensure_label ai-review "AI-based pull request review (automatic; label kept for compatibility)" 0E8A16
+          ensure_label skip-ai-review "Opt out of the automatic AI-based pull request review" D73A4A
       - name: Resolve PR head SHA
         if: github.event_name == 'issue_comment'
         id: pr
