@@ -111,7 +111,7 @@ def run_vibe(prompt):
     command = [
         "vibe", "-p",
         "--trust",
-        "--model", os.environ.get("VIBE_MODEL", "mistral-medium-3.5"),
+        "--model", os.environ.get("VIBE_MODEL", "mistral-medium-latest"),
         "--max-turns", os.environ.get("VIBE_MAX_TURNS", "25"),
         "--max-price", os.environ.get("VIBE_MAX_PRICE", "1.00"),
         "--output", "text",
