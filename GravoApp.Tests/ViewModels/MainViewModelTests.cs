@@ -228,12 +228,14 @@ public class MainViewModelTests
     }
 
     [Test]
-    public async Task CheckDatabaseVersion_Outdated_ShowsHint()
+    public async Task CheckDatabaseVersion_Outdated_MigratesAutomatically()
     {
-        _management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(false);
+        var callCount = 0;
+        _management.Setup(m => m.IsSchemaVersionUpToDate()).Returns(() => callCount++ == 0 ? false : true);
+        _management.Setup(m => m.UpdateDatabaseSchemaVersion());
         await Create().CheckDatabaseVersionAsync();
-        _dialogs.Verify(
-            d => d.ShowMessageAsync("T" + localization.HINT, "T" + localization.DB_VERSION_OUTDATED), Times.Once);
+        _management.Verify(m => m.UpdateDatabaseSchemaVersion(), Times.Once);
+        _dialogs.Verify(d => d.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Test]

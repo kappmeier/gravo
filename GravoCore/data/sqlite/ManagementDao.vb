@@ -22,6 +22,8 @@ Public Class ManagementDao
         = New DbSchemaVersion(1, 6, New Date(2007, 5, 28), "Correct max length for entries")
     Public Shared ReadOnly DB_VERSION_1_7 As DbSchemaVersion _
         = New DbSchemaVersion(1, 7, New Date(2007, 5, 29), "Group features update and WordTypes")
+    Public Shared ReadOnly DB_VERSION_2_0 As DbSchemaVersion _
+        = New DbSchemaVersion(2, 0, New Date(2026, 11, 24), "Alternative readings, e.g. Japanese kana.")
 
     Public ReadOnly ComplexVersionUpdates As HashSet(Of DbSchemaVersion) _
         = New HashSet(Of DbSchemaVersion) From {DB_VERSION_1_6, DB_VERSION_1_4}
@@ -34,7 +36,8 @@ Public Class ManagementDao
         DB_VERSION_1_4,
         DB_VERSION_1_5,
         DB_VERSION_1_6,
-        DB_VERSION_1_7
+        DB_VERSION_1_7,
+        DB_VERSION_2_0
      }
 
     Private updateFunctions As New Dictionary(Of DbSchemaVersion, Action) From {
@@ -44,7 +47,8 @@ Public Class ManagementDao
         {DB_VERSION_1_3, Sub() UpdateTo1_4()},
         {DB_VERSION_1_4, Sub() UpdateTo1_5()},
         {DB_VERSION_1_5, Sub() UpdateTo1_6()},
-        {DB_VERSION_1_6, Sub() UpdateTo1_7()}
+        {DB_VERSION_1_6, Sub() UpdateTo1_7()},
+        {DB_VERSION_1_7, Sub() UpdateTo2_0()}
     }
 
     Sub New(ByVal db As IDataBaseOperation)
@@ -483,6 +487,17 @@ Public Class ManagementDao
         ")
 
         UpdateToVersion(DB_VERSION_1_7)
+    End Sub
+
+    ''' <summary>
+    ''' Adds the nullable Reading column to DictionaryWords for alternative readings.
+    ''' </summary>
+    Private Sub UpdateTo2_0()
+        SimpleUpdateCommand("
+            ALTER TABLE [DictionaryWords]
+              ADD COLUMN [Reading] TEXT(80);
+        ")
+        UpdateToVersion(DB_VERSION_2_0)
     End Sub
 
     ''' <summary>

@@ -40,14 +40,13 @@ public sealed partial class MainViewModel : ViewModelBase
     public ObservableCollection<LanguageMenuItem> Languages { get; }
 
     /// <summary>
-    /// Shows a hint when the vocabulary database needs an update.
+    /// Migrates the vocabulary database to the current schema version when it is outdated.
     /// </summary>
     public async Task CheckDatabaseVersionAsync()
     {
         if (!_s.Management.IsSchemaVersionUpToDate())
         {
-            await _s.Dialogs.ShowMessageAsync(
-                Texts.Get(localization.HINT), Texts.Get(localization.DB_VERSION_OUTDATED));
+            _s.Management.UpdateDatabaseSchemaVersion();
         }
     }
 

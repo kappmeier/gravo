@@ -9,6 +9,9 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public Class ManagementDaoTests
+    Private Const STANDARD_FIELDS = "[MainIndex], [Word], [Pre], [Post], " &
+        "[WordType], [Meaning], [TargetLanguageInfo], [Irregular]"
+
     Private ReadOnly ResourceFile As String = "test-data-management.s3db"
     Private ReadOnly IllegalResourceFile As String = "test-data-meta.s3db"
     Private _managementDao As ManagementDao
@@ -75,6 +78,7 @@ Public Class ManagementDaoTests
         _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_5).Should.BeFalse()
         _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_6).Should.BeTrue()
         _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_1_7).Should.BeFalse()
+        _managementDao.IsSchemaUpdateComplex(ManagementDao.DB_VERSION_2_0).Should.BeFalse()
     End Sub
 
     <Test>
@@ -123,9 +127,12 @@ Public Class ManagementDaoTests
         mockedDb.Setup(Function(x) x.DBCursor()).Returns(mockDbDataReader.Object)
         mockDbDataReader.SetupSequence(Function(x) x.Read()).Returns(True).Returns(False)
 
-        mockedDb.Setup(Function(x) x.SecureGetString(0)).Returns(ManagementDao.DB_VERSION_1_7.Major & "." & ManagementDao.DB_VERSION_1_7.Minor)
-        mockedDb.Setup(Function(x) x.SecureGetDateTime(1)).Returns(ManagementDao.DB_VERSION_1_7.Introduction)
-        mockedDb.Setup(Function(x) x.SecureGetString(2)).Returns(ManagementDao.DB_VERSION_1_7.Description)
+        mockedDb.Setup(Function(x) x.SecureGetString(0)) _
+            .Returns(ManagementDao.DB_VERSION_2_0.Major & "." & ManagementDao.DB_VERSION_2_0.Minor)
+        mockedDb.Setup(Function(x) x.SecureGetDateTime(1)) _
+            .Returns(ManagementDao.DB_VERSION_2_0.Introduction)
+        mockedDb.Setup(Function(x) x.SecureGetString(2)) _
+            .Returns(ManagementDao.DB_VERSION_2_0.Description)
 
         mockDbDataReader.Setup(Sub(x) x.Close())
 
@@ -161,7 +168,7 @@ Public Class ManagementDaoTests
         Assert.Throws(Of IllegalVersionException)(Sub() _managementDao.Initialize())
     End Sub
 
-    <Test>  ', Timeout(2000) ' Not yet available in .NET standard
+    <Test>
     Public Sub UpdateVersion_Updates_ToLatest()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
         Dim fixture = New ManagementDao(testDb)
@@ -171,7 +178,9 @@ Public Class ManagementDaoTests
 
         AssertTableExists(testDb, "DBVersion")
 
-        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_2_0)
+        fixture.IsSchemaVersionUpToDate().Should.BeTrue()
+        testDb.Close()
     End Sub
 
     Private Shared Sub AssertTableExists(db As IDataBaseOperation, table As String)
@@ -181,7 +190,7 @@ Public Class ManagementDaoTests
 
     <Test>
     Public Sub Latest_Returns_LatestSchemaVersion()
-        _managementDao.LatestSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+        _managementDao.LatestSchemaVersion.Should.Be(ManagementDao.DB_VERSION_2_0)
     End Sub
 
     <Test>
@@ -282,12 +291,12 @@ Public Class ManagementDaoTests
             VALUES (2)
         ", Array.Empty(Of Object))
 
-        testDb.ExecuteNonQuery("
-            INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked])
+        testDb.ExecuteNonQuery($"
+            INSERT INTO [DictionaryWords] ({STANDARD_FIELDS}, [Marked])
             VALUES (1, 'word1', NULL, NULL, 0, 'meaning1', NULL, 0, 1)
         ", Array.Empty(Of Object))
-        testDb.ExecuteNonQuery("
-            INSERT INTO [DictionaryWords] ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular], [Marked])
+        testDb.ExecuteNonQuery($"
+            INSERT INTO [DictionaryWords] ({STANDARD_FIELDS}, [Marked])
             VALUES (1, 'word2', NULL, NULL, 0, 'meaning2', NULL, 0, 0)
         ", Array.Empty(Of Object))
 
@@ -564,9 +573,8 @@ Public Class ManagementDaoTests
     Public Sub UpdateTo1_7_UnsupportedWordType_BecomesSimple()
         Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
         Dim fixture = BuildVersion16WithGroupTable(testDb)
-        testDb.ExecuteNonQuery("
-                INSERT INTO [DictionaryWords]
-                       ([MainIndex], [Word], [Pre], [Post], [WordType], [Meaning], [TargetLanguageInfo], [Irregular])
+        testDb.ExecuteNonQuery($"
+                INSERT INTO [DictionaryWords] ({STANDARD_FIELDS})
                 VALUES (1, 'odd', '', '', 9, 'm', '', 0)
             ",
             Array.Empty(Of Object))
@@ -581,6 +589,46 @@ Public Class ManagementDaoTests
         testDb.DBCursor.Read()
         testDb.SecureGetInt32(0).Should.Be(CInt(WordType.Simple))
         testDb.DBCursor.Close()
+    End Sub
+
+    <Test>
+    Public Sub UpdateVersion_From1_7_AddsReadingColumnAndKeepsData()
+        Dim testDb As IDataBaseOperation = PropertiesDaoTests.CreateEmptyTestDb()
+        Dim fixture = New ManagementDao(testDb)
+        fixture.Initialize()
+        For i As Integer = 1 To 7
+            fixture.UpdateDatabaseSingle()
+        Next
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_1_7)
+
+        testDb.ExecuteNonQuery("
+            INSERT INTO [DictionaryMain] ([WordEntry], [LanguageName], [MainLanguage])
+            VALUES ('test', 'japanese', 'german')
+        ", Array.Empty(Of Object))
+        testDb.ExecuteNonQuery($"
+            INSERT INTO [DictionaryWords] ({STANDARD_FIELDS})
+            VALUES (1, '食べる', '', '', 1, 'essen', '', 0)
+        ", Array.Empty(Of Object))
+
+        fixture.UpdateDatabaseSchemaVersion()
+
+        fixture.IsSchemaVersionUpToDate().Should.BeTrue()
+        fixture.GetCurrentSchemaVersion.Should.Be(ManagementDao.DB_VERSION_2_0)
+
+        Dim columns As New List(Of String)
+        testDb.ExecuteReader("PRAGMA table_info([DictionaryWords])")
+        While testDb.DBCursor.Read()
+            columns.Add(testDb.SecureGetString(1))
+        End While
+        testDb.DBCursor.Close()
+        columns.Should().Contain("Reading")
+
+        testDb.ExecuteReader("SELECT [Word], [Reading] FROM [DictionaryWords]")
+        testDb.DBCursor.Read()
+        testDb.SecureGetString(0).Should().Be("食べる")
+        testDb.SecureGetString(1).Should().Be("")
+        testDb.DBCursor.Close()
+        testDb.Close()
     End Sub
 
     ''' <summary>
