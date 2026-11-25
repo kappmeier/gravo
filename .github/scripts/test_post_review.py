@@ -38,6 +38,14 @@ class LinkifyTextTest(unittest.TestCase):
             "(https://github.com/kappmeier/gravo/blob/abc123/post_review.py)",
         )
 
+    def test_backticked_dot_path_line_links(self):
+        out = post_review.linkify_text("see `.github/workflows/ai-review.yml:14`", REPO, SHA)
+        self.assertEqual(
+            out,
+            "see [.github/workflows/ai-review.yml:14]"
+            "(https://github.com/kappmeier/gravo/blob/abc123/.github/workflows/ai-review.yml#L14)",
+        )
+
     def test_backticked_non_path_stays(self):
         text = "the `summary` key and `--pr` flag"
         self.assertEqual(post_review.linkify_text(text, REPO, SHA), text)

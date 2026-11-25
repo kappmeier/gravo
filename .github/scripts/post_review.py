@@ -153,9 +153,9 @@ def build_summary(summary, off_diff_findings):
 
 
 FILE_REF = re.compile(
-    r"`(?P<bt_pl>[A-Za-z0-9_][A-Za-z0-9_.\-/~]*):(?P<bt_line>\d+)`"
-    r"|`(?P<bt_path>[A-Za-z0-9_][A-Za-z0-9_.\-/~]*)`"
-    r"|(?<![\w:/.])(?P<bare_path>[A-Za-z0-9_][A-Za-z0-9_.\-/~]*):(?P<bare_line>\d+)"
+    r"`(?P<bt_pl>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*):(?P<bt_line>\d+)`"
+    r"|`(?P<bt_path>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*)`"
+    r"|(?<![\w:/.])(?P<bare_path>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*):(?P<bare_line>\d+)"
 )
 
 
