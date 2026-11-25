@@ -49,12 +49,20 @@ class LinkifyTextTest(unittest.TestCase):
         )
         self.assertEqual(post_review.linkify_text(text, REPO, SHA), text)
 
-    def test_path_with_space_is_quoted(self):
-        out = post_review.linkify_text("my dir/F.vb:3", REPO, SHA)
+    def test_file_url_quotes_path_and_appends_line_fragment(self):
+        self.assertEqual(
+            post_review.file_url("my dir/F.vb", 3, REPO, SHA),
+            "https://github.com/kappmeier/gravo/blob/abc123/my%20dir/F.vb#L3",
+        )
+
+    def test_multiple_refs_in_one_text_all_linkified(self):
+        out = post_review.linkify_text("GravoCore/Deck.vb:42 and `GravoApp/App.axaml:7`", REPO, SHA)
         self.assertEqual(
             out,
-            "[my dir/F.vb:3]"
-            "(https://github.com/kappmeier/gravo/blob/abc123/my%20dir/F.vb#L3)",
+            "[GravoCore/Deck.vb:42]"
+            "(https://github.com/kappmeier/gravo/blob/abc123/GravoCore/Deck.vb#L42)"
+            " and [GravoApp/App.axaml:7]"
+            "(https://github.com/kappmeier/gravo/blob/abc123/GravoApp/App.axaml#L7)",
         )
 
     def test_empty_repository_leaves_text_unchanged(self):
