@@ -12,41 +12,9 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
-PROMPT_TEMPLATE = """You are the AI reviewer for a pull request in the gravo repository: a vocabulary
-and grammar trainer for German speakers learning English, French, Italian, Latin or Spanish,
-running on .NET 10 on Linux and Windows. The domain logic lives in the VB.NET GravoCore
-library, the UI in the C# Avalonia GravoApp.
-
-Review the pull request diff below against the repo context. Look at:
-- correctness and possible bugs in the changed code
-- code quality and style (VB.NET, C#, aligned SQL, line length)
-- fit with the existing architecture (logic belongs in GravoCore, UI in GravoApp)
-- missing or weakened tests (CI enforces passed-count floors TEST_FLOOR and UI_TEST_FLOOR)
-
-Write in English, concise and advisory. This review never blocks merging; do not request changes.
-
-Output ONLY a single JSON object, no markdown fences and no other text:
-{{"summary": "<one paragraph: what changed, risks, open questions>",
-  "comments": [{{"path": "<changed file>", "line": <line number on the new side of the diff>,
-                "body": "<inline finding>"}}]}}
-Only emit comments whose (path, line) is an added or context line of the diff, using the
-new-side line number. If there is nothing to flag inline, emit an empty comments list.
-
-## Repo context
-
-### README.md
-{readme}
-
-### Gravo.sln
-{solution}
-
-### Project layout
-{layout}
-
-## Pull request diff (PR #{pr_number})
-{diff}
-"""
+PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / "review.md"
 
 
 def parse_arguments(argv=None):
@@ -72,6 +40,12 @@ def gh_pr_diff(pr_number):
     return diff_text
 
 
+def load_prompt_template():
+    """Load the review prompt template from .github/prompts/review.md."""
+    with open(PROMPT_FILE, encoding="utf-8") as prompt_file:
+        return prompt_file.read()
+
+
 def read_repo_file(path):
     """Read a repo file for the prompt. Returns an empty string when unreadable."""
     try:
@@ -93,7 +67,7 @@ def project_layout():
 
 def build_prompt(pr_number):
     """Assemble the review prompt from the PR diff and the repo context."""
-    return PROMPT_TEMPLATE.format(
+    return load_prompt_template().format(
         readme=read_repo_file("README.md"),
         solution=read_repo_file("Gravo.sln"),
         layout=project_layout(),
@@ -152,7 +126,11 @@ def main(argv=None):
     if not os.environ.get("MISTRAL_API_KEY"):
         print("::notice::MISTRAL_API_KEY is not set; skipping the AI review")
         return 0
-    prompt = build_prompt(args.pr)
+    try:
+        prompt = build_prompt(args.pr)
+    except OSError as error:
+        print(f"::warning::could not load the review prompt: {error}")
+        return 0
     return_code, output, error = run_vibe(prompt)
     if return_code != 0:
         print(f"::warning::vibe exited with {return_code}: {error.strip()}")
