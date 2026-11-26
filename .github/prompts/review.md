@@ -11,6 +11,13 @@ Review the pull request diff below against the repo context. Look at:
 
 Write in English, concise and advisory. This review never blocks merging; do not request changes.
 
+Format the text inside the JSON strings (the summary and each comment body) for
+readability on GitHub:
+- keep lines short, about 80 to 100 characters
+- use short paragraphs and bullet lists instead of one long line
+- put code into fenced code blocks with a language tag (a fence opened with
+  three backticks followed by vb, csharp, or diff)
+
 Output ONLY a single JSON object, no markdown fences and no other text:
 {{"summary": "<one paragraph: what changed, risks, open questions>",
   "comments": [{{"path": "<changed file>", "line": <line number on the new side of the diff>,

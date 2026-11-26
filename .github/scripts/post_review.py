@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from urllib.parse import quote
 
 
 @dataclass
@@ -151,6 +152,51 @@ def build_summary(summary, off_diff_findings):
     return summary + "\n\nNot placed inline (line not in the diff):\n" + skipped_lines
 
 
+FILE_REF = re.compile(
+    r"`(?P<bt_pl>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*):(?P<bt_line>\d+)`"
+    r"|`(?P<bt_path>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*)`"
+    r"|(?<![\w:/.])(?P<bare_path>[A-Za-z0-9_.][A-Za-z0-9_.\-/~]*):(?P<bare_line>\d+)"
+)
+
+
+def file_url(path, line, repository, commit):
+    """Blob URL of a file at the PR head SHA, with #L<line> when a line is given."""
+    url = f"https://github.com/{repository}/blob/{commit}/{quote(path)}"
+    if line:
+        url += f"#L{line}"
+    return url
+
+
+def _looks_like_path(path):
+    """True when the text plausibly names a repo file, not a word or host."""
+    return "/" in path or "." in path
+
+
+def _linkify_match(match, repository, commit):
+    """Turn one path reference match into a markdown link pinned to the head SHA."""
+    if match.group("bt_pl") is not None:
+        path, line = match.group("bt_pl"), int(match.group("bt_line"))
+    elif match.group("bt_path") is not None:
+        path, line = match.group("bt_path"), None
+    else:
+        path, line = match.group("bare_path"), int(match.group("bare_line"))
+    if not _looks_like_path(path):
+        return match.group(0)
+    label = f"{path}:{line}" if line else path
+    return f"[{label}]({file_url(path, line, repository, commit)})"
+
+
+def linkify_text(text, repository, commit):
+    """Rewrite `path:line` refs and backticked paths into head-SHA blob links.
+
+    One single substitution pass, so generated links are never re-processed.
+    Returns the text unchanged when repository or commit is missing.
+    """
+    if not repository or not commit:
+        return text
+    return FILE_REF.sub(lambda match: _linkify_match(match, repository, commit), text)
+
+
 def post_inline_comment(args, repository, finding):
     """Post one finding as an inline review comment on the PR."""
     return_code, _ = run_gh(
@@ -159,7 +205,7 @@ def post_inline_comment(args, repository, finding):
          "-f", f"path={finding.path}",
          "-f", f"line={finding.line}",
          "-f", "side=RIGHT",
-         "-f", f"body={finding.body}"],
+         "-f", f"body={linkify_text(finding.body, repository, args.commit)}"],
         dry_run=args.dry_run,
     )
     if return_code != 0:
@@ -193,7 +239,8 @@ def main():
     inline_findings, off_diff_findings = split_findings(review.findings, diff_lines)
     for finding in inline_findings:
         post_inline_comment(args, repository, finding)
-    post_summary_comment(args, build_summary(review.summary, off_diff_findings))
+    summary = linkify_text(build_summary(review.summary, off_diff_findings), repository, args.commit)
+    post_summary_comment(args, summary)
     return 0
 
 
