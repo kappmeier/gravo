@@ -54,7 +54,9 @@ Public Class GroupDao
     Function Load(ByVal group As GroupEntry) As GroupDto Implements IGroupDao.Load
         Dim words As New Collection(Of TestWord)
         Dim command As String = $"
-            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning,
+                   D.TargetLanguageInfo, D.Irregular, D.Reading,
+                   G.[Index], G.Marked, G.Example
               FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
              WHERE D.[Index]=G.[WordIndex]
              ORDER BY G.[Index]
@@ -63,8 +65,8 @@ Public Class GroupDao
         Do While DBConnection.DBCursor.Read()
             Dim wordEntry = Extract(DBConnection)
 
-            Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
-            Dim example As String = DBConnection.SecureGetString(10)
+            Dim marked As Boolean = CBool(DBConnection.SecureGetBool(10))
+            Dim example As String = DBConnection.SecureGetString(11)
 
             Dim testword As TestWord = New TestWord(wordEntry, marked, example)
             words.Add(testword)
@@ -75,7 +77,9 @@ Public Class GroupDao
 
     Function Load(ByVal group As GroupEntry, ByVal word As WordEntry) As TestWord Implements IGroupDao.Load
         Dim command As String = $"
-            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning,
+                   D.TargetLanguageInfo, D.Irregular, D.Reading,
+                   G.[Index], G.Marked, G.Example
               FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
              WHERE D.[Index]=G.[WordIndex]
                AND D.[Index] = ?
@@ -89,8 +93,8 @@ Public Class GroupDao
         DBConnection.DBCursor.Read()
         Dim wordEntry = Extract(DBConnection)
 
-        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
-        Dim example As String = DBConnection.SecureGetString(10)
+        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(10))
+        Dim example As String = DBConnection.SecureGetString(11)
 
         Load = New TestWord(wordEntry, marked, example)
         DBConnection.DBCursor.Close()
@@ -107,6 +111,7 @@ Public Class GroupDao
     '''   <item><description>meaning</description></item>
     '''   <item><description>additionalTargetLangInfo</description></item>
     '''   <item><description>irregular</description></item>
+    '''   <item><description>reading</description></item>
     ''' </list>
     ''' </summary>
     ''' <param name="dbConnection"></param>
@@ -120,7 +125,8 @@ Public Class GroupDao
         Dim meaning = dbConnection.SecureGetString(5)
         Dim additionalTargetLangInfo = dbConnection.SecureGetString(6)
         Dim irregular = dbConnection.SecureGetBool(7)
-        Extract = New WordEntry(index, word, pre, post, CType(wordType, WordType), meaning, additionalTargetLangInfo, irregular)
+        Dim reading = dbConnection.SecureGetString(8)
+        Extract = New WordEntry(index, word, pre, post, CType(wordType, WordType), meaning, additionalTargetLangInfo, irregular, reading)
     End Function
 
     Sub UpdateMarked(ByVal group As GroupEntry, ByVal word As TestWord, ByVal marked As Boolean
@@ -212,7 +218,9 @@ Public Class GroupDao
         ) As TestWord Implements IGroupDao.GetTestWord
 
         Dim command As String = $"
-            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning, D.TargetLanguageInfo, D.Irregular, G.[Index], G.Marked, G.Example
+            SELECT D.[Index], D.Word, D.Pre, D.Post, D.WordType, D.Meaning,
+                   D.TargetLanguageInfo, D.Irregular, D.Reading,
+                   G.[Index], G.Marked, G.Example
               FROM DictionaryWords AS D, [{StripSpecialCharacters(group.Table)}] AS G
              WHERE G.WordIndex = D.[Index]
                AND D.Word= ?
@@ -228,8 +236,8 @@ Public Class GroupDao
         Dim wordEntry = Extract(DBConnection)
 
         Dim index As Int32 = CInt(DBConnection.SecureGetInt32(0))
-        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(9))
-        Dim example As String = DBConnection.SecureGetString(10)
+        Dim marked As Boolean = CBool(DBConnection.SecureGetBool(10))
+        Dim example As String = DBConnection.SecureGetString(11)
 
         GetTestWord = New TestWord(wordEntry, marked, example)
         DBConnection.DBCursor.Close()

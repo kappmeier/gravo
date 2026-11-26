@@ -8,7 +8,7 @@ Public Class DictionaryDao
     Private ReadOnly DBConnection As IDataBaseOperation
 
     Private ReadOnly _wordEntryColumns As String =
-        "W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular"
+        "W.[Index], W.Word, W.Pre, W.Post, W.WordType, W.Meaning, W.TargetLanguageInfo, W.Irregular, W.Reading"
     Private ReadOnly _wordEntryTable As String = "DictionaryWords AS W"
     Private ReadOnly _mainEntryColumns As String = "M.[Index], M.WordEntry, M.LanguageName, M.MainLanguage"
     Private ReadOnly _mainEntryTable As String = "DictionaryMain AS M"
@@ -152,7 +152,7 @@ Public Class DictionaryDao
 
     Public Sub AddSubEntry(ByVal Entry As WordEntry, ByVal MainEntry As String, ByVal Language As String,
         ByVal MainLanguage As String) Implements IDictionaryDao.AddSubEntry
-        CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo)
+        CheckAllowedText(Entry.Word, Entry.Pre, Entry.Post, Entry.Meaning, Entry.AdditionalTargetLangInfo, Entry.Reading)
         Dim trimmedEntry = Trimmed(Entry)
         CheckWordNotEmpty(trimmedEntry.Word)
         Dim mainIndex As Integer
@@ -185,12 +185,13 @@ Public Class DictionaryDao
 
     Private Function InsertWordWithCard(mainIndex As Integer, entry As WordEntry) As Integer
         Dim command As String = "
-            INSERT INTO DictionaryWords (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO DictionaryWords
+                        (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular, Reading)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         "
         DBConnection.ExecuteNonQuery(command, ToDbParameters(New List(Of Object) From {
             mainIndex, entry.Word, entry.Pre, entry.Post, entry.WordType,
-            entry.Meaning, entry.AdditionalTargetLangInfo, If(entry.Irregular, 1, 0)}))
+            entry.Meaning, entry.AdditionalTargetLangInfo, If(entry.Irregular, 1, 0), entry.Reading}))
 
         ' Card-Status hinzufügen
         Dim card As New CardsDao(DBConnection)
@@ -208,7 +209,8 @@ Public Class DictionaryDao
 
     Private Shared Function Trimmed(entry As WordEntry) As WordEntry
         Return New WordEntry(entry.Word?.Trim(), entry.Pre?.Trim(), entry.Post?.Trim(), entry.WordType,
-                         entry.Meaning?.Trim(), entry.AdditionalTargetLangInfo?.Trim(), entry.Irregular)
+                         entry.Meaning?.Trim(), entry.AdditionalTargetLangInfo?.Trim(), entry.Irregular,
+                         entry.Reading?.Trim())
     End Function
 
     ' The unset WordType and Irregular are filled from the entry: the result is the same update.
@@ -220,14 +222,15 @@ Public Class DictionaryDao
             .WordType = data.WordTypeDefault(entry),
             .Meaning = data.Meaning?.Trim(),
             .AdditionalTargetLangInfo = data.AdditionalTargetLangInfo?.Trim(),
-            .Irregular = data.IrregularDefault(entry)
+            .Irregular = data.IrregularDefault(entry),
+            .Reading = data.Reading?.Trim()
         }
     End Function
 
     Function ChangeEntry(ByVal entry As WordEntry, ByVal updateData As IDictionaryDao.UpdateData
         ) As WordEntry Implements IDictionaryDao.ChangeEntry
         updateData = Trimmed(updateData, entry)
-        CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo)
+        CheckAllowedText(updateData.Word, updateData.Pre, updateData.Post, updateData.Meaning, updateData.AdditionalTargetLangInfo, updateData.Reading)
         CheckWordNotEmpty(updateData.Word)
         If (updateData.Word IsNot Nothing AndAlso updateData.Word <> entry.Word) OrElse (updateData.Meaning IsNot Nothing AndAlso updateData.Meaning <> entry.Meaning) Then
             Dim newWord = updateData.WordDefault(entry)
@@ -267,6 +270,10 @@ Public Class DictionaryDao
             updateCommand = $"{updateCommand}, Irregular = ?"
             params.Add(updateData.Irregular)
         End If
+        If updateData.ReadingDefault(entry) <> entry.Reading Then
+            updateCommand = $"{updateCommand}, Reading = ?"
+            params.Add(updateData.Reading)
+        End If
         ' If nothing is gonna be changed simply return the original entry
         If updateCommand.Length = 0 Then Return entry
         updateCommand = updateCommand.Substring(1)
@@ -279,7 +286,7 @@ Public Class DictionaryDao
         ChangeEntry = New WordEntry(entry.WordIndex, updateData.WordDefault(entry), updateData.PreDefault(entry),
                                         updateData.PostDefault(entry), updateData.WordTypeDefault(entry),
                                         updateData.MeaningDefault(entry), updateData.AdditionalTargetLangInfoDefault(entry),
-                                        updateData.IrregularDefault(entry))
+                                        updateData.IrregularDefault(entry), updateData.ReadingDefault(entry))
     End Function
 
     Sub ChangeEntry(entry As WordEntry, mainEntry As MainEntry) Implements IDictionaryDao.ChangeEntry
@@ -311,6 +318,8 @@ Public Class DictionaryDao
                 GetU = wordEntry.AdditionalTargetLangInfo
             Case WordEntryFields.Irregular
                 GetU = wordEntry.Irregular
+            Case WordEntryFields.Reading
+                GetU = wordEntry.Reading
             Case Else
                 Contract.Assert(False)
         End Select

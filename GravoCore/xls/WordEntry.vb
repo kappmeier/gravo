@@ -11,8 +11,10 @@ Public Class WordEntry
     Private ReadOnly _meaning As String
     Private ReadOnly _additionalTargetLangInfo As String
     Private ReadOnly _irregular As Boolean
+    Private ReadOnly _reading As String
 
-    Protected Friend Sub New(index As Integer, word As String, pre As String, post As String, wordType As WordType, meaning As String, additionalTargetLangInfo As String, irregular As Boolean)
+    Protected Friend Sub New(index As Integer, word As String, pre As String, post As String, wordType As WordType, meaning As String,
+                             additionalTargetLangInfo As String, irregular As Boolean, Optional reading As String = "")
         _index = index
         _word = word
         _pre = pre
@@ -21,13 +23,14 @@ Public Class WordEntry
         _meaning = meaning
         _additionalTargetLangInfo = additionalTargetLangInfo
         _irregular = irregular
+        _reading = reading
     End Sub
 
     ''' <summary>
     ''' Creates an entry that is not yet stored in the database; it's index is initialized to 0.
     ''' </summary>
-    Public Sub New(word As String, pre As String, post As String, wordType As WordType, meaning As String, additionalTargetLangInfo As String, irregular As Boolean)
-        Me.New(0, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular)
+    Public Sub New(word As String, pre As String, post As String, wordType As WordType, meaning As String, additionalTargetLangInfo As String, irregular As Boolean, Optional reading As String = "")
+        Me.New(0, word, pre, post, wordType, meaning, additionalTargetLangInfo, irregular, reading)
     End Sub
 
     Public Property Index As Integer
@@ -82,6 +85,12 @@ Public Class WordEntry
         End Get
     End Property
 
+    Public ReadOnly Property Reading As String
+        Get
+            Return _reading
+        End Get
+    End Property
+
     Public ReadOnly Property WordIndex As Integer Implements IWordReference.WordIndex
         Get
             Return _index
@@ -98,12 +107,13 @@ Public Class WordEntry
                _wordType = entry._wordType AndAlso
                _meaning = entry._meaning AndAlso
                _additionalTargetLangInfo = entry._additionalTargetLangInfo AndAlso
-               _irregular = entry._irregular
+               _irregular = entry._irregular AndAlso
+               _reading = entry._reading
     End Function
 
     Public Overrides Function GetHashCode() As Integer
         ' Hash exactly the fields Equals compares without _index and normalized comparison
         Return (If(_word, ""), If(_pre, ""), If(_post, ""), _wordType, If(_meaning, ""),
-            If(_additionalTargetLangInfo, ""), _irregular).GetHashCode()
+            If(_additionalTargetLangInfo, ""), _irregular, If(_reading, "")).GetHashCode()
     End Function
 End Class

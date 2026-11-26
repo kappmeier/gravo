@@ -24,6 +24,7 @@ Public Class PropertiesDao
         builder.WithDictionaryWordsMaxLengthPost(SHORT_VALUE)
         builder.WithDictionaryWordsMaxLengthMeaning(LONG_VALUE)
         builder.WithDictionaryWordsMaxLengthAdditionalTargetLangInfo(MEDIUM_VALUE)
+        builder.WithDictionaryWordsMaxLengthReading(LONG_VALUE)
         builder.WithDictionaryMainMaxLengthWordEntry(MEDIUM_VALUE)
         builder.WithDictionaryMainMaxLengthLanguage(SHORT_VALUE)
         builder.WithDictionaryMainMaxLengthMainLanguage(SHORT_VALUE)

@@ -11,6 +11,7 @@ Public Class Properties
         DictionaryWordsMaxLengthPost = builder.DictionaryWordsMaxLengthPost
         DictionaryWordsMaxLengthMeaning = builder.DictionaryWordsMaxLengthMeaning
         DictionaryWordsMaxLengthAdditionalTargetLangInfo = builder.DictionaryWordsMaxLengthAdditionalTargetLangInfo
+        DictionaryWordsMaxLengthReading = builder.DictionaryWordsMaxLengthReading
         DictionaryMainMaxLengthWordEntry = builder.DictionaryMainMaxLengthWordEntry
         DictionaryMainMaxLengthLanguage = builder.DictionaryMainMaxLengthLanguage
         DictionaryMainMaxLengthMainLanguage = builder.DictionaryMainMaxLengthMainLanguage
@@ -27,6 +28,7 @@ Public Class Properties
     Public ReadOnly Property DictionaryWordsMaxLengthPost As Byte
     Public ReadOnly Property DictionaryWordsMaxLengthMeaning As Byte
     Public ReadOnly Property DictionaryWordsMaxLengthAdditionalTargetLangInfo As Byte
+    Public ReadOnly Property DictionaryWordsMaxLengthReading As Byte
     Public ReadOnly Property DictionaryMainMaxLengthWordEntry As Byte
     Public ReadOnly Property DictionaryMainMaxLengthLanguage As Byte
     Public ReadOnly Property DictionaryMainMaxLengthMainLanguage As Byte
@@ -90,6 +92,7 @@ Public Class Properties
         Friend Property DictionaryWordsMaxLengthPost As Byte
         Friend Property DictionaryWordsMaxLengthMeaning As Byte
         Friend Property DictionaryWordsMaxLengthAdditionalTargetLangInfo As Byte
+        Friend Property DictionaryWordsMaxLengthReading As Byte
         Friend Property DictionaryMainMaxLengthWordEntry As Byte
         Friend Property DictionaryMainMaxLengthLanguage As Byte
         Friend Property DictionaryMainMaxLengthMainLanguage As Byte
@@ -122,6 +125,11 @@ Public Class Properties
 
         Public Function WithDictionaryWordsMaxLengthAdditionalTargetLangInfo(value As Byte) As PropertiesBuilder
             DictionaryWordsMaxLengthAdditionalTargetLangInfo = value
+            Return Me
+        End Function
+
+        Public Function WithDictionaryWordsMaxLengthReading(value As Byte) As PropertiesBuilder
+            DictionaryWordsMaxLengthReading = value
             Return Me
         End Function
 

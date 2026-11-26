@@ -33,6 +33,10 @@ Public Class DictionaryDaoTests
     ''' A new word that can be added to an existing main index without violating the rules
     ''' </summary>
     Private ReadOnly newWord As WordEntry = New WordEntry("wordx", "", "", WordType.Adjective, "new meaning", "", True)
+    ''' <summary>
+    ''' A new word with the optional reading set.
+    ''' </summary>
+    Private ReadOnly newWordWithReading As WordEntry = New WordEntry("食べる", "", "", WordType.Verb, "essen", "", False, "たべる")
     Private ReadOnly nonExistingMainEntry As MockMainEntry = New MockMainEntry(9, "", "", "")
     Private ReadOnly lang2MainEntry As MockMainEntry = New MockMainEntry(2, "some word", "lang2", "targetLang")
     Private ReadOnly lang2AnotherMainEntry As MockMainEntry = New MockMainEntry(4, "another", "lang2", "targetLang")
@@ -115,6 +119,15 @@ Public Class DictionaryDaoTests
             Select(Function(w) w.Meaning)
 
         meanings.Should.EndWith({"zzz meaning", "aaa meaning"})
+    End Sub
+
+    <Test>
+    Public Sub GetWords_Existing_ReturnsReading()
+        Dim entry As WordEntry = newWordWithReading
+        _dictionaryDao.AddSubEntry(entry, "word1", language, targetLanguage)
+
+        Dim words = _dictionaryDao.GetWords(language, targetLanguage)
+        words.Single(Function(w) w.Word = newWordWithReading.Word).Reading.Should().Be(newWordWithReading.Reading)
     End Sub
 
     <Test>
@@ -224,6 +237,7 @@ Public Class DictionaryDaoTests
         Dim updatedWords As Collection(Of WordEntry) = CType(_dictionaryDao.GetWordsAndSubWords("wordx", language, targetLanguage), Collection(Of WordEntry))
         Dim expectedResult = New List(Of WordEntry) From {wordWithoutSubwords, newWord}
 
+        ' Asserts equality on each field. Empty optional Reading is verified as well.
         updatedWords.Should.BeEquivalentTo(expectedResult)
 
         AssertCardCreated()
@@ -277,6 +291,14 @@ Public Class DictionaryDaoTests
         counter.Should.Be(1)
         testIntervalMain.Should.Be(1)
         counterMain.Should.Be(1)
+    End Sub
+
+    <Test>
+    Public Sub AddSubEntry_WithOptionalReading_ReadingIsStored()
+        _dictionaryDao.AddSubEntry(newWordWithReading, "word1", language, targetLanguage)
+
+        Dim loaded = _dictionaryDao.GetEntry(word1MainEntry, newWordWithReading.Word, newWordWithReading.Meaning)
+        loaded.Reading.Should().Be(newWordWithReading.Reading)
     End Sub
 
     <Test>
@@ -347,13 +369,32 @@ Public Class DictionaryDaoTests
 
     <Test>
     Public Sub ChangeEntry_ChangeMeaning_Works()
-        Dim meaningUpdate As New IDictionaryDao.UpdateData With {
-            .Meaning = "new meaning"
-        }
-        Dim newEntryWord As WordEntry = _dictionaryDao.ChangeEntry(word1entry1, meaningUpdate)
+        Dim newEntryWord As WordEntry = ChangeMeaning(word1entry1)
         Dim expectedResult As WordEntry = New GroupDaoTests.MockWordEntry(1, "word1", "pre", "post", WordType.Verb, "new meaning", "l", False)
         newEntryWord.Should.BeEquivalentTo(expectedResult)
     End Sub
+
+    <Test>
+    Public Sub ChangeEntry_KeepsReading_KeepsReadingUnchanged()
+        ' Create an entry with reading first
+        Dim withReading As New IDictionaryDao.UpdateData With {.Reading = "よむ"}
+        Dim changedWithReading = _dictionaryDao.ChangeEntry(word1entry1, withReading)
+
+        ' The reading should be preserved after the change.
+        changedWithReading.Reading.Should().Be("よむ")
+        _dictionaryDao.GetEntry(word1MainEntry, "word1", "m").Reading.Should().Be("よむ")
+
+        ' Changing the meaning should not affect the reading.
+        Dim newEntryWord As WordEntry = ChangeMeaning(changedWithReading)
+        newEntryWord.Reading.Should().Be("よむ")
+    End Sub
+
+    Private Function ChangeMeaning(wordEntry As WordEntry) As WordEntry
+        Dim meaningUpdate As New IDictionaryDao.UpdateData With {
+            .Meaning = "new meaning"
+        }
+        return _dictionaryDao.ChangeEntry(wordEntry, meaningUpdate)
+    End Function
 
     <Test>
     Public Sub ChangeEntry_ChangeAll_Works()

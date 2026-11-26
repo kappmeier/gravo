@@ -40,6 +40,7 @@ Public Class PropertiesDaoTests
         p.DictionaryWordsMaxLengthPost.Should.Be(16)
         p.DictionaryWordsMaxLengthPre.Should.Be(16)
         p.DictionaryWordsMaxLengthWord.Should.Be(80)
+        p.DictionaryWordsMaxLengthReading.Should.Be(80)
         p.GroupMaxLengthExample.Should.Be(64)
         p.GroupsMaxLengthName.Should.Be(50)
         p.GroupsMaxLengthSubName.Should.Be(50)

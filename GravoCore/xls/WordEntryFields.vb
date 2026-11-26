@@ -6,4 +6,5 @@
     Meaning
     TargetLanguageInfo
     Irregular
+    Reading
 End Enum

@@ -11,6 +11,7 @@ Public Interface IDictionaryDao
         Private _meaning As String
         Private _additionalTargetLangInfo As String
         Private _irregular As Boolean?
+        Private _reading As String
 
         Public Property Word As String
             Get
@@ -101,6 +102,19 @@ Public Interface IDictionaryDao
 
         Function IrregularDefault(entry As WordEntry) As Boolean
             Return If(_irregular, entry.Irregular)
+        End Function
+
+        Public Property Reading As String
+            Get
+                Return _reading
+            End Get
+            Set(value As String)
+                _reading = value
+            End Set
+        End Property
+
+        Function ReadingDefault(entry As WordEntry) As String
+            Return If(_reading, entry.Reading)
         End Function
     End Class
 
