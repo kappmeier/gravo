@@ -12,7 +12,9 @@ on:
         required: true
         type: number
       model:
-        description: "Vibe model for this run; must be allowed by the workspace admin config (allowed_models)"
+        description: >
+          Vibe model for this run, defaults to mistral-medium-latest.
+          Must be allowed by the workspace admin config (allowed_models).
         required: false
         type: string
         default: "mistral-medium-latest"
