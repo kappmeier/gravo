@@ -5,6 +5,19 @@ on:
     types: [opened, synchronize, labeled]
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number to review"
+        required: true
+        type: number
+      model:
+        description: >
+          Vibe model for this run, defaults to mistral-medium-latest.
+          Must be allowed by the workspace admin config (allowed_models).
+        required: false
+        type: string
+        default: "mistral-medium-latest"
 
 permissions:
   contents: read
@@ -20,6 +33,8 @@ jobs:
       && github.event.issue.pull_request
       && contains(github.event.comment.body, '/review')
       && contains(fromJSON('["MEMBER", "OWNER", "COLLABORATOR"]'), github.event.comment.author_association))
+      ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Ensure labels exist
@@ -38,11 +53,11 @@ jobs:
           ensure_label ai-review "Opt in to the AI-based pull request review (pilot)" 0E8A16
           ensure_label skip-ai-review "Opt out of the AI-based pull request review (pilot)" D73A4A
       - name: Resolve PR head SHA
-        if: github.event_name == 'issue_comment'
+        if: github.event_name == 'issue_comment' || github.event_name == 'workflow_dispatch'
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ github.event.issue.number || github.event.inputs.pr }}
         run: echo "sha=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" >> "$GITHUB_OUTPUT"
       - name: Checkout PR head
         uses: actions/checkout@v7
@@ -58,8 +73,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          VIBE_MODEL: mistral-medium-3.5
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
+          VIBE_MODEL: ${{ github.event.inputs.model || 'mistral-medium-latest' }}
           VIBE_MAX_TURNS: "25"
           VIBE_MAX_PRICE: "1.00"
           VIBE_ENABLE_UPDATE_CHECKS: "false"
@@ -77,6 +92,6 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || steps.pr.outputs.sha }}
         run: python3 .github/scripts/post_review.py --pr "$PR_NUMBER" --commit "$HEAD_SHA" --artifact review.json
