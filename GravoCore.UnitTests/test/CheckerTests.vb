@@ -9,12 +9,19 @@ Public Class CheckerTests
     Private ReadOnly mainEntry As MainEntry = New MainEntry("word1", "lang", "mainLang")
     Private dictionaryDaoMock As Mock(Of IDictionaryDao)
 
+    Private ReadOnly japaneseCurrent As WordEntry = New WordEntry("食べる", "", "", WordType.Verb, "essen", "", False, "たべる")
+    Private ReadOnly japaneseMainEntry As MainEntry = New MainEntry("食べる", "japanese", "german")
+    Private ReadOnly japaneseKatakanaCurrent As WordEntry = New WordEntry("ケーキ", "", "", WordType.Substantive, "Kuchen", "", False, "")
+    Private ReadOnly nonJapaneseWithReading As WordEntry = New WordEntry("word", "", "", WordType.Verb, "meaning", "", False, "reading")
+    Private ReadOnly nonJapaneseMainEntry As MainEntry = New MainEntry("word", "lang", "mainLang")
+
     <SetUp>
     Public Sub Setup()
         dictionaryDaoMock = New Mock(Of IDictionaryDao)(MockBehavior.Strict)
     End Sub
 
     Private Function CreateFixture(queryLanguage As QueryLanguage) As Checker
+        dictionaryDaoMock.Setup(Function(x) x.GetMainEntry(current)).Returns(mainEntry)
         Return New Checker(dictionaryDaoMock.Object, queryLanguage, current)
     End Function
 
@@ -179,5 +186,95 @@ Public Class CheckerTests
         Dim checker As Checker = CreateFixture(QueryLanguage.OriginalLanguage)
 
         checker.Retest.Should.Be(False)
+    End Sub
+
+    Private Function CreateJapaneseFixture(queryLanguage As QueryLanguage) As Checker
+        dictionaryDaoMock.Setup(Function(x) x.GetMainEntry(japaneseCurrent)).Returns(japaneseMainEntry)
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsWithMeaning(japaneseCurrent.Meaning, japaneseMainEntry.Language, japaneseMainEntry.MainLanguage)).
+            Returns(New List(Of WordEntry) From {japaneseCurrent})
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsAndSubWords(japaneseMainEntry)).
+            Returns(New List(Of WordEntry) From {japaneseCurrent})
+        Return New Checker(dictionaryDaoMock.Object, queryLanguage, japaneseCurrent)
+    End Function
+
+    Private Function CreateKatakanaFixture(queryLanguage As QueryLanguage) As Checker
+        dictionaryDaoMock.Setup(Function(x) x.GetMainEntry(japaneseKatakanaCurrent)).Returns(japaneseMainEntry)
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsWithMeaning(japaneseKatakanaCurrent.Meaning, japaneseMainEntry.Language, japaneseMainEntry.MainLanguage)).
+            Returns(New List(Of WordEntry) From {japaneseKatakanaCurrent})
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsAndSubWords(japaneseMainEntry)).
+            Returns(New List(Of WordEntry) From {japaneseKatakanaCurrent})
+        Return New Checker(dictionaryDaoMock.Object, queryLanguage, japaneseKatakanaCurrent)
+    End Function
+
+    Private Function CreateNonJapaneseWithReadingFixture(queryLanguage As QueryLanguage) As Checker
+        dictionaryDaoMock.Setup(Function(x) x.GetMainEntry(nonJapaneseWithReading)).Returns(nonJapaneseMainEntry)
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsWithMeaning(nonJapaneseWithReading.Meaning, nonJapaneseMainEntry.Language, nonJapaneseMainEntry.MainLanguage)).
+            Returns(New List(Of WordEntry) From {nonJapaneseWithReading})
+        dictionaryDaoMock.Setup(Function(x) x.GetWordsAndSubWords(nonJapaneseMainEntry)).
+            Returns(New List(Of WordEntry) From {nonJapaneseWithReading})
+        Return New Checker(dictionaryDaoMock.Object, queryLanguage, nonJapaneseWithReading)
+    End Function
+
+    <Test>
+    Public Sub Evaluate_JapaneseActive_AnyInput_ReturnsNoError()
+        Dim checker As Checker = CreateJapaneseFixture(QueryLanguage.OriginalLanguage)
+
+        ' Romaji, any case
+        checker.Evaluate("taberu").Should().Be(TestResult.NoError)
+        checker.Evaluate("TABERU").Should().Be(TestResult.NoError)
+        ' The original Japanese word in kanji
+        checker.Evaluate("食べる").Should().Be(TestResult.NoError)
+        ' Hiragana
+        checker.Evaluate("たべる").Should().Be(TestResult.NoError)
+        ' Katakana
+        checker.Evaluate("タベル").Should().Be(TestResult.NoError)
+    End Sub
+
+    <Test>
+    Public Sub Evaluate_JapaneseKatakanaActive_AnyInput_ReturnsNoError()
+        Dim checker As Checker = CreateKatakanaFixture(QueryLanguage.OriginalLanguage)
+
+        ' Romaji, any case
+        checker.Evaluate("keeki").Should().Be(TestResult.NoError)
+        checker.Evaluate("KeEki").Should().Be(TestResult.NoError)
+        ' Romaji with macron
+        checker.Evaluate("kēki").Should().Be(TestResult.NoError)
+        ' Hiragana
+        checker.Evaluate("けえき").Should().Be(TestResult.NoError)
+        ' Katakana
+        checker.Evaluate("ケーキ").Should().Be(TestResult.NoError)
+    End Sub
+
+    <Test>
+    Public Sub Evaluate_JapaneseActive_WrongInput_ReturnsWrong()
+        Dim checker As Checker = CreateJapaneseFixture(QueryLanguage.OriginalLanguage)
+
+        checker.Evaluate("nomatch").Should().Be(TestResult.Wrong)
+    End Sub
+
+    <Test>
+    Public Sub Evaluate_JapanesePassive_QuestionAndAnswer()
+        Dim checker As Checker = CreateJapaneseFixture(QueryLanguage.TargetLanguage)
+
+        checker.Question.Should().Be("食べる")
+        checker.Answer.Should().Be("essen")
+        checker.Info.Should().Be("たべる")
+    End Sub
+
+    <Test>
+    Public Sub Evaluate_JapaneseActive_QuestionAndAnswer()
+        Dim checker As Checker = CreateJapaneseFixture(QueryLanguage.OriginalLanguage)
+
+        checker.Question.Should().Be("essen")
+        checker.Answer.Should().Be("食べる（たべる）")
+        checker.Info.Should().Be("")
+    End Sub
+
+    <Test>
+    Public Sub Evaluate_NonJapaneseWithReading_Active_StillChecksWordOnly()
+        Dim checker As Checker = CreateNonJapaneseWithReadingFixture(QueryLanguage.OriginalLanguage)
+
+        checker.Evaluate("word").Should().Be(TestResult.NoError)
+        checker.Evaluate("reading").Should().Be(TestResult.Wrong)
     End Sub
 End Class
