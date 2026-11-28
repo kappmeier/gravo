@@ -77,6 +77,29 @@ Public Class DatabaseTransferLanguageTests
         CountRows(_targetDb, "Cards").Should().Be(5)
     End Sub
 
+    ''' <summary>Test for the special case with non-empty optional `Reading`</summary>
+    <Test>
+    Public Sub CopyLanguage_WordWithReading_TransfersReading()
+        _sourceDb.ExecuteNonQuery("
+            INSERT INTO DictionaryMain (WordEntry, LanguageName, MainLanguage)
+            VALUES ('食べる', 'japanese', ?)
+        ", New List(Of Object) From {mainLanguage})
+        _sourceDb.ExecuteNonQuery("
+            INSERT INTO DictionaryWords
+                   (MainIndex, Word, Pre, Post, WordType, Meaning, TargetLanguageInfo, Irregular, Reading)
+            VALUES ((SELECT [Index]
+                       FROM DictionaryMain
+                      WHERE WordEntry='食べる'),
+                    '食べる', '', '', 1, 'essen', '', 0, 'たべる')
+        ", Array.Empty(Of Object))
+
+        _transfer.CopyLanguage("japanese", mainLanguage, False)
+
+        Dim main = _target.Dictionary.GetMainEntry("食べる", "japanese", mainLanguage)
+        Dim word = _target.Dictionary.GetEntry(main, "食べる", "essen")
+        word.Reading.Should().Be("たべる")
+    End Sub
+
     <Test>
     Public Sub CopyLanguage_Lang2_SkipsMainWithoutWords()
         Dim result As TransferResult = _transfer.CopyLanguage("lang2", mainLanguage, False)

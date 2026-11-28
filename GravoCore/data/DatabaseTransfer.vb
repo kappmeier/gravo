@@ -181,7 +181,7 @@ Public Class DatabaseTransfer
             Return target.Dictionary.GetEntry(targetMain, word.Word, word.Meaning)
         Catch ex As EntryNotFoundException
             Dim copy As New WordEntry(word.Word, word.Pre, word.Post, word.WordType, word.Meaning,
-                    word.AdditionalTargetLangInfo, word.Irregular)
+                    word.AdditionalTargetLangInfo, word.Irregular, word.Reading)
             target.Dictionary.AddSubEntry(copy, targetMain.Word, targetMain.Language, targetMain.MainLanguage)
             result.SubEntries += 1
             Return copy
